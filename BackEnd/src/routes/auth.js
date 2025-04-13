@@ -22,7 +22,7 @@ router.post(
   authController.registerTutor
 );
 router.post("/login", authController.loginUser);
-router.get("/profile", auth, authController.fetchUserProfile);
+router.get("/profile", auth('Student', 'Tutor'), authController.fetchUserProfile);
 router.put("/update-password", userController.updateUserPassword);
 
 module.exports = router;

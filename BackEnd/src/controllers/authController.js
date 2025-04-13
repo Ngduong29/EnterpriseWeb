@@ -43,13 +43,13 @@ class authController {
       });
 
       console.log(user);
-      
+
       // Create student
       const student = await Student.createStudent(user.userID, {
         grade,
         school,
       });
-    
+
       if (!student) {
         return res.status(500).json({
           message: "Cannot create student",
@@ -112,7 +112,7 @@ class authController {
         description,
       });
       console.log(identityCard);
-      
+
 
       const request = await Tutor.registerTutor(user.userID, tutor.tutorID);
       if (!request) {
@@ -143,7 +143,7 @@ class authController {
       if (!user) {
         return res.status(400).json({ message: "Invalid credentials" });
       }
-      
+
       const isMatch = await User.comparePassword(password, user.password);
       console.log(isMatch);
       if (!isMatch) {
@@ -174,7 +174,8 @@ class authController {
 
   static fetchUserProfile = async (req, res) => {
     try {
-      const user = req.body.user;
+      const user = req.user;
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
