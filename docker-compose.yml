@@ -48,12 +48,10 @@ services:
     volumes:
       - ./FrontEnd:/app
       - /app/node_modules
-    depends_on:
-      - backend
-    env_file:
-      - ./.env
     environment:
       - VITE_API_URL=http://backend:5000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     networks:
       - tutor-network
     restart: unless-stopped

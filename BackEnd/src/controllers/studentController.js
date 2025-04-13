@@ -111,7 +111,7 @@ class studentController {
         return res.status(404).json({
           message: "Cannot search for tutor",
         });
-      }
+      } 
 
       return res.status(200).json({
         message: "Search successfully",
