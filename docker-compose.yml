@@ -24,7 +24,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./Backend:/app
+      - ./BackEnd:/app
       - /app/node_modules
     env_file:
       - ./.env

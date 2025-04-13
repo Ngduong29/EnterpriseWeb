@@ -12,6 +12,8 @@ RUN npm install --only=production
 # Sau đó mới copy source code
 COPY . .
 
+RUN chmod -R 777 /app
+
 EXPOSE 5000
 
 CMD ["npm", "run", "dev"]

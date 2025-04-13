@@ -75,6 +75,7 @@ class User {
   }
 
   static async findByEmail(email) {
+    console.log(email);
     const connection = await connectDB();
     const [rows] = await connection.execute(
       "SELECT * FROM Users WHERE email = ?",
