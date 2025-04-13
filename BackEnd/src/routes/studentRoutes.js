@@ -1,4 +1,6 @@
 const express = require("express");
+const auth = require("../middleware/auth");
+
 const studentController = require("../controllers/studentController");
 const classroomController = require("../controllers/classController");
 
@@ -29,6 +31,6 @@ router.post("/unEnrollClass/:id", studentController.unEnrollClass);
 router.post("/feedback/:classID", studentController.feedbackClass);
 router.post("/requestClass/:tutorID", studentController.requestClass);
 router.get("/viewRequest/:studentID", studentController.viewRequest);
-router.delete("/:id", studentController.deleteStudent);
+router.delete("/:id", auth("Students"), studentController.deleteStudent);
 
 module.exports = router;

@@ -1,22 +1,30 @@
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
+const jwt = require('jsonwebtoken');
 
-dotenv.config();
+function authorize(...allowedRoles) {
+  return (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
 
-const auth = (req, res, next) => {
-  const token = req.header("Authorization")?.split(" ")[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
-  }
+      req.user = decoded.user; // Gắn user đã giải mã vào request
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.body = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: "Token is not valid" });
-  }
-};
+      if (decoded.user.role === 'Admin') {
+        return next();
+      }
 
-module.exports = auth;
+      if (!allowedRoles.includes(user.role)) {
+        return res.status(403).json({ message: 'Forbidden. Insufficient role.' });
+      }
+
+      next();
+    } catch (err) {
+      res.status(401).json({ message: 'Invalid or expired token.' + err });
+    }
+  };
+}
+
+module.exports = authorize;
