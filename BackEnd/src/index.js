@@ -11,7 +11,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const connectDB = require("./config/db");
 const { Server } = require("socket.io");
 const http = require("http");
-const sendEmail  = require("./email/EmailOtp");
+const sendEmail = require("./email/EmailOtp");
 
 dotenv.config();
 
@@ -44,8 +44,6 @@ app.post("/send_recovery_email", (req, res) => {
     .catch((error) => res.status(500).send(error.message));
 });
 
-
-
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
@@ -55,8 +53,6 @@ server.listen(PORT, () => {
 connectDB();
 
 io.on("connection", (socket) => {
-  console.log("A user connected");
-
   socket.on("sendMessage", async (message) => {
     try {
       io.emit("receiveMessage", message);
@@ -69,5 +65,3 @@ io.on("connection", (socket) => {
     console.log("A user disconnected");
   });
 });
-
-

@@ -194,7 +194,7 @@ const ClassList = () => {
               <Link to={`/classDetail/${item.classID}`} key={item.classID} state={item}>
                 <Card className='group relative overflow-hidden hover:opacity-75'>
                   <img
-                    src={`https://img.youtube.com/vi/${item.videoLink.split('v=')[1]}/0.jpg`}
+                    src={`https://img.youtube.com/vi/${item?.videoLink?.split('v=')[1]}/0.jpg` || ''}
                     alt={item.className}
                     className='object-cover'
                   />
