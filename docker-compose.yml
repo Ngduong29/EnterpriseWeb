@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+
+  mysql:
+      image: mysql:8.0
+      container_name: mysql
+      ports:
+        - "3307:3306"
+      environment:
+        - MYSQL_ROOT_PASSWORD=Password123!
+        - MYSQL_DATABASE=tutordb
+      volumes:
+        - mysql_data:/var/lib/mysql
+      networks:
+        - tutor-network
+      restart: unless-stopped
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: tutor-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./Backend:/app
+      - /app/node_modules
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=development
+      - DB_SERVER=mysql
+      - DB_USER=root
+      - DB_PASSWORD=Password123!
+      - DB_DATABASE=tutordb
+    networks:
+      - tutor-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+    container_name: tutor-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./FrontEnd:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    env_file:
+      - ./.env
+    environment:
+      - VITE_API_URL=http://backend:5000
+    networks:
+      - tutor-network
+    restart: unless-stopped
+
+networks:
+  tutor-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
