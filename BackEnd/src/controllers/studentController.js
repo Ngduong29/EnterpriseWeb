@@ -111,7 +111,7 @@ class studentController {
         return res.status(404).json({
           message: "Cannot search for tutor",
         });
-      } 
+      }
 
       return res.status(200).json({
         message: "Search successfully",
@@ -315,6 +315,34 @@ class studentController {
       res.status(500).json({
         message: "error in sending feedback",
         error,
+      });
+    }
+  };
+
+  static deleteStudent = async (req, res) => {
+    try {
+      const userID = req.params.id;
+      if (!userID) {
+        return res.status(404).json({
+          message: "Please provide user ID",
+        });
+      }
+
+      const result = await Student.deleteStudent(userID);
+      if (!result) {
+        return res.status(404).json({
+          message: "Student not found or could not be deleted",
+        });
+      }
+
+      res.status(200).json({
+        message: "Student deleted successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error deleting student",
+        error: error.message,
       });
     }
   };

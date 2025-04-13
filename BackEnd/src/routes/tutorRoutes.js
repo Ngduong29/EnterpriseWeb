@@ -14,5 +14,6 @@ router.get("/viewRequest/:tutorID", tutorController.getRequest);
 router.get("/viewFeedback/:classID", classController.getFeedbackByClass);
 router.delete("/confirmRequest", tutorController.confirmRequest);
 router.get("/check-status/:id", tutorController.checkTutorStatus);
+router.delete("/:id", tutorController.deleteTutor);
 
 module.exports = router;
