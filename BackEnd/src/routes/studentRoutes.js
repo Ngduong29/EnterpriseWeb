@@ -29,5 +29,6 @@ router.post("/unEnrollClass/:id", studentController.unEnrollClass);
 router.post("/feedback/:classID", studentController.feedbackClass);
 router.post("/requestClass/:tutorID", studentController.requestClass);
 router.get("/viewRequest/:studentID", studentController.viewRequest);
+router.delete("/:id", studentController.deleteStudent);
 
 module.exports = router;

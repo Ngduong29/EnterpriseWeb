@@ -37,14 +37,6 @@ class User {
     this.isActive = isActive;
   }
 
-  static async getModerator() {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(
-      "SELECT * FROM Users WHERE role = ?",
-      ["Moderator"]
-    );
-    return rows;
-  }
 
   static async getAllUser() {
     const connection = await connectDB();
@@ -75,7 +67,6 @@ class User {
   }
 
   static async findByEmail(email) {
-    console.log(email);
     const connection = await connectDB();
     const [rows] = await connection.execute(
       "SELECT * FROM Users WHERE email = ?",

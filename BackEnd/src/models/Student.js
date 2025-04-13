@@ -157,6 +157,77 @@ class Student {
     );
     return { classroom, message, rating, date };
   }
+
+  static async deleteStudent(userID) {
+    const connection = await connectDB();
+    try {
+      // Start a transaction
+      await connection.beginTransaction();
+
+      // Get studentID first
+      const [[student]] = await connection.execute(
+        `SELECT studentID FROM Students WHERE userID = ?`,
+        [userID]
+      );
+
+      if (!student) {
+        throw new Error('Student not found');
+      }
+
+      const studentID = student.studentID;
+
+      // 1. Delete all feedbacks from student
+      await connection.execute(
+        `DELETE FROM Feedbacks WHERE studentID = ?`,
+        [studentID]
+      );
+
+      // 2. Delete all messages related to student
+      await connection.execute(
+        `DELETE FROM Messages WHERE senderID = ? OR receiverID = ?`,
+        [userID, userID]
+      );
+
+      // 3. Unenroll from all classes
+      await connection.execute(
+        `UPDATE Classes SET studentID = NULL WHERE studentID = ?`,
+        [studentID]
+      );
+
+      // 4. Delete all requests from student
+      await connection.execute(
+        `DELETE FROM Requests WHERE studentID = ?`,
+        [studentID]
+      );
+
+      // 5. Delete all complains from student
+      await connection.execute(
+        `DELETE FROM Complains WHERE uID = ?`,
+        [userID]
+      );
+
+      // 6. Delete student record
+      const [result] = await connection.execute(
+        `DELETE FROM Students WHERE userID = ?`,
+        [userID]
+      );
+
+      // 7. Delete user account
+      await connection.execute(
+        `DELETE FROM Users WHERE userID = ?`,
+        [userID]
+      );
+
+      // Commit the transaction
+      await connection.commit();
+
+      return result.affectedRows > 0;
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await connection.rollback();
+      throw error;
+    }
+  }
 }
 
 module.exports = Student;

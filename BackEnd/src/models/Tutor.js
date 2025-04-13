@@ -185,6 +185,83 @@ class Tutor {
     );
     return rows[0]?.status;
   }
+
+  static async deleteTutor(userID) {
+    const connection = await connectDB();
+    try {
+      // Start a transaction
+      await connection.beginTransaction();
+
+      // Get tutorID first
+      const [[tutor]] = await connection.execute(
+        `SELECT tutorID FROM Tutors WHERE userID = ?`,
+        [userID]
+      );
+
+      if (!tutor) {
+        throw new Error('Tutor not found');
+      }
+
+      const tutorID = tutor.tutorID;
+
+      // 1. Delete all feedbacks for tutor
+      await connection.execute(
+        `DELETE FROM Feedbacks WHERE tutorID = ?`,
+        [tutorID]
+      );
+
+      // 2. Delete all messages related to tutor
+      await connection.execute(
+        `DELETE FROM Messages WHERE senderID = ? OR receiverID = ?`,
+        [userID, userID]
+      );
+
+      // 3. Delete all classes of tutor
+      await connection.execute(
+        `DELETE FROM Classes WHERE tutorID = ?`,
+        [tutorID]
+      );
+
+      // 4. Delete all requests to/from tutor
+      await connection.execute(
+        `DELETE FROM Requests WHERE tutorID = ?`,
+        [tutorID]
+      );
+
+      // 5. Delete all tutor requests
+      await connection.execute(
+        `DELETE FROM TutorRequests WHERE tutorID = ?`,
+        [tutorID]
+      );
+
+      // 6. Delete all complains from tutor
+      await connection.execute(
+        `DELETE FROM Complains WHERE uID = ?`,
+        [userID]
+      );
+
+      // 7. Delete tutor record
+      const [result] = await connection.execute(
+        `DELETE FROM Tutors WHERE userID = ?`,
+        [userID]
+      );
+
+      // 8. Delete user account
+      await connection.execute(
+        `DELETE FROM Users WHERE userID = ?`,
+        [userID]
+      );
+
+      // Commit the transaction
+      await connection.commit();
+
+      return result.affectedRows > 0;
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await connection.rollback();
+      throw error;
+    }
+  }
 }
 
 module.exports = Tutor;

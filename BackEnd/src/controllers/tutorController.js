@@ -328,6 +328,39 @@ class tutorController {
       });
     }
   };
+
+  static deleteTutor = async (req, res) => {
+    try {
+      const userID = req.params.id;
+      if (!userID) {
+        return res.status(404).json({
+          message: "Please provide user ID",
+        });
+      }
+
+      const result = await Tutor.deleteTutor(userID);
+      if (!result) {
+        return res.status(404).json({
+          message: "Tutor not found or could not be deleted",
+        });
+      }
+
+      res.status(200).json({
+        message: "Tutor deleted successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      if (error.message === 'Cannot delete tutor with active classes') {
+        return res.status(400).json({
+          message: "Cannot delete tutor with active classes. Please deactivate or delete the classes first.",
+        });
+      }
+      res.status(500).json({
+        message: "Error deleting tutor",
+        error: error.message,
+      });
+    }
+  };
 }
 
 module.exports = tutorController;
