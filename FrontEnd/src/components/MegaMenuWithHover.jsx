@@ -3,10 +3,11 @@ import Logo from '../assets/logoNav.png'
 import NavList from './NavList'
 import { Link } from 'react-router-dom'
 import { Button, Input, Collapse, IconButton } from '@material-tailwind/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import SearchBar from './Navigation/SearchBar'
 
 export function MegaMenuWithHover() {
+  const [openSearch, setOpenSearch] = useState(false)
   const [openNav, setOpenNav] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true') // Retrieve login status from localStorage
 
@@ -26,6 +27,7 @@ export function MegaMenuWithHover() {
 
   useEffect(() => {
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenNav(false))
+    window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenSearch(false))
   }, [])
 
   return (
@@ -34,21 +36,36 @@ export function MegaMenuWithHover() {
         <Link to='/' className='inline-block'>
           <img className='h-16 min-w-11 ml-6' src={Logo} alt='Logo' />
         </Link>
-        <SearchBar />
+        <div className='mobile-hidden'>
+          <SearchBar />
+        </div>
 
         <div className='mobile-hidden'>
           {/* Pass isLoggedIn state to NavList */}
           <NavList isLoggedIn={isLoggedIn} />
         </div>
-
-        <IconButton variant='text' color='blue-gray' className='lg:hidden' onClick={() => setOpenNav(!openNav)}>
-          {openNav ? (
-            <XMarkIcon className='h-6 w-6' strokeWidth={2} />
-          ) : (
-            <Bars3Icon className='h-6 w-6' strokeWidth={2} />
-          )}
-        </IconButton>
+        <div>
+          <IconButton variant='text' color='blue-gray' className='lg:hidden' onClick={() => setOpenSearch(!openSearch)}>
+            {openSearch ? (
+              <XMarkIcon className='h-6 w-6' strokeWidth={2} />
+            ) : (
+              <MagnifyingGlassIcon className='h-6 w-6' strokeWidth={2} />
+            )}
+          </IconButton>
+          <IconButton variant='text' color='blue-gray' className='lg:hidden' onClick={() => setOpenNav(!openNav)}>
+            {openNav ? (
+              <XMarkIcon className='h-6 w-6' strokeWidth={2} />
+            ) : (
+              <Bars3Icon className='h-6 w-6' strokeWidth={2} />
+            )}
+          </IconButton>
+        </div>
       </div>
+      <Collapse open={openSearch}>
+        <div className='text-center px-2 py-3'>
+          <SearchBar />
+        </div>
+      </Collapse>
       <Collapse open={openNav}>
         {/* Pass isLoggedIn state to NavList */}
         <NavList isLoggedIn={isLoggedIn} />

@@ -37,7 +37,7 @@ const SearchBar = () => {
   }
 
   return (
-    <div className='relative flex flex-col w-full gap-2 md:w-max'>
+    <div className='relative flex flex-col w-full gap-2 md:w-max sm:w-auto mx-auto'>
       <div className='relative flex w-full gap-2'>
         <Input
           type='search'
@@ -47,7 +47,7 @@ const SearchBar = () => {
           }}
           className='pr-20 border-white blue-gray bg-white focus:!border-transparent'
           containerProps={{
-            className: 'min-w-[500px] border-white'
+            className: 'sm:min-w-[300px] md:min-w-[500px] border-white'
           }}
           value={query}
           onChange={handleInputChange}
