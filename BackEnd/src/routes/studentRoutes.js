@@ -1,12 +1,9 @@
 const express = require("express");
 const studentController = require("../controllers/studentController");
 const classroomController = require("../controllers/classController");
-const auth = require("../middleware/auth");
-const authorize = require("../middleware/authorize");
 
 const router = express.Router();
 
-// Public routes
 router.get("/getTutor/:search?", studentController.getTutor); //? để khi muốn lấy toàn bộ tutor
 router.get(
   "/searchClassByTutorName/:search",
@@ -26,9 +23,6 @@ router.get(
   classroomController.findClassroomBySubject
 );
 // router.get("/getTutorEnrolled", studentController.getTutorEnroll);
-
-// Protected routes - Student only
-router.use(auth, authorize(['Student']));
 router.get("/checkEnroll/:id", studentController.checkEnrollStatus);
 router.post("/enrollClass/:id", studentController.enrollClass);
 router.post("/unEnrollClass/:id", studentController.unEnrollClass);

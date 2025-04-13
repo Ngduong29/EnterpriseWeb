@@ -2,7 +2,6 @@ const Tutor = require("../models/Tutor");
 const User = require("../models/User");
 const Student = require("../models/Student");
 const multer = require("multer");
-const bcrypt = require("bcrypt");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -184,77 +183,6 @@ class authController {
     } catch (error) {
       console.error("Error fetching user profile:", error);
       res.status(500).json({ message: "Server error" });
-    }
-  };
-
-  static updateUserProfile = async (req, res) => {
-    try {
-      const { userName, fullName, email, phone, address, dateOfBirth } = req.body;
-      const userID = req.user.userID;
-
-      // Validate input
-      if (!userName || !fullName || !email) {
-        return res.status(400).json({ message: "Required fields are missing" });
-      }
-
-      // Check if email is already taken by another user
-      const existingUser = await User.findByEmail(email);
-      if (existingUser && existingUser.userID !== userID) {
-        return res.status(400).json({ message: "Email is already taken" });
-      }
-
-      // Update user profile
-      const updatedUser = await User.updateUser({
-        userName,
-        fullName,
-        email,
-        phone,
-        address,
-        dateOfBirth
-      }, userID);
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({
-        message: "Profile updated successfully",
-        user: updatedUser
-      });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      res.status(500).json({ message: "Error updating profile" });
-    }
-  };
-
-  static updatePassword = async (req, res) => {
-    try {
-      const { currentPassword, newPassword } = req.body;
-      const userID = req.user.userID;
-
-      if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: "Current and new passwords are required" });
-      }
-
-      // Get user and verify current password
-      const user = await User.findUserByID(userID);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const isMatch = await bcrypt.compare(currentPassword, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Current password is incorrect" });
-      }
-
-      // Update password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await User.updatePassword(userID, hashedPassword);
-
-      res.json({ message: "Password updated successfully" });
-    } catch (error) {
-      console.error("Error updating password:", error);
-      res.status(500).json({ message: "Error updating password" });
     }
   };
 }

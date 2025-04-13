@@ -237,14 +237,6 @@ class User {
     );
     return result.affectedRows > 0;
   }
-
-  static async updatePassword(userID, hashedPassword) {
-    const connection = await connectDB();
-    await connection.execute(
-      `UPDATE Users SET password = ? WHERE userID = ?`,
-      [hashedPassword, userID]
-    );
-  }
 }
 
 module.exports = User;

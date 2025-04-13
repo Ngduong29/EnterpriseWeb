@@ -19,7 +19,7 @@ const connectDB = async () => {
     return connection;
   }
   let retries = 5;
-  
+
   while (retries) {
     try {
       connection = await mysql.createConnection(dbConfig);
@@ -28,14 +28,14 @@ const connectDB = async () => {
     } catch (error) {
       console.error(`Database connection attempt failed (${retries} retries left):`, error);
       retries -= 1;
-      
+
       if (retries === 0) {
         console.error("Failed to connect to database after multiple attempts");
         // Không thoát process để nodemon có thể restart
         // process.exit(1);
         return null;
       }
-      
+
       // Đợi 5 giây trước khi thử lại
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
