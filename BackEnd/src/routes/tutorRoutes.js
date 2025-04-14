@@ -1,4 +1,5 @@
 const express = require("express");
+const auth = require("../middleware/auth");
 const classController = require("../controllers/classController");
 const tutorController = require("../controllers/tutorController");
 
@@ -14,6 +15,6 @@ router.get("/viewRequest/:tutorID", tutorController.getRequest);
 router.get("/viewFeedback/:classID", classController.getFeedbackByClass);
 router.delete("/confirmRequest", tutorController.confirmRequest);
 router.get("/check-status/:id", tutorController.checkTutorStatus);
-router.delete("/:id", tutorController.deleteTutor);
+router.delete("/:id", auth("Admin"), tutorController.deleteTutor);
 
 module.exports = router;

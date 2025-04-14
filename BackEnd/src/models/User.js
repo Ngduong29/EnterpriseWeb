@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const sql = require("mysql2/promise");
 const dotenv = require("dotenv");
 const connectDB = require("../config/db");
+const Student = require("./Student");
+const Tutor = require("./Tutor");
 
 dotenv.config();
 
@@ -230,5 +232,47 @@ class User {
     return result.affectedRows > 0;
   }
 }
+
+User.deleteUser = async (userID) => {
+  const connection = await connectDB();
+  try {
+    // Start a transaction
+    await connection.beginTransaction();
+
+    // Get user role first
+    const [[user]] = await connection.execute(
+      `SELECT role FROM Users WHERE userID = ?`,
+      [userID]
+    );
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Delete based on role
+    if (user.role === 'Student') {
+      await Student.deleteStudent(userID);
+    } else if (user.role === 'Tutor') {
+      await Tutor.deleteTutor(userID);
+    } else {
+      // For other roles (Admin, Moderator), just delete the user
+      const [result] = await connection.execute(
+        `DELETE FROM Users WHERE userID = ?`,
+        [userID]
+      );
+      if (result.affectedRows === 0) {
+        throw new Error('Failed to delete user');
+      }
+    }
+
+    // Commit the transaction
+    await connection.commit();
+    return true;
+  } catch (error) {
+    // Rollback the transaction in case of error
+    await connection.rollback();
+    throw error;
+  }
+};
 
 module.exports = User;
