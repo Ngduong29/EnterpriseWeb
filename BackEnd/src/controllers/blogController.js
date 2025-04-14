@@ -2,12 +2,20 @@ const Blog = require('../models/Blog');
 
 
 exports.getAll = async (req, res) => {
-    if (req.user.role === "Tutor") {
-        return res.json({ message: "Tutor" });
-    }
-    if (req.user.role === "Student") {
-        const blogs = await Blog.findByStudentId(req.user.userID , req.user.classID);
-        return res.json({ message: "Danh sách bài viết", data: blogs });
+    try {
+        if (req.user.role === "Tutor") {
+            return res.json({ message: "Tutor" });
+        }
+        if (req.user.role === "Student") {
+            if (!req.user.userID) {
+                return res.status(400).json({ message: "User ID is required" });
+            }
+            const blogs = await Blog.findByStudentId(req.user.userID, req.user.classID || null);
+            return res.json({ message: "Danh sách bài viết", data: blogs });
+        }
+    } catch (error) {
+        console.error('Error in getAll:', error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 

@@ -3,9 +3,17 @@ const connectDB = require('../config/db');
 const Blog = {
     findByStudentId: async (studentId, classID) => {
         const db = await connectDB();
-        console.log(classID);
+        console.log('Student ID:', studentId, 'Class ID:', classID);
 
-        const [rows] = await db.execute('SELECT title,status,created_at FROM Blogs WHERE student_id = ? AND class_id = ?', [studentId, classID]);
+        let query = 'SELECT title, status, created_at FROM Blogs WHERE student_id = ?';
+        const params = [studentId];
+
+        if (classID !== null) {
+            query += ' AND class_id = ?';
+            params.push(classID);
+        }
+
+        const [rows] = await db.execute(query, params);
         return rows;
     },
 
