@@ -2,6 +2,7 @@ const Classroom = require("../models/Class");
 const User = require("../models/User");
 const Tutor = require("../models/Tutor");
 const { sendApprovalEmail, sendDenialEmail } = require("../email/EmailApproved");
+const bcrypt = require("bcryptjs");
 
 class adminController {
   static getAllUser = async (req, res) => {
@@ -227,7 +228,7 @@ class adminController {
   static banUsers = async (req, res) => {
     try {
       const userID = req.params.id;
-      if (!userID) {
+      if (!userID) { 
         return res.status(404).json({
           message: "Please provide user id",
         });
@@ -325,7 +326,6 @@ class adminController {
       });
     }
   };
-
 }
 
 module.exports = adminController;

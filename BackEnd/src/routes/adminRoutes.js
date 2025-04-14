@@ -1,22 +1,27 @@
 const express = require("express");
+const router = express.Router();
 const adminController = require("../controllers/adminController");
 const classController = require("../controllers/classController");
-const userController = require("../controllers/userController");
+const auth = require("../middleware/auth");
 
-const router = express.Router();
+// User Management
+router.get("/users", auth("Admin"), adminController.getAllUser);
+router.get("/users/active", auth("Admin"), adminController.getActiveUser);
+router.put("/users/:id", auth("Admin"), adminController.updateUser);
+router.put("/users/:id/ban", auth("Admin"), adminController.banUsers);
+router.put("/users/:id/unban", auth("Admin"), adminController.unbanUsers);
 
-router.put("/updateUsers/:id", adminController.updateUser);
-router.put("/banUsers/:id", adminController.banUsers);
-router.put("/unbanUsers/:id", adminController.unbanUsers);
-router.get("/complainList", adminController.getComplainList);
-router.get("/classList", classController.getAllClass);
-router.get("/classListExisted", classController.getAllClassExisted);
-router.get("/getRequest", adminController.getTutorRequest);
-router.get("/getUser", adminController.getAllUser);
-router.get("/getActiveUser", adminController.getActiveUser);
-router.post("/handleTutor/:id", adminController.handleTutor);
-router.delete("/deleteClass/:id", adminController.deleteClass);
+// Tutor Management
+router.get("/tutors/requests", auth("Admin"), adminController.getTutorRequest);
+router.put("/tutors/:id/requests", auth("Admin"), adminController.handleTutor);
 
+// Class Management
+router.get("/classes", auth("Admin"), classController.getAllClass);
+router.get("/classes/existed", auth("Admin"), classController.getAllClassExisted);
+router.delete("/classes/:id", auth("Admin"), adminController.deleteClass);
 
-router.delete('/deleteComplains/:id', adminController.deleteComplain);
+// Complaint Management
+router.get("/complaints", auth("Admin"), adminController.getComplainList);
+router.delete("/complaints/:id", auth("Admin"), adminController.deleteComplain);
+
 module.exports = router;
