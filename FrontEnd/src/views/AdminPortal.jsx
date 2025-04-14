@@ -69,7 +69,7 @@ const AdminPortal = () => {
     axios
       .put(apiUrl)
       .then((response) => {
-        setUsers(users.map((user) => (user.userID === id ? { ...user, active: newStatus } : user)))
+        setUsers(users.map((user) => (user.userID === id ? { ...user, isActive: newStatus } : user)))
       })
       .catch((error) => {
         console.error('Error updating user status:', error)
@@ -138,21 +138,21 @@ const AdminPortal = () => {
                 <td className='p-4'>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm ${
-                      user.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}
                   >
-                    {user.active ? 'Active' : 'Inactive'}
+                    {user.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
                 <td className='p-4'>
                   {user.role !== 'Admin' && (
                     <button
-                      onClick={() => toggleActiveStatus(user.userID, user.active)}
+                      onClick={() => toggleActiveStatus(user.userID, user.isActive)}
                       className={`p-2 rounded-lg transition-colors duration-300 ${
-                        user.active ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                        user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
                       } text-white`}
                     >
-                      {user.active ? 'Ban' : 'Unban'}
+                      {user.isActive ? 'Ban' : 'Unban'}
                     </button>
                   )}
                 </td>
