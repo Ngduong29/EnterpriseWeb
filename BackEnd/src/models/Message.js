@@ -1,109 +1,45 @@
-const sql = require("mysql2/promise");
+const sql = require("mssql");
 const connectDB = require("../config/db");
 
-class Classroom {
-  static async getFeedback(classID) {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(`
-      SELECT
-        f.feedbackID,
-        f.tutorID,
-        f.classID,
-        u.fullName AS studentName,
-        u.avatar as studentAvatar,
-        f.feedbackDate as date,
-        f.message,
-        f.rating
-      FROM Feedbacks f
-      JOIN Students s ON f.studentID = s.studentID
-      JOIN Users u ON s.userID = u.userID
-      WHERE f.classID = ?`, [classID]);
-    return rows;
+class Message {
+  // Send a new message between users with sender and receiver types
+  static async sendMessage(message) {
+    try {
+      const connection = await connectDB();
+      const result = await connection
+        .request()
+        .input("senderID", sql.Int, message.senderID)
+        .input("receiverID", sql.Int, message.receiverID)
+        .input("messageText", sql.NVarChar, message.messageText)
+        .input("senderType", sql.NVarChar, message.senderType)
+        .input("receiverType", sql.NVarChar, message.receiverType).query(`
+          INSERT INTO Messages (senderID, receiverID, messageText, senderType, receiverType)
+          OUTPUT inserted.*
+          VALUES (@senderID, @receiverID, @messageText, @senderType, @receiverType)
+        `);
+      return result.recordset[0];
+    } catch (error) {
+      console.error("Error sending message:", error.message);
+      throw error;
+    }
   }
 
-  static async getAllClass() {
+  // Get all messages between two users ordered by timestamp
+  static async getMessage(senderID, receiverID) {
     const connection = await connectDB();
-    const [rows] = await connection.execute(`
-      SELECT 
-        c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
-        c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
-      FROM Classes c
-      JOIN Tutors t ON c.tutorID = t.tutorID
-      JOIN Users u ON t.userID = u.userID
-      WHERE c.isActive = 1;
-    `);
-    return rows;
-  }
-
-  static async getAllClassExisted() {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(`
-      SELECT 
-        c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
-        c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
-      FROM Classes c
-      JOIN Tutors t ON c.tutorID = t.tutorID
-      JOIN Users u ON t.userID = u.userID;
-    `);
-    return rows;
-  }
-
-  static async getClassroom(classID) {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(`
-      SELECT 
-        c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
-        c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
-      FROM Classes c
-      JOIN Tutors t ON c.tutorID = t.tutorID
-      JOIN Users u ON t.userID = u.userID
-      WHERE c.classID = ?;
-    `, [classID]);
-    return rows[0];
-  }
-
-  static async findClassroomBySubject(subject) {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(`
-      SELECT 
-        c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
-        c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
-      FROM Classes c
-      JOIN Tutors t ON c.tutorID = t.tutorID
-      JOIN Users u ON t.userID = u.userID
-      WHERE c.subject LIKE ?;
-    `, [`%${subject}%`]);
-    return rows;
-  }
-
-  static async viewStudent(classID) {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(`
-      SELECT Students.studentID, fullName, Students.grade, Students.school
-      FROM Users
-      JOIN Students ON Users.userID = Students.userID
-      WHERE Students.studentID = (
-        SELECT studentID FROM Classes WHERE classID = ?
+    const result = await connection
+      .request()
+      .input("userID1", sql.Int, senderID)
+      .input("userID2", sql.Int, receiverID)
+      .query(
+        `SELECT messageID, senderID, receiverID, messageText, timestamp, senderType, receiverType
+        FROM Messages
+        WHERE (senderID = @userID1 AND receiverID = @userID2)
+        OR (senderID = @userID2 AND receiverID = @userID1)
+        ORDER BY timestamp ASC;`
       );
-    `, [classID]);
-    return rows[0];
-  }
-
-  static async DeleteClass(classID) {
-    const connection = await connectDB();
-    const existing = await this.getClassroom(classID);
-    const [result] = await connection.execute(
-      `DELETE FROM Classes WHERE classID = ?`, [classID]);
-    return result.affectedRows > 0 ? existing : null;
+    return result.recordset;
   }
 }
 
-module.exports = Classroom;
+module.exports = Message;

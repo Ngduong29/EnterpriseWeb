@@ -2,6 +2,7 @@ const sql = require("mysql2/promise");
 const connectDB = require("../config/db");
 
 class Classroom {
+  // Get all feedbacks for a specific class including student information
   static async getFeedback(classID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`
@@ -21,6 +22,7 @@ class Classroom {
     return rows;
   }
  
+  // Get all active classes with tutor information
   static async getAllClass() {
     const connection = await connectDB();
     const [rows] = await connection.execute(`
@@ -37,6 +39,7 @@ class Classroom {
     return rows;
   }
 
+  // Get all classes including inactive ones with tutor information
   static async getAllClassExisted() {
     const connection = await connectDB();
     const [rows] = await connection.execute(`
@@ -52,6 +55,7 @@ class Classroom {
     return rows;
   }
 
+  // Get detailed information of a specific class by classID
   static async getClassroom(classID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`
@@ -68,6 +72,7 @@ class Classroom {
     return rows[0];
   }
 
+  // Search for classes by subject name
   static async findClassroomBySubject(subject) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`
@@ -84,6 +89,7 @@ class Classroom {
     return rows;
   }
 
+  // Get student information enrolled in a specific class
   static async viewStudent(classID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`
@@ -97,6 +103,7 @@ class Classroom {
     return rows[0];
   }
 
+  // Delete a class by classID and return the deleted class information
   static async DeleteClass(classID) {
     const connection = await connectDB();
     const existing = await this.getClassroom(classID);
@@ -105,10 +112,10 @@ class Classroom {
     return result.affectedRows > 0 ? existing : null;
   }
 
+  // Create a new class and validate tutor status
   static async CreateClass(classroom) {
     const connection = await connectDB();
     
-    // Check tutor status first
     const [tutorStatus] = await connection.execute(
       `SELECT status FROM Tutors WHERE userID = ?`,
       [classroom.tutorID]
