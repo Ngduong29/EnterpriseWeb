@@ -192,10 +192,8 @@ class Student {
   static async deleteStudent(userID) {
     const connection = await connectDB();
     try {
-      // Start a transaction
       await connection.beginTransaction();
 
-      // Get studentID first
       const [[student]] = await connection.execute(
         `SELECT studentID FROM Students WHERE userID = ?`,
         [userID]
@@ -207,54 +205,57 @@ class Student {
 
       const studentID = student.studentID;
 
-      // 1. Delete all feedbacks from student
+      // Delete blogs first
+      await connection.execute(
+        `DELETE FROM Blogs WHERE student_id = ?`,
+        [userID]
+      );
+
+      // Delete feedbacks
       await connection.execute(
         `DELETE FROM Feedbacks WHERE studentID = ?`,
         [studentID]
       );
 
-      // 2. Delete all messages related to student
+      // Delete messages
       await connection.execute(
         `DELETE FROM Messages WHERE senderID = ? OR receiverID = ?`,
         [userID, userID]
       );
 
-      // 3. Unenroll from all classes (set studentID to NULL)
+      // Unenroll from classes
       await connection.execute(
         `UPDATE Classes SET studentID = NULL WHERE studentID = ?`,
         [studentID]
       );
 
-      // 4. Delete all requests from student
+      // Delete requests
       await connection.execute(
         `DELETE FROM Requests WHERE studentID = ?`,
         [studentID]
       );
 
-      // 5. Delete all complains from student
+      // Delete complains
       await connection.execute(
         `DELETE FROM Complains WHERE uID = ?`,
         [userID]
       );
 
-      // 6. Delete student record
+      // Delete student record
       const [result] = await connection.execute(
         `DELETE FROM Students WHERE userID = ?`,
         [userID]
       );
 
-      // 7. Set user role to NULL
+      // Delete user record
       await connection.execute(
-        `UPDATE Users SET role = NULL WHERE userID = ?`,
+        `DELETE FROM Users WHERE userID = ?`,
         [userID]
       );
-
-      // Commit the transaction
+      
       await connection.commit();
-
       return result.affectedRows > 0;
     } catch (error) {
-      // Rollback the transaction in case of error
       await connection.rollback();
       throw error;
     }
