@@ -15,7 +15,8 @@ class userController {
       const realUser = await User.findUserByID(userID);
       console.log("Real user found:", realUser);
 
-      const { updatedUserData } = req.body;
+      const updatedUserData  = req.body;
+      console.log("Updated user data:", updatedUserData);
       if (!updatedUserData) {
         return res.status(404).json({
           message: "Cannot found user",

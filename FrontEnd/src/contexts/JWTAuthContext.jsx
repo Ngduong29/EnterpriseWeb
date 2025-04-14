@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useReducer } from 'react'
 import { loginUser, registerStudent, registerTutor, fetchUserProfile } from '../apiService/api'
+import Loading from '../components/Loading'
 
 const initialState = {
   user: null,
@@ -142,7 +143,7 @@ export const AuthProvider = ({ children }) => {
     fetchUser()
   }, [])
 
-  if (!state.isInitialized) return <div>Loading...</div>
+  if (!state.isInitialized) return <Loading />
 
   return (
     <AuthContext.Provider
