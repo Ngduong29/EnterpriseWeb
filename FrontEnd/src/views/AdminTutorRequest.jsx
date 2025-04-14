@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
+import Loading from '../components/Loading.jsx'
 
 const AdminTutorRequests = () => {
   const [requests, setRequests] = useState([])
@@ -53,7 +54,7 @@ const AdminTutorRequests = () => {
     }
   }
 
-  if (loading) return <p>Loading...</p>
+  if (loading) return <Loading />
   if (error) return <p>{error}</p>
 
   return (

@@ -13,6 +13,9 @@ import StarRating from '../components/StarRating'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ChatBox from '../components/ChatBox.jsx'
+import Loading from '../components/Loading.jsx'
+import { makeGet, makePost } from '../apiService/httpService.js'
+import altImageThumbnail from '../assets/hero.png'
 
 const ClassDetail = () => {
   const { id } = useParams()
@@ -38,8 +41,8 @@ const ClassDetail = () => {
 
   const fetchClass = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/getClass/${id}`)
-      const classDetails = response.data.data // Assuming API response contains all required fields
+      const response = await makeGet(`api/users/getClass/${id}`)
+      const classDetails = response.data // Assuming API response contains all required fields
       setClassData(classDetails)
     } catch (error) {
       console.log(error)
@@ -48,9 +51,8 @@ const ClassDetail = () => {
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/tutors/viewFeedback/${id}`)
-      console.log(response.data)
-      setFeedbacks(response.data.data)
+      const response = await makeGet(`api/tutors/viewFeedback/${id}`)
+      setFeedbacks(response.data)
     } catch (error) {
       console.error('Error fetching feedbacks:', error)
     }
@@ -58,7 +60,7 @@ const ClassDetail = () => {
 
   const checkEnrollmentStatus = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/students/checkEnroll/${id}`)
+      const response = await makeGet(`api/students/checkEnroll/${id}`)
       const token = localStorage.getItem('token')
       if (!token) {
         console.log('User is not logged in')
@@ -93,7 +95,7 @@ const ClassDetail = () => {
       const decodedToken = jwtDecode(token)
       if (decodedToken.user.role == 'Student') {
         const studentID = decodedToken.user.studentID
-        await axios.post(`http://localhost:5000/api/students/enrollClass/${classData.classID}`, {
+        await makePost(`api/students/enrollClass/${classData.classID}`, {
           studentID
         })
         setIsEnrolled(true)
@@ -130,7 +132,7 @@ const ClassDetail = () => {
       }
       const decodedToken = jwtDecode(token)
       const studentID = decodedToken.user.studentID
-      const response = await axios.post(`http://localhost:5000/api/students/feedback/${id}`, {
+      const response = await makePost(`api/students/feedback/${id}`, {
         studentID,
         message: feedbackMessage,
         rating,
@@ -193,7 +195,7 @@ const ClassDetail = () => {
   }
 
   if (!id) {
-    return <div>Loading...</div> // Render a loading state or redirect if classID is not available
+    return <Loading />
   }
 
   return (
@@ -201,7 +203,6 @@ const ClassDetail = () => {
       <header>
         <MegaMenuWithHover />
       </header>
-
       <div className='container mx-auto pl-4 flex flex-col md:flex-row gap-8'>
         <div className='w-full md:w-3/4 mb-4 flex flex-col pt-16'>
           <BreadcrumbsWithIcon pathnames={['Home', 'ClassList', `Class ${classData.classID}`]} />
@@ -225,9 +226,16 @@ const ClassDetail = () => {
             </div>
             <CardBody className='flex flex-col md:flex-row items-start md:items-center gap-5 p-6'>
               <div className='w-full md:w-1/2'>
-                <div className='relative cursor-pointer' onClick={() => setShowVideo(true)}>
+                <div
+                  className={`relative ${getYoutubeThumbnail(classData.videoLink) ? 'cursor-pointer' : ''}`}
+                  onClick={() => {
+                    if (!!getYoutubeThumbnail(classData.videoLink)) {
+                      setShowVideo(true)
+                    }
+                  }}
+                >
                   <img
-                    src={getYoutubeThumbnail(classData.videoLink)}
+                    src={getYoutubeThumbnail(classData.videoLink) || altImageThumbnail}
                     alt='Video Thumbnail'
                     className='w-full h-auto rounded-lg'
                   />
@@ -342,15 +350,17 @@ const ClassDetail = () => {
       </div>
 
       {showVideo && (
-        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center'>
+        <div
+          className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center'
+          onClick={handleCloseVideo}
+        >
           <div className='relative w-full h-full max-w-screen-lg'>
-            <div className='absolute top-48 right-48 m-4 cursor-pointer text-white z-10'>
+            <div className='absolute m-4 cursor-pointer text-white z-10' style={{ top: '15%', right: '10%' }}>
               <FontAwesomeIcon icon={faTimes} className='h-8 w-8' onClick={handleCloseVideo} />
             </div>
             <iframe
-              className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-              width='560'
-              height='315'
+              className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-2 object-cover aspect-video'
+              width='100%'
               src={`https://www.youtube.com/embed/${classData.videoLink.split('v=')[1]}`}
               title='YouTube Video Player'
               allowFullScreen
