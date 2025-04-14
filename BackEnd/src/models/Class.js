@@ -107,9 +107,38 @@ class Classroom {
   static async DeleteClass(classID) {
     const connection = await connectDB();
     const existing = await this.getClassroom(classID);
-    const [result] = await connection.execute(
-      `DELETE FROM Classes WHERE classID = ?`, [classID]);
-    return result.affectedRows > 0 ? existing : null;
+    
+    // Start a transaction
+    await connection.beginTransaction();
+    
+    try {
+      // First delete related feedbacks
+      await connection.execute(
+        `DELETE FROM Feedbacks WHERE classID = ?`,
+        [classID]
+      );
+
+      // Then delete related blog entries
+      await connection.execute(
+        `DELETE FROM Blogs WHERE class_id = ?`,
+        [classID]
+      );
+      
+      // Finally delete the class
+      const [result] = await connection.execute(
+        `DELETE FROM Classes WHERE classID = ?`,
+        [classID]
+      );
+      
+      // Commit the transaction
+      await connection.commit();
+      
+      return result.affectedRows > 0 ? existing : null;
+    } catch (error) {
+      // If anything fails, rollback the transaction
+      await connection.rollback();
+      throw error;
+    }
   }
 
   // Create a new class and validate tutor status

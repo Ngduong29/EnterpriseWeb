@@ -100,16 +100,14 @@ class User {
     return rows[0];
   }
 
-  // Create a new user
-  static async createUser(user) {
+  // Find user by username
+  static async findUserByUsername(userName) {
     const connection = await connectDB();
-    const { userName, email, password, role } = user;
-    const [result] = await connection.execute(
-      `INSERT INTO Users (userName, email, password, role) 
-       VALUES (?, ?, ?, ?)`,
-      [userName, email, password, role]
+    const [rows] = await connection.execute(
+      "SELECT * FROM Users WHERE userName = ?",
+      [userName]
     );
-    return { userID: result.insertId, ...user };
+    return rows[0];
   }
 
   // Update user information
@@ -132,6 +130,18 @@ class User {
     );
     return result.affectedRows > 0;
   }
+
+ // Update user by email
+ static async updateUserPasswordByEmail(email, newPassword) {
+  const connection = await connectDB();
+
+
+  const [result] = await connection.execute(
+    `UPDATE Users SET password = ? WHERE email = ?`,
+    [newPassword, email]
+  );
+  return result.affectedRows > 0;
+}
 
   // Ban a user by setting isActive to 0
   static async banUser(userID) {
@@ -184,7 +194,7 @@ class User {
   // Generate JWT token for user authentication
   static generateAuthToken(user) {
     return jwt.sign({ user }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "24h",
     });
   }
 

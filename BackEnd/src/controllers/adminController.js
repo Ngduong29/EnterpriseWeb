@@ -162,29 +162,28 @@ class adminController {
 
   static deleteClass = async (req, res) => {
     try {
-      const classID = req.params.id;
-      if (!classID) {
+      const classId = req.params.id;
+      if (!classId) {
         return res.status(404).json({
-          message: "Missing class id",
+          message: "Please provide class id",
         });
       }
 
-      const data = await Classroom.DeleteClass(classID);
-      if (!data) {
-        return res.status(500).json({
-          message: "Error in delete class",
+      const result = await Classroom.DeleteClass(classId);
+      if (!result) {
+        return res.status(404).json({
+          message: "Error in deleting class",
         });
       }
 
       return res.status(200).json({
-        message: "Class Deleted",
-        data,
+        message: "Class deleted successfully",
       });
     } catch (error) {
-      console.log(error);
+      console.error('Error deleting class:', error);
       res.status(500).json({
-        message: "Error in delete class in Server",
-        error,
+        message: "Error in deleting class on server",
+        error: error.message,
       });
     }
   };

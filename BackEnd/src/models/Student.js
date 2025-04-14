@@ -31,12 +31,42 @@ class Student {
 
   static async createStudent(userId, studentData) {
     const connection = await connectDB();
-    const studentID = await this.createStudentID();
-    await connection.execute(
-      `INSERT INTO Students (userID, studentID, grade, school) VALUES (?, ?, ?, ?)`,
-      [userId, studentID, studentData.grade, studentData.school]
-    );
-    return new Student({ userID: userId, studentID, ...studentData });
+    try {
+      await connection.beginTransaction();
+      
+      // Verify that the user exists
+      const [userRows] = await connection.execute(
+        "SELECT * FROM Users WHERE userID = ?",
+        [userId]
+      );
+      
+      if (!userRows[0]) {
+        throw new Error("User not found");
+      }
+      
+      const studentID = await this.createStudentID();
+      
+      await connection.execute(
+        `INSERT INTO Students (userID, studentID, grade, school) VALUES (?, ?, ?, ?)`,
+        [userId, studentID, studentData.grade, studentData.school]
+      );
+      
+      // Verify the student was created
+      const [studentRows] = await connection.execute(
+        "SELECT * FROM Students WHERE userID = ?",
+        [userId]
+      );
+      
+      if (!studentRows[0]) {
+        throw new Error("Failed to create student record");
+      }
+      
+      await connection.commit();
+      return new Student({ userID: userId, studentID, ...studentData });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    }
   }
 
   static async updateStudent(userID, studentData) {
