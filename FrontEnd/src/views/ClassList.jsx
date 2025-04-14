@@ -7,7 +7,9 @@ import PriceRangeSlider from '../components/PriceRangeSlider.jsx'
 import ClassCard from '../components/ClassCard.jsx' // Assuming ClassCard component exists
 import { Pagination } from '@nextui-org/react'
 import ChatBox from '../components/ChatBox.jsx'
-
+import { makeGet } from '../apiService/httpService.js'
+import altImageThumbnail from '../assets/hero.png'
+import Loading from '../components/Loading.jsx'
 const itemsPerPage = 12
 
 const ClassList = () => {
@@ -84,12 +86,9 @@ const ClassList = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/getAllClass')
-        if (!response.ok) {
-          throw new Error('Failed to fetch data')
-        }
-        const result = await response.json()
-        let filteredData = result.data
+        const response = await makeGet('api/users/getAllClass')
+
+        let filteredData = response.data
         filteredData = filterByPrice(filteredData, priceRange)
         filteredData = filterByRating(filteredData, selectedRatings)
         filteredData = filterByDuration(filteredData, selectedDurations)
@@ -103,7 +102,7 @@ const ClassList = () => {
   }, [priceRange, selectedRatings, selectedDurations])
 
   const totalPages = Math.ceil(data.length / itemsPerPage)
-  const currentData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const currentData = [...data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)]
 
   const handlePageChange = (page) => {
     setCurrentPage(page)
@@ -118,7 +117,6 @@ const ClassList = () => {
       <header>
         <MegaMenuWithHover />
       </header>
-
       <div className='w-3/4 p-4 flex justify-between'>
         <div>
           <BreadcrumbsWithIcon pathnames={['Home', 'ClassList']} />
@@ -194,9 +192,13 @@ const ClassList = () => {
               <Link to={`/classDetail/${item.classID}`} key={item.classID} state={item}>
                 <Card className='group relative overflow-hidden hover:opacity-75'>
                   <img
-                    src={`https://img.youtube.com/vi/${item?.videoLink?.split('v=')[1]}/0.jpg` || ''}
+                    src={
+                      item.videoLink
+                        ? `https://img.youtube.com/vi/${item?.videoLink?.split('v=')[1]}/0.jpg`
+                        : altImageThumbnail
+                    }
                     alt={item.className}
-                    className='object-cover'
+                    className='object-cover aspect-video'
                   />
                   <CardBody className='py-4'>
                     <Typography variant='h5' className='font-bold'>
@@ -205,9 +207,11 @@ const ClassList = () => {
                     <Typography tag='h3' className='mt-2'>
                       Tutor: {item.tutorFullName}
                     </Typography>
-                    <Typography tag='h3' className='mt-2'>
-                      Type: {item.type}
-                    </Typography>
+                    {item.type && (
+                      <Typography tag='h3' className='mt-2'>
+                        Type: {item.type}
+                      </Typography>
+                    )}
                     <Typography tag='h3' className='mt-2'>
                       Duration: {item.length}
                     </Typography>
