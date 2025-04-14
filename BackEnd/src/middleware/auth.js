@@ -4,7 +4,7 @@ function authorize(...allowedRoles) {
   return (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return res.status(401).json({ message: 'Access denied. No token provided.' });
+      return res.status(401).json({ message: 'Truy cập bị từ chối.' });
     }
 
     try {
@@ -16,13 +16,13 @@ function authorize(...allowedRoles) {
         return next();
       }
 
-      if (!allowedRoles.includes(user.role)) {
-        return res.status(403).json({ message: 'Forbidden. Insufficient role.' });
+      if (!allowedRoles.includes(req.user.role)) {
+        return res.status(403).json({ message: 'Bạn không có quyền truy cập chức năng này' });
       }
 
       next();
     } catch (err) {
-      res.status(401).json({ message: 'Invalid or expired token.' + err });
+      res.status(401).json({ message: 'Đã có lỗi xảy ra hoặc token hết hạn' });
     }
   };
 }
