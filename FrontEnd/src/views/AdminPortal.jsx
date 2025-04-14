@@ -1,14 +1,38 @@
+// FrontEnd/src/views/AdminPortal.jsx
+
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AdminPortal = () => {
   const [users, setUsers] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState('User') // Default selection is 'User'
-  const token = localStorage.getItem('token')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
+  const [formData, setFormData] = useState({
+    userName: '',
+    fullName: '',
+    email: '',
+    password: '',
+    dateOfBirth: '',
+    role: 'Student',
+    phone: '',
+    address: '',
+    active: 1
+  })
+  const token = localStorage.getItem("token") // hoặc nơi bạn lưu token
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  }
+
   const role = localStorage.getItem('role')
 
   if (!token || role !== 'Admin') {
@@ -25,6 +49,7 @@ const AdminPortal = () => {
       })
       .catch((error) => {
         console.error('Error fetching users:', error)
+        toast.error('Không thể tải dữ liệu người dùng')
       })
   }, [])
 
@@ -69,10 +94,12 @@ const AdminPortal = () => {
     axios
       .put(apiUrl)
       .then((response) => {
-        setUsers(users.map((user) => (user.userID === id ? { ...user, isActive: newStatus } : user)))
+        setUsers(users.map((user) => (user.userID === id ? { ...user, active: newStatus } : user)))
+        toast.success(isActive ? 'Đã khóa người dùng' : 'Đã mở khóa người dùng')
       })
       .catch((error) => {
         console.error('Error updating user status:', error)
+        toast.error('Không thể cập nhật trạng thái')
       })
   }
 
@@ -84,31 +111,137 @@ const AdminPortal = () => {
     return `${day}/${month}/${year}`
   }
 
+  // Thêm các hàm xử lý form
+  const handleFormChange = (e) => {
+    const { name, value } = e.target
+    setFormData({
+      ...formData,
+      [name]: value
+    })
+  }
+
+  const openAddModal = () => {
+    setEditingUser(null)
+    setFormData({
+      userName: '',
+      fullName: '',
+      email: '',
+      password: '',
+      dateOfBirth: '',
+      role: 'Student',
+      phone: '',
+      address: '',
+      active: 1
+    })
+    setIsModalOpen(true)
+  }
+
+  const openEditModal = (user) => {
+    setEditingUser(user)
+    setFormData({
+      userName: user.userName || '',
+      fullName: user.fullName || '',
+      email: user.email || '',
+      password: '',
+      dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      role: user.role || 'Student',
+      phone: user.phone || '',
+      address: user.address || '',
+      active: user.active || 0
+    })
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setEditingUser(null)
+  }
+
+  const refreshUsersList = () => {
+    axios
+      .get('http://localhost:5000/api/admin/getUser')
+      .then((response) => {
+        setUsers(response.data.data)
+        setAllUsers(response.data.data)
+      })
+      .catch((error) => {
+        console.error('Error fetching users:', error)
+      })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    try {
+      if (editingUser) {
+        // Cập nhật người dùng hiện có
+        await axios.put(`http://localhost:5000/api/users/update/${editingUser.userID}`, JSON.stringify(formData), config)
+        toast.success('Cập nhật người dùng thành công')
+      } else {
+        // Tạo người dùng mới
+        await axios.post('http://localhost:5000/registerTutor', formData)
+        toast.success('Tạo người dùng thành công')
+      }
+      
+      closeModal()
+      refreshUsersList() // Tải lại danh sách người dùng
+    } catch (error) {
+      console.error('Lỗi khi lưu người dùng:', error)
+      toast.error(error.response?.data?.message || 'Lỗi khi lưu người dùng')
+    }
+  }
+
+  const handleDeleteUser = async (id) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
+      try {
+        await axios.delete(`http://localhost:5000/api/users/${id}`, config)
+        toast.success('Xóa người dùng thành công')
+        refreshUsersList() // Tải lại danh sách người dùng
+      } catch (error) {
+        console.error('Lỗi khi xóa người dùng:', error)
+        toast.error(error.response?.data?.message || 'Không thể xóa người dùng')
+      }
+    }
+  }
+
   return (
     <div className='mx-auto p-6 bg-gray-100 min-h-screen'>
+      <ToastContainer position="top-right" />
       <header className='bg-purple-600 text-white shadow-md py-4'>
         <MegaMenuWithHover />
       </header>
       <div className='pt-20'>
-        <h1 className='text-4xl font-bold mb-6 text-center text-black'>Admin Portal - Users10</h1>
-        <div className='flex justify-center mb-6'>
-          <input
-            type='text'
-            value={searchTerm}
-            onChange={handleInputChange}
-            className='border border-gray-400 p-2 rounded-lg flex-grow max-w-xl focus:outline-none focus:ring-2 focus:ring-purple-500'
-            placeholder='Search by username'
-          />
-          <select
-            value={selectedRole}
-            onChange={handleRoleChange}
-            className='ml-4 border border-gray-400 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500'
+        <h1 className='text-4xl font-bold mb-6 text-center text-black'>Admin Portal - Users100</h1>
+        
+        <div className='flex justify-between mb-6'>
+          <div className='flex justify-center'>
+            <input
+              type='text'
+              value={searchTerm}
+              onChange={handleInputChange}
+              className='border border-gray-400 p-2 rounded-lg flex-grow max-w-xl focus:outline-none focus:ring-2 focus:ring-purple-500'
+              placeholder='Search by username'
+            />
+            <select
+              value={selectedRole}
+              onChange={handleRoleChange}
+              className='ml-4 border border-gray-400 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500'
+            >
+              <option value='User'>User</option>
+              <option value='Student'>Student</option>
+              <option value='Tutor'>Tutor</option>
+              <option value='Moderator'>Moderator</option>
+            </select>
+          </div>
+          
+          <button
+            onClick={openAddModal}
+            className='bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors duration-300'
           >
-            <option value='User'>User</option>
-            <option value='Student'>Student</option>
-            <option value='Tutor'>Tutor</option>
-          </select>
+            New
+          </button>
         </div>
+        
         <table className='mx-auto min-w-full bg-white shadow-md rounded-lg overflow-hidden'>
           <thead className='bg-gradient-to-t from-yellow-700 to-yellow-300 text-black'>
             <tr>
@@ -144,16 +277,32 @@ const AdminPortal = () => {
                     {user.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td className='p-4'>
+                <td className='p-4 flex gap-2'>
                   {user.role !== 'Admin' && (
-                    <button
-                      onClick={() => toggleActiveStatus(user.userID, user.isActive)}
-                      className={`p-2 rounded-lg transition-colors duration-300 ${
-                        user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                      } text-white`}
-                    >
-                      {user.isActive ? 'Ban' : 'Unban'}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => toggleActiveStatus(user.userID, user.active)}
+                        className={`p-2 rounded-lg transition-colors duration-300 ${
+                          user.active ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                        } text-white`}
+                      >
+                        {user.active ? 'Ban' : 'Unban'}
+                      </button>
+                      
+                      <button
+                        onClick={() => openEditModal(user)}
+                        className='p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-300'
+                      >
+                        Edit
+                      </button>
+                      
+                      <button
+                        onClick={() => handleDeleteUser(user.userID)}
+                        className='p-2 rounded-lg bg-red-700 hover:bg-red-800 text-white transition-colors duration-300'
+                      >
+                        Delete
+                      </button>
+                    </>
                   )}
                 </td>
               </tr>
@@ -161,6 +310,152 @@ const AdminPortal = () => {
           </tbody>
         </table>
       </div>
+      
+      {/* Modal thêm/sửa người dùng */}
+      {isModalOpen && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+          <div className='bg-white rounded-lg p-8 w-full max-w-2xl'>
+            <h2 className='text-2xl font-bold mb-6 text-center'>
+              {editingUser ? 'Edit User' : 'Add New User'}
+            </h2>
+            
+            <form onSubmit={handleSubmit}>
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Username</label>
+                  <input
+                    type='text'
+                    name='userName'
+                    value={formData.userName}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Full Name</label>
+                  <input
+                    type='text'
+                    name='fullName'
+                    value={formData.fullName}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Email</label>
+                  <input
+                    type='email'
+                    name='email'
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>
+                    {editingUser ? 'Password (leave empty to keep current)' : 'Password'}
+                  </label>
+                  <input
+                    type='password'
+                    name='password'
+                    value={formData.password}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required={!editingUser}
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Date of Birth</label>
+                  <input
+                    type='date'
+                    name='dateOfBirth'
+                    value={formData.dateOfBirth}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Role</label>
+                  <select
+                    name='role'
+                    value={formData.role}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  >
+                    <option value='Student'>Student</option>
+                    <option value='Tutor'>Tutor</option>
+                    <option value='Moderator'>Moderator</option>
+                    <option value='Admin'>Admin</option>
+                  </select>
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Phone</label>
+                  <input
+                    type='text'
+                    name='phone'
+                    value={formData.phone}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Address</label>
+                  <input
+                    type='text'
+                    name='address'
+                    value={formData.address}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                    required
+                  />
+                </div>
+                
+                <div className='mb-4'>
+                  <label className='block text-gray-700 mb-2'>Status</label>
+                  <select
+                    name='active'
+                    value={formData.active}
+                    onChange={handleFormChange}
+                    className='w-full border border-gray-300 rounded-lg p-2'
+                  >
+                    <option value={1}>Active</option>
+                    <option value={0}>Inactive</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className='flex justify-end gap-4 mt-6'>
+                <button
+                  type='button'
+                  onClick={closeModal}
+                  className='px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors'
+                >
+                  Cancel
+                </button>
+                <button
+                  type='submit'
+                  className='px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
+                >
+                  {editingUser ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
