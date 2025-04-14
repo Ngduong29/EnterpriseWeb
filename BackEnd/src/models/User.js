@@ -115,12 +115,17 @@ class User {
   // Update user information
   static async updateUser(userID, updates) {
     const connection = await connectDB();
+
     const fields = Object.keys(updates)
       .map(key => `${key} = ?`)
       .join(', ');
+
+
+    console.log(fields);
+
     const values = Object.values(updates);
     values.push(userID);
-    
+
     const [result] = await connection.execute(
       `UPDATE Users SET ${fields} WHERE userID = ?`,
       values
@@ -168,7 +173,7 @@ class User {
   // Update the status of a tutor request
   static async updateRequestStatus(userID, status) {
     const connection = await connectDB();
-    console.log(userID, status); 
+    console.log(userID, status);
     const [result] = await connection.execute(
       `UPDATE TutorRequests SET status = ? WHERE userID = ?`,
       [status, userID]

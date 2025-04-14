@@ -3,6 +3,12 @@ import { Input, Button } from '@material-tailwind/react'
 import axios from 'axios'
 
 const SearchBar = () => {
+  const token = localStorage.getItem("token") // hoặc nơi bạn lưu token
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
 
@@ -16,10 +22,10 @@ const SearchBar = () => {
 
   const fetchSuggestions = async (searchQuery) => {
     try {
-      const tutorResponse = await axios.get(`http://localhost:5000/api/students/searchTutorByTutorName/${searchQuery}`)
+      const tutorResponse = await axios.get(`http://localhost:5000/api/students/searchTutorByTutorName/${searchQuery}`,config)
       // const classResponse = await axios.get(`http://localhost:5000/api/students/searchClassByTutorName/${searchQuery}`)
-      const classByName = await axios.get(`http://localhost:5000/api/students/searchClassByClassName/${searchQuery}`)
-      const classBySubject = await axios.get(`http://localhost:5000/api/students/searchClassBySubject/${searchQuery}`)
+      const classByName = await axios.get(`http://localhost:5000/api/students/searchClassByClassName/${searchQuery}`,config)
+      const classBySubject = await axios.get(`http://localhost:5000/api/students/searchClassBySubject/${searchQuery}`,config)
 
       const tutorSuggestions = tutorResponse.data.data
       const classSuggestions = [...classByName.data.data, ...classBySubject.data.classroom].filter(

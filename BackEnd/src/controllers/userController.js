@@ -23,6 +23,24 @@ class userController {
       }
       console.log("Update data received:", updatedUserData);
 
+      // Separate user fields from role-specific fields
+      const userFields = ['userName', 'fullName', 'email', 'avatar', 'dateOfBirth', 'phone', 'address'];
+      const userUpdates = {};
+      const roleSpecificUpdates = {};
+
+      Object.keys(updatedUserData).forEach(key => {
+        if (userFields.includes(key)) {
+          if (key === 'dateOfBirth' && updatedUserData[key]) {
+            // Format the date to YYYY-MM-DD
+            userUpdates[key] = new Date(updatedUserData[key]).toISOString().split('T')[0];
+          } else {
+            userUpdates[key] = updatedUserData[key];
+          }
+        } else {
+          roleSpecificUpdates[key] = updatedUserData[key];
+        }
+      });
+
       let updated;
       if (realUser.role == "Student") {
         let student = await Student.findStudentByUserID(userID);
@@ -32,13 +50,9 @@ class userController {
           });
         }
         console.log("Student found:", student);
-        
-        student.grade = updatedUserData.grade
-          ? updatedUserData.grade
-          : student.grade;
-        student.school = updatedUserData.school
-          ? updatedUserData.school
-          : student.school;
+
+        student.grade = roleSpecificUpdates.grade || student.grade;
+        student.school = roleSpecificUpdates.school || student.school;
         updated = await Student.updateStudent(userID, student);
         if (!updated) {
           return res.status(500).json({
@@ -54,19 +68,11 @@ class userController {
           });
         }
         console.log("Tutor found:", tutor);
-        
-        tutor.degrees = updatedUserData.degrees
-          ? updatedUserData.degrees
-          : tutor.degrees;
-        tutor.identityCard = updatedUserData.identityCard
-          ? updatedUserData.identityCard
-          : tutor.identityCard;
-        tutor.workplace = updatedUserData.workplace
-          ? updatedUserData.workplace
-          : tutor.workplace;
-        tutor.description = updatedUserData.description
-          ? updatedUserData.description
-          : tutor.description;
+
+        tutor.degrees = roleSpecificUpdates.degrees || tutor.degrees;
+        tutor.identityCard = roleSpecificUpdates.identityCard || tutor.identityCard;
+        tutor.workplace = roleSpecificUpdates.workplace || tutor.workplace;
+        tutor.description = roleSpecificUpdates.description || tutor.description;
         updated = await Tutor.updateTutor(userID, tutor);
         if (!updated) {
           return res.status(500).json({
@@ -76,7 +82,8 @@ class userController {
         console.log("Tutor updated:", updated);
       }
 
-      const data = await User.updateUser(updatedUserData, userID);
+      // Only update user fields in the Users table
+      const data = await User.updateUser(userID, userUpdates);
       if (!data) {
         return res.status(500).json({
           message: "Error in update user",
@@ -104,7 +111,7 @@ class userController {
         user: finalUserData
       };
       console.log("Final response:", response);
-      
+
       return res.status(200).json(response);
     } catch (error) {
       console.log("Error in updateUserForUser:", error);
@@ -114,7 +121,6 @@ class userController {
       });
     }
   };
-
   static sendComplains = async (req, res) => {
     try {
       const { userID, message } = req.body;
@@ -213,7 +219,7 @@ class userController {
       });
     }
   };
-  
+
 }
 
 module.exports = userController;

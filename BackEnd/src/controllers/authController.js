@@ -2,6 +2,7 @@ const Tutor = require("../models/Tutor");
 const User = require("../models/User");
 const Student = require("../models/Student");
 const multer = require("multer");
+const Classroom = require("../models/Class");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -145,7 +146,7 @@ class authController {
       }
 
       const isMatch = await User.comparePassword(password, user.password);
-      console.log(isMatch);
+
       if (!isMatch) {
         return res.status(400).json({ message: "Wrong Password" });
       }
@@ -158,11 +159,23 @@ class authController {
 
       if (user.role == "Student") {
         const student = await Student.findStudentByUserID(user.userID);
+        const classByStudent = await Classroom.GetClassByStudentId(student.studentID);
+
         user = { ...user, ...student };
+        // user = { ...user, ...student, ...classByStudent };
+
+        console.log(user);
+
       } else if (user.role == "Tutor") {
         const tutor = await Tutor.findTutorByTutorUserID(user.userID);
+        const classByTutor = await Classroom.GetClassByStudentId(tutor.tutorID);
+        // const classByTutor = await Classroom
         user = { ...user, ...tutor };
+        // user = { ...user, ...tutor, ...classByTutor };
+
+
       }
+
 
       const token = User.generateAuthToken(user);
       res.status(200).json({ token, user });
