@@ -15,6 +15,7 @@ class Tutor {
     this.description = description;
   }
 
+  // Register a new tutor request
   static async registerTutor(userId, tutorID) {
     const connection = await connectDB();
     const [result] = await connection.execute(
@@ -24,6 +25,7 @@ class Tutor {
     return result;
   }
 
+  // Generate a new tutor ID
   static async createTutorID() {
     const connection = await connectDB();
     const [rows] = await connection.execute(
@@ -36,6 +38,7 @@ class Tutor {
     return prefix + number;
   }
 
+  // Create a new tutor profile
   static async createTutor(userID, tutorData) {
     const connection = await connectDB();
     const tutorID = await this.createTutorID();
@@ -47,6 +50,7 @@ class Tutor {
     return new Tutor({ userID, tutorID, ...tutorData });
   }
 
+  // Update tutor information
   static async updateTutor(userID, tutorData) {
     const connection = await connectDB();
     await connection.execute(
@@ -56,6 +60,7 @@ class Tutor {
     return this.findTutorByTutorUserID(userID);
   }
 
+  // Get tutor information by userID
   static async getTutor(userID) {
     const connection = await connectDB();
     const [[user]] = await connection.execute(`SELECT * FROM Users WHERE userID = ?`, [userID]);
@@ -63,30 +68,35 @@ class Tutor {
     return { ...user, ...tutor };
   }
 
+  // Find classroom by classroomID
   static async findClassroom(classroomID) {
     const connection = await connectDB();
     const [[result]] = await connection.execute(`SELECT * FROM Classes WHERE classID = ?`, [classroomID]);
     return result;
   }
 
+  // Find all classes taught by a tutor
   static async findClassByTutorID(tutorID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`SELECT * FROM Classes WHERE tutorID = ?`, [tutorID]);
     return rows;
   }
 
+  // Find tutor by tutorID
   static async findTutorByTutorID(tutorID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`SELECT * FROM Tutors WHERE tutorID = ?`, [tutorID]);
     return rows;
   }
 
+  // Find tutor by userID
   static async findTutorByTutorUserID(userID) {
     const connection = await connectDB();
     const [[result]] = await connection.execute(`SELECT * FROM Tutors WHERE userID = ?`, [userID]);
     return result;
   }
 
+  // Generate a new class ID
   static async createClassID() {
     const connection = await connectDB();
     const [rows] = await connection.execute(
@@ -99,6 +109,7 @@ class Tutor {
     return prefix + number;
   }
 
+  // Create a new class
   static async createClass(classroom) {
     const connection = await connectDB();
     const classID = await this.createClassID();
@@ -112,6 +123,7 @@ class Tutor {
     return { classID, ...classroom };
   }
 
+  // Update class information
   static async updateClass(classroom, classID) {
     const connection = await connectDB();
     await connection.execute(
@@ -124,18 +136,21 @@ class Tutor {
     return this.findClassroom(classID);
   }
 
+  // Delete a class by setting isActive to 0
   static async deleteClass(classID) {
     const connection = await connectDB();
     await connection.execute(`UPDATE Classes SET isActive = 0 WHERE classID = ?`, [classID]);
     return this.findClassroom(classID);
   }
 
+  // Activate a class by setting isActive to 1
   static async activeClasses(classID) {
     const connection = await connectDB();
     await connection.execute(`UPDATE Classes SET isActive = 1 WHERE classID = ?`, [classID]);
     return this.findClassroom(classID);
   }
 
+  // Find tutors by name
   static async findTutorByName(search = "") {
     const connection = await connectDB();
     const [rows] = await connection.execute(
@@ -148,28 +163,30 @@ class Tutor {
     return rows;
   }
 
+  // Get all requests for a tutor
   static async getRequest(tutorID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(`SELECT * FROM Requests WHERE tutorID = ?`, [tutorID]);
     return rows;
   }
 
+  // Get a specific request by ID
   static async getRequestByID(requestID) {
     const connection = await connectDB();
     const [[result]] = await connection.execute(`SELECT * FROM Requests WHERE requestID = ?`, [requestID]);
     return result;
   }
 
+  // Delete a request by ID
   static async deleteRequest(requestID) {
     const connection = await connectDB();
     const [result] = await connection.execute(`DELETE FROM Requests WHERE requestID = ?`, [requestID]);
     return result.affectedRows > 0;
   }
 
+  // Update tutor status
   static async updateTutorStatus(userID, status) {
     const connection = await connectDB();
-    console.log("Updating tutor status:", userID, status);
-    
     const [result] = await connection.execute(
       `UPDATE Tutors SET status = ? WHERE userID = ?`,
       [status, userID]
@@ -177,6 +194,7 @@ class Tutor {
     return result.affectedRows > 0;
   }
 
+  // Check tutor status
   static async checkTutorStatus(userID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(
@@ -186,6 +204,7 @@ class Tutor {
     return rows[0]?.status;
   }
 
+  // Delete a tutor and all associated data
   static async deleteTutor(userID) {
     const connection = await connectDB();
     try {

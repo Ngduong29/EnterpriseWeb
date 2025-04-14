@@ -158,6 +158,7 @@ class Student {
     return { classroom, message, rating, date };
   }
 
+  // Delete a student and all associated data
   static async deleteStudent(userID) {
     const connection = await connectDB();
     try {
@@ -188,7 +189,7 @@ class Student {
         [userID, userID]
       );
 
-      // 3. Unenroll from all classes
+      // 3. Unenroll from all classes (set studentID to NULL)
       await connection.execute(
         `UPDATE Classes SET studentID = NULL WHERE studentID = ?`,
         [studentID]
@@ -212,9 +213,9 @@ class Student {
         [userID]
       );
 
-      // 7. Delete user account
+      // 7. Set user role to NULL
       await connection.execute(
-        `DELETE FROM Users WHERE userID = ?`,
+        `UPDATE Users SET role = NULL WHERE userID = ?`,
         [userID]
       );
 

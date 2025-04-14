@@ -4,6 +4,7 @@ const classController = require("../controllers/classController");
 const tutorController = require("../controllers/tutorController");
 const multer = require("multer");
 const messageController = require("../controllers/messageController");
+const auth = require("../middleware/auth");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -25,8 +26,6 @@ router.post(
   "/sendMessage/:senderID&:receiverID",
   messageController.sendMessage
 );
-
-
-
+router.delete("/:id", auth("Admin"), userController.deleteUser);
 
 module.exports = router;

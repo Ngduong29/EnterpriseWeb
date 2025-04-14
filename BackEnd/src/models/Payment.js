@@ -5,18 +5,21 @@ const sql = require("mysql2/promise");
 dotenv.config();
 
 class Payment {
+  // Get all payment records from the Payments table
   static async getPaymentInfo() {
     const connection = await connectDB();
     const [rows] = await connection.execute(`SELECT * FROM Payments`);
     return rows;
   }
 
+  // Get all payment records from the Payment table
   static async getAllPayment() {
     const connection = await connectDB();
     const [rows] = await connection.execute(`SELECT * FROM Payment`);
     return rows;
   }
 
+  // Create a new payment record and associate it with a tutor
   static async createPayment(paymentInfo, tutorID) {
     const connection = await connectDB(); 
     const { id, orderCode, amount, status, createdAt } = paymentInfo;
@@ -42,6 +45,7 @@ class Payment {
     return check[0];
   }
 
+  // Get all transaction records with payment details
   static async getTransaction() {
     const connection = await connectDB();
     const [rows] = await connection.execute(`SELECT 
