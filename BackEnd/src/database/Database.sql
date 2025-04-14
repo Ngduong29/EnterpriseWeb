@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `Blogs` (
   KEY `student_id` (`student_id`),
   KEY `class_id` (`class_id`) USING BTREE,
   CONSTRAINT `Blogs_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `Users` (`userID`),
-  CONSTRAINT `FK_Blogs_tutordb.Classes` FOREIGN KEY (`class_id`) REFERENCES `Classes` (`classID`)
+  CONSTRAINT `FK_Blogs_Classes` FOREIGN KEY (`class_id`) REFERENCES `Classes` (`classID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Blogs: ~6 rows (approximately)
@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS `Classes` (
   PRIMARY KEY (`classID`),
   KEY `tutorID` (`tutorID`),
   KEY `studentID` (`studentID`),
-  CONSTRAINT `classes_ibfk_1` FOREIGN KEY (`tutorID`) REFERENCES `tutors` (`tutorID`),
-  CONSTRAINT `classes_ibfk_2` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`)
+  CONSTRAINT `Classes_ibfk_1` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`),
+  CONSTRAINT `Classes_ibfk_2` FOREIGN KEY (`studentID`) REFERENCES `Students` (`studentID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Classes: ~3 rows (approximately)
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `Complains` (
   `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`complainID`),
   KEY `uID` (`uID`),
-  CONSTRAINT `complains_ibfk_1` FOREIGN KEY (`uID`) REFERENCES `users` (`userID`) ON DELETE CASCADE
+  CONSTRAINT `Complains_ibfk_1` FOREIGN KEY (`uID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Complains: ~3 rows (approximately)
@@ -123,9 +123,9 @@ CREATE TABLE IF NOT EXISTS `Feedbacks` (
   KEY `tutorID` (`tutorID`),
   KEY `classID` (`classID`),
   KEY `studentID` (`studentID`),
-  CONSTRAINT `feedbacks_ibfk_1` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`),
-  CONSTRAINT `feedbacks_ibfk_2` FOREIGN KEY (`classID`) REFERENCES `Classes` (`classID`),
-  CONSTRAINT `feedbacks_ibfk_3` FOREIGN KEY (`studentID`) REFERENCES `Students` (`studentID`),
+  CONSTRAINT `Feedbacks_ibfk_1` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`),
+  CONSTRAINT `Feedbacks_ibfk_2` FOREIGN KEY (`classID`) REFERENCES `Classes` (`classID`),
+  CONSTRAINT `Feedbacks_ibfk_3` FOREIGN KEY (`studentID`) REFERENCES `Students` (`studentID`),
   CONSTRAINT `Feedbacks_chk_1` CHECK (((`rating` >= 1) and (`rating` <= 5)))
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -146,8 +146,8 @@ CREATE TABLE IF NOT EXISTS `Messages` (
   PRIMARY KEY (`messageID`),
   KEY `senderID` (`senderID`),
   KEY `receiverID` (`receiverID`),
-  CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`senderID`) REFERENCES `users` (`userID`) ON DELETE CASCADE,
-  CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiverID`) REFERENCES `users` (`userID`) ON DELETE CASCADE
+  CONSTRAINT `Messages_ibfk_1` FOREIGN KEY (`senderID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE,
+  CONSTRAINT `Messages_ibfk_2` FOREIGN KEY (`receiverID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Messages: ~9 rows (approximately)
@@ -193,8 +193,8 @@ CREATE TABLE IF NOT EXISTS `Requests` (
   PRIMARY KEY (`requestID`),
   KEY `studentID` (`studentID`),
   KEY `tutorID` (`tutorID`),
-  CONSTRAINT `requests_ibfk_1` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`),
-  CONSTRAINT `requests_ibfk_2` FOREIGN KEY (`tutorID`) REFERENCES `tutors` (`tutorID`)
+  CONSTRAINT `Requests_ibfk_1` FOREIGN KEY (`studentID`) REFERENCES `Students` (`studentID`),
+  CONSTRAINT `Requests_ibfk_2` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Requests: ~3 rows (approximately)
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS `Students` (
   `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`studentID`),
   KEY `userID` (`userID`),
-  CONSTRAINT `students_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE
+  CONSTRAINT `Students_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Students: ~2 rows (approximately)
@@ -232,8 +232,8 @@ CREATE TABLE IF NOT EXISTS `TutorRequests` (
   PRIMARY KEY (`requestID`),
   KEY `userID` (`userID`),
   KEY `tutorID` (`tutorID`),
-  CONSTRAINT `tutorrequests_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`),
-  CONSTRAINT `tutorrequests_ibfk_2` FOREIGN KEY (`tutorID`) REFERENCES `tutors` (`tutorID`)
+  CONSTRAINT `TutorRequests_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `Users` (`userID`),
+  CONSTRAINT `TutorRequests_ibfk_2` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.TutorRequests: ~2 rows (approximately)
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS `Tutors` (
   `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`tutorID`),
   KEY `userID` (`userID`),
-  CONSTRAINT `tutors_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `users` (`userID`) ON DELETE CASCADE
+  CONSTRAINT `Tutors_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Tutors: ~4 rows (approximately)
