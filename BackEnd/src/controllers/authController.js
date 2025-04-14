@@ -161,8 +161,8 @@ class authController {
         const student = await Student.findStudentByUserID(user.userID);
         const classByStudent = await Classroom.GetClassByStudentId(student.studentID);
 
-        user = { ...user, ...student };
-        // user = { ...user, ...student, ...classByStudent };
+        // user = { ...user, ...student };
+        user = { ...user, ...student, ...classByStudent };
 
         console.log(user);
 
@@ -170,8 +170,8 @@ class authController {
         const tutor = await Tutor.findTutorByTutorUserID(user.userID);
         const classByTutor = await Classroom.GetClassByStudentId(tutor.tutorID);
         // const classByTutor = await Classroom
-        user = { ...user, ...tutor };
-        // user = { ...user, ...tutor, ...classByTutor };
+        // user = { ...user, ...tutor };
+        user = { ...user, ...tutor, ...classByTutor };
 
 
       }
