@@ -1,67 +1,77 @@
 const express = require("express");
-const cors = require("cors");
 const dotenv = require("dotenv");
-
-const authRoutes = require("./routes/auth");
-const studentRoutes = require("./routes/studentRoutes");
-const tutorRoutes = require("./routes/tutorRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const userRoutes = require("./routes/userRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
-const connectDB = require("./config/db");
-const { Server } = require("socket.io");
 const http = require("http");
+const { Server } = require("socket.io");
+const connectDB = require("./config/db");
 const sendEmail = require("./email/EmailOtp");
-
-dotenv.config();
+const corsMiddleware = require("./middleware/cors");
 
 const app = express();
-app.use(cors()); // Allow CORS for all origins (for development, refine in production)
-app.use(express.json());
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
+// Middleware
+app.use(corsMiddleware);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+const routes = require("./routes");
+app.use("/api", routes);
+
 app.get("/", (req, res) => {
-  res.send("hello dev");
+  res.json({ message: "API is running" });
 });
 
-app.use("/api/auth", authRoutes); // Mount auth routes
-app.use("/api/admin", adminRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/students", studentRoutes);
-app.use("/api/tutors", tutorRoutes);
-app.use("/api", paymentRoutes);
-
-app.post("/send_recovery_email", (req, res) => {
-  const { recipient_email, OTP } = req.body; // Ensure these fields are sent in the request body
-  sendEmail({ recipient_email, OTP })
-    .then((response) => res.send(response.message))
-    .catch((error) => res.status(500).send(error.message));
+// Email recovery endpoint
+app.post("/send_recovery_email", async (req, res, next) => {
+  try {
+    const { recipient_email, OTP } = req.body;
+    if (!recipient_email || !OTP) {
+      return res.status(400).json({ message: "Missing email or OTP" });
+    }
+    const response = await sendEmail({ recipient_email, OTP });
+    res.json({ message: response.message });
+  } catch (error) {
+    next(error);
+  }
 });
 
-const PORT = process.env.PORT || 5000;
-
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-connectDB();
-
+// Socket.IO setup
 io.on("connection", (socket) => {
   socket.on("sendMessage", async (message) => {
     try {
+      if (!message || !message.senderID || !message.receiverID || !message.content) {
+        socket.emit("error", { message: "Invalid message format" });
+        return;
+      }
       io.emit("receiveMessage", message);
     } catch (error) {
-      console.error("Error saving message to database", error);
+      console.error("Error processing message:", error);
+      socket.emit("error", { message: "Failed to send message" });
     }
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    // logic
   });
 });
+
+// Start server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, async () => {
+  try {
+    await connectDB();
+    console.log(`Server running on port ${PORT}`);
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+}); 

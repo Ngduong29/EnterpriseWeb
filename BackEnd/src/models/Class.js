@@ -115,7 +115,8 @@ class Classroom {
   // Create a new class and validate tutor status
   static async CreateClass(classroom) {
     const connection = await connectDB();
-    
+
+    // Check tutor status first
     const [tutorStatus] = await connection.execute(
       `SELECT status FROM Tutors WHERE userID = ?`,
       [classroom.tutorID]
@@ -139,6 +140,52 @@ class Classroom {
       ]
     );
     return { classID: result.insertId, ...classroom };
+  }
+
+  static async GetClassByStudentId(studentID) {
+
+    const connection = await connectDB();
+
+    if (!studentID) {
+      throw new Error('Student ID is required');
+    }
+
+    try {
+      const [classes] = await connection.execute(
+        `
+        SELECT c.*
+        FROM Classes c
+        WHERE studentID = ?
+        `,
+        [studentID]
+      );
+      return classes[0];
+    } catch (error) {
+      throw new Error(`Failed to retrieve classes: ${error.message}`);
+    }
+  }
+
+  static async GetClassByTutor(tutorID) {
+
+    const connection = await connectDB();
+
+    if (!studentID) {
+      throw new Error('Student ID is required');
+    }
+
+    try {
+      const [classes] = await connection.execute(
+        `
+        SELECT c.*
+        FROM Classes c
+        WHERE tutorID = ?
+        `,
+        [tutorID]
+      );
+      return classes[0];
+    } catch (error) {
+      throw new Error(`Failed to retrieve classes: ${error.message}`);
+    }
   }
 }
 
