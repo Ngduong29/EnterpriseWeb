@@ -94,7 +94,7 @@ const AdminPortal = () => {
     axios
       .put(apiUrl)
       .then((response) => {
-        setUsers(users.map((user) => (user.userID === id ? { ...user, active: newStatus } : user)))
+        setUsers(users.map((user) => (user.userID === id ? { ...user, isActive: newStatus } : user)))
         toast.success(isActive ? 'Đã khóa người dùng' : 'Đã mở khóa người dùng')
       })
       .catch((error) => {
@@ -281,12 +281,12 @@ const AdminPortal = () => {
                   {user.role !== 'Admin' && (
                     <>
                       <button
-                        onClick={() => toggleActiveStatus(user.userID, user.active)}
+                        onClick={() => toggleActiveStatus(user.userID, user.isActive)}
                         className={`p-2 rounded-lg transition-colors duration-300 ${
-                          user.active ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                          user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
                         } text-white`}
                       >
-                        {user.active ? 'Ban' : 'Unban'}
+                        {user.isActive ? 'Ban' : 'Unban'}
                       </button>
                       
                       <button
