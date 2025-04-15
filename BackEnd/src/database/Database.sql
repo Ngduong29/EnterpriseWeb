@@ -68,7 +68,6 @@ CREATE TABLE IF NOT EXISTS `Classes` (
   `videoLink` varchar(255) DEFAULT NULL,
   `subject` varchar(100) NOT NULL,
   `tutorID` varchar(10) NOT NULL,
-  `studentID` varchar(10) DEFAULT NULL,
   `paymentID` int DEFAULT NULL,
   `length` int NOT NULL,
   `available` tinyint(1) DEFAULT '1',
@@ -80,16 +79,35 @@ CREATE TABLE IF NOT EXISTS `Classes` (
   `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`classID`),
   KEY `tutorID` (`tutorID`),
-  KEY `studentID` (`studentID`),
-  CONSTRAINT `Classes_ibfk_1` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`),
-  CONSTRAINT `Classes_ibfk_2` FOREIGN KEY (`studentID`) REFERENCES `Students` (`studentID`)
+  CONSTRAINT `Classes_ibfk_1` FOREIGN KEY (`tutorID`) REFERENCES `Tutors` (`tutorID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Classes: ~3 rows (approximately)
-INSERT IGNORE INTO `Classes` (`classID`, `className`, `videoLink`, `subject`, `tutorID`, `studentID`, `paymentID`, `length`, `available`, `type`, `description`, `price`, `isActive`, `createdAt`, `updatedAt`) VALUES
-	(1, 'Advanced Mathematics', NULL, 'Mathematics', 'T1', 'S1', 1, 60, 1, NULL, 'Advanced math concepts for high school students', 100.00, 1, '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	(2, 'Physics Basics', NULL, 'Physics', 'T2', 'S2', 2, 90, 1, NULL, 'Introduction to physics principles', 150.00, 1, '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	(3, 'Calculus 101', NULL, 'Mathematics', 'T1', NULL, NULL, 60, 1, NULL, 'Basic calculus course', 200.00, 1, '2025-04-13 06:33:04', '2025-04-13 06:33:04');
+INSERT IGNORE INTO `Classes` (`classID`, `className`, `videoLink`, `subject`, `tutorID`, `paymentID`, `length`, `available`, `type`, `description`, `price`, `isActive`, `createdAt`, `updatedAt`) VALUES
+	(1, 'Advanced Mathematics', NULL, 'Mathematics', 'T1', 1, 60, 1, NULL, 'Advanced math concepts for high school students', 100.00, 1, '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
+	(2, 'Physics Basics', NULL, 'Physics', 'T2', 2, 90, 1, NULL, 'Introduction to physics principles', 150.00, 1, '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
+	(3, 'Calculus 101', NULL, 'Mathematics', 'T1', NULL, 60, 1, NULL, 'Basic calculus course', 200.00, 1, '2025-04-13 06:33:04', '2025-04-13 06:33:04');
+
+-- Dumping structure for table tutordb.Class_Students
+CREATE TABLE IF NOT EXISTS `Class_Students` (
+  `classID` int NOT NULL,
+  `studentID` varchar(10) NOT NULL,
+  `enrolledAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('Active','Completed','Dropped') DEFAULT 'Active',
+  PRIMARY KEY (`classID`, `studentID`),
+  KEY `studentID` (`studentID`),
+  CONSTRAINT `Class_Students_ibfk_1` FOREIGN KEY (`classID`) REFERENCES `Classes` (`classID`) ON DELETE CASCADE,
+  CONSTRAINT `Class_Students_ibfk_2` FOREIGN KEY (`studentID`) REFERENCES `Students` (`studentID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table tutordb.Class_Students: ~6 rows (approximately)
+INSERT IGNORE INTO `Class_Students` (`classID`, `studentID`, `enrolledAt`, `status`) VALUES
+	(1, 'S1', '2025-04-13 06:33:04', 'Active'),
+	(1, 'S2', '2025-04-13 06:33:04', 'Active'),
+	(2, 'S1', '2025-04-13 06:33:04', 'Active'),
+	(2, 'S2', '2025-04-13 06:33:04', 'Active'),
+	(3, 'S1', '2025-04-13 06:33:04', 'Active'),
+	(3, 'S2', '2025-04-13 06:33:04', 'Dropped');
 
 -- Dumping structure for table tutordb.Complains
 CREATE TABLE IF NOT EXISTS `Complains` (

@@ -346,6 +346,35 @@ class studentController {
       });
     }
   };
+
+  static getStudentClasses = async (req, res) => {
+    try {
+      const studentID = req.user.studentID;
+      if (!studentID) {
+        return res.status(404).json({
+          message: "Please provide student ID",
+        });
+      }
+
+      const classes = await Student.getClassesByStudentID(studentID);
+      if (!classes) {
+        return res.status(404).json({
+          message: "No classes found for this student",
+        });
+      }
+
+      res.status(200).json({
+        message: "Student classes retrieved successfully",
+        data: classes
+      });
+    } catch (error) {
+      console.error("Error getting student classes:", error);
+      res.status(500).json({
+        message: "Error getting student classes",
+        error: error.message
+      }); 
+    }
+  };
 }
 
 module.exports = studentController;

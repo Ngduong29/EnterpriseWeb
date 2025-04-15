@@ -16,7 +16,8 @@ router.get("/getUser", adminController.getAllUser);
 router.get("/getActiveUser", adminController.getActiveUser);
 router.post("/handleTutor/:id", adminController.handleTutor);
 router.delete("/deleteClass/:id", adminController.deleteClass);
-
+// Delete student route (must be last due to :id parameter)
+router.delete("/deleteStudent/:id", adminController.deleteStudent);
 
 router.delete('/deleteComplains/:id', adminController.deleteComplain);
 module.exports = router;

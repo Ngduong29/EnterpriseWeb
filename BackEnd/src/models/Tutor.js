@@ -15,29 +15,6 @@ class Tutor {
     this.description = description;
   }
 
-  // Register a new tutor request
-  static async registerTutor(userId, tutorID) {
-    const connection = await connectDB();
-    const [result] = await connection.execute(
-      `INSERT INTO TutorRequests (userID, tutorID, status) VALUES (?, ?, ?)`,
-      [userId, tutorID, "Pending"]
-    );
-    return result;
-  }
-
-  // Generate a new tutor ID
-  static async createTutorID() {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(
-      `SELECT * FROM Tutors ORDER BY CAST(SUBSTRING(tutorID, 2) AS UNSIGNED) DESC`
-    );
-    if (!rows.length) return "T1";
-    const id = rows[0].tutorID;
-    const prefix = id.match(/[A-Za-z]+/)[0];
-    const number = parseInt(id.match(/\d+/)[0]) + 1;
-    return prefix + number;
-  }
-
   // Create a new tutor profile
   static async createTutor(userID, tutorData) {
     const connection = await connectDB();
@@ -204,7 +181,25 @@ class Tutor {
     return rows[0]?.status;
   }
 
-  // Delete a tutor and all associated data
+  /**
+   * Xóa toàn bộ thông tin của gia sư và các dữ liệu liên quan
+   * @param {number} userID - ID của người dùng cần xóa
+   * @returns {Promise<boolean>} - Trả về true nếu xóa thành công, false nếu không
+   * @throws {Error} - Ném lỗi nếu gia sư không tồn tại hoặc có lỗi trong quá trình xóa
+   * 
+   * Quy trình xóa:
+   * 1. Xóa tất cả feedback của gia sư
+   * 2. Xóa tất cả tin nhắn liên quan đến gia sư
+   * 3. Xóa tất cả đăng ký lớp học của học sinh với gia sư
+   * 4. Xóa tất cả lớp học do gia sư tạo
+   * 5. Xóa tất cả yêu cầu đăng ký lớp liên quan đến gia sư
+   * 6. Xóa yêu cầu đăng ký làm gia sư
+   * 7. Xóa tất cả khiếu nại của gia sư
+   * 8. Xóa bản ghi gia sư
+   * 9. Xóa tài khoản người dùng
+   * 
+   * Tất cả các thao tác được thực hiện trong một transaction để đảm bảo tính toàn vẹn dữ liệu
+   */
   static async deleteTutor(userID) {
     const connection = await connectDB();
     try {
@@ -235,37 +230,43 @@ class Tutor {
         [userID, userID]
       );
 
-      // 3. Delete all classes of tutor
+      // 3. Delete all class enrollments
+      await connection.execute(
+        `DELETE FROM Class_Students WHERE tutorID = ?`,
+        [tutorID]
+      );
+
+      // 4. Delete all classes of tutor
       await connection.execute(
         `DELETE FROM Classes WHERE tutorID = ?`,
         [tutorID]
       );
 
-      // 4. Delete all requests to/from tutor
+      // 5. Delete all requests to/from tutor
       await connection.execute(
         `DELETE FROM Requests WHERE tutorID = ?`,
         [tutorID]
       );
 
-      // 5. Delete all tutor requests
+      // 6. Delete all tutor requests
       await connection.execute(
         `DELETE FROM TutorRequests WHERE tutorID = ?`,
         [tutorID]
       );
 
-      // 6. Delete all complains from tutor
+      // 7. Delete all complains from tutor
       await connection.execute(
         `DELETE FROM Complains WHERE uID = ?`,
         [userID]
       );
 
-      // 7. Delete tutor record
+      // 8. Delete tutor record
       const [result] = await connection.execute(
         `DELETE FROM Tutors WHERE userID = ?`,
         [userID]
       );
 
-      // 8. Delete user account
+      // 9. Delete user account
       await connection.execute(
         `DELETE FROM Users WHERE userID = ?`,
         [userID]

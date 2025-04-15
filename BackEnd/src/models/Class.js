@@ -28,13 +28,17 @@ class Classroom {
     const [rows] = await connection.execute(`
       SELECT 
         c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
+        t.userID, u.fullName AS tutorFullName, c.paymentID,
         c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
+        t.rating, c.isActive,
+        GROUP_CONCAT(DISTINCT cs.studentID) as studentIDs,
+        COUNT(DISTINCT cs.studentID) as studentCount
       FROM Classes c
       JOIN Tutors t ON c.tutorID = t.tutorID
       JOIN Users u ON t.userID = u.userID
-      WHERE c.isActive = 1;
+      LEFT JOIN Class_Students cs ON c.classID = cs.classID
+      WHERE c.isActive = 1
+      GROUP BY c.classID;
     `);
     return rows;
   }
@@ -45,12 +49,15 @@ class Classroom {
     const [rows] = await connection.execute(`
       SELECT 
         c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
+        t.userID, u.fullName AS tutorFullName, c.paymentID,
         c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
+        t.rating, c.isActive,
+        GROUP_CONCAT(DISTINCT cs.studentID) as studentIDs
       FROM Classes c
       JOIN Tutors t ON c.tutorID = t.tutorID
-      JOIN Users u ON t.userID = u.userID;
+      JOIN Users u ON t.userID = u.userID
+      LEFT JOIN Class_Students cs ON c.classID = cs.classID
+      GROUP BY c.classID;
     `);
     return rows;
   }
@@ -61,13 +68,16 @@ class Classroom {
     const [rows] = await connection.execute(`
       SELECT 
         c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
+        t.userID, u.fullName AS tutorFullName, c.paymentID,
         c.length, c.available, c.type, c.description, c.price,
-        t.rating, c.isActive
+        t.rating, c.isActive,
+        GROUP_CONCAT(DISTINCT cs.studentID) as studentIDs
       FROM Classes c
       JOIN Tutors t ON c.tutorID = t.tutorID
       JOIN Users u ON t.userID = u.userID
-      WHERE c.classID = ?;
+      LEFT JOIN Class_Students cs ON c.classID = cs.classID
+      WHERE c.classID = ?
+      GROUP BY c.classID;
     `, [classID]);
     return rows[0];
   }
@@ -172,7 +182,6 @@ class Classroom {
   }
 
   static async GetClassByStudentId(studentID) {
-
     const connection = await connectDB();
 
     if (!studentID) {
@@ -182,39 +191,111 @@ class Classroom {
     try {
       const [classes] = await connection.execute(
         `
-        SELECT c.*
+        SELECT c.*, t.userID, u.fullName AS tutorFullName, t.rating
         FROM Classes c
-        WHERE studentID = ?
+        JOIN Class_Students cs ON c.classID = cs.classID
+        JOIN Tutors t ON c.tutorID = t.tutorID
+        JOIN Users u ON t.userID = u.userID
+        WHERE cs.studentID = ? AND cs.status = 'Active'
         `,
         [studentID]
       );
-      return classes[0];
+      return classes;
     } catch (error) {
       throw new Error(`Failed to retrieve classes: ${error.message}`);
     }
   }
 
   static async GetClassByTutor(tutorID) {
-
     const connection = await connectDB();
 
-    if (!studentID) {
-      throw new Error('Student ID is required');
+    if (!tutorID) {
+      throw new Error('Tutor ID is required');
     }
 
     try {
       const [classes] = await connection.execute(
         `
-        SELECT c.*
+        SELECT c.*, t.userID, u.fullName AS tutorFullName, t.rating
         FROM Classes c
-        WHERE tutorID = ?
+        JOIN Tutors t ON c.tutorID = t.tutorID
+        JOIN Users u ON t.userID = u.userID
+        WHERE c.tutorID = ? AND c.isActive = 1
         `,
         [tutorID]
       );
-      return classes[0];
+      return classes;
     } catch (error) {
       throw new Error(`Failed to retrieve classes: ${error.message}`);
     }
+  }
+
+  static async findStudentsInClass(classID) {
+    const connection = await connectDB();
+    try {
+      const [rows] = await connection.execute(
+        `SELECT s.*, u.fullName, u.email, u.avatar, cs.enrolledAt, cs.status
+         FROM Students s
+         JOIN Users u ON s.userID = u.userID
+         JOIN Class_Students cs ON s.studentID = cs.studentID
+         WHERE cs.classID = ? AND cs.status = 'Active'`,
+        [classID]
+      );
+      return rows;
+    } catch (error) {
+      console.error('Error finding students in class:', error);
+      throw error;
+    }
+  }
+
+  static async findClassByID(classID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM Classes WHERE classID = ?`,
+      [classID]
+    );
+    return rows[0];
+  }
+
+  static async enrollStudent(classID, studentID) {
+    const connection = await connectDB();
+    try {
+      await connection.execute(
+        `INSERT INTO Class_Students (classID, studentID, status) 
+         VALUES (?, ?, 'Active')`,
+        [classID, studentID]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error enrolling student:', error);
+      throw error;
+    }
+  }
+
+  static async unenrollStudent(classID, studentID) {
+    const connection = await connectDB();
+    try {
+      await connection.execute(
+        `UPDATE Class_Students 
+         SET status = 'Dropped' 
+         WHERE classID = ? AND studentID = ?`,
+        [classID, studentID]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error unenrolling student:', error);
+      throw error;
+    }
+  }
+
+  static async isStudentEnrolled(classID, studentID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM Class_Students 
+       WHERE classID = ? AND studentID = ? AND status = 'Active'`,
+      [classID, studentID]
+    );
+    return rows.length > 0;
   }
 }
 
