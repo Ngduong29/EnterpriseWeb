@@ -137,7 +137,6 @@ const UserProfile = () => {
       localStorage.setItem('token', data.token)
       setUserData(data.user)
       toast.info('Profile updated successfully!')
-      window.location.reload()
     } catch (error) {
       console.error('Failed to update profile:', error)
       toast.error('Failed to update profile. Please try again.')

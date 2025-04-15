@@ -114,12 +114,14 @@ class User {
   static async updateUser(userID, updates) {
     const connection = await connectDB();
 
+    // Kiểm tra nếu không có trường nào cần cập nhật
+    if (Object.keys(updates).length === 0) {
+      return true;
+    }
+
     const fields = Object.keys(updates)
       .map(key => `${key} = ?`)
       .join(', ');
-
-
-    console.log(fields);
 
     const values = Object.values(updates);
     values.push(userID);

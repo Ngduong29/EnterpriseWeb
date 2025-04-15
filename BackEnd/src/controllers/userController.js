@@ -6,33 +6,32 @@ class userController {
 
   static updateUserForUser = async (req, res) => {
     try {
+      // Validate input
       const userID = req.params.id;
       if (!userID) {
-        return res.status(404).json({
-          message: "Missing user id",
-        });
+        return res.status(404).json({ message: "Missing user id" });
       }
-      const realUser = await User.findUserByID(userID);
-      console.log("Real user found:", realUser);
 
-      const updatedUserData  = req.body;
-      console.log("Updated user data:", updatedUserData);
+      const { updatedUserData } = req.body;
       if (!updatedUserData) {
-        return res.status(404).json({
-          message: "Cannot found user",
-        });
+        return res.status(404).json({ message: "Cannot found user" });
       }
-      console.log("Update data received:", updatedUserData);
+
+      // Get existing user
+      const realUser = await User.findUserByID(userID);
+      if (!realUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       // Separate user fields from role-specific fields
       const userFields = ['userName', 'fullName', 'email', 'avatar', 'dateOfBirth', 'phone', 'address'];
       const userUpdates = {};
       const roleSpecificUpdates = {};
 
+      // Process update data
       Object.keys(updatedUserData).forEach(key => {
         if (userFields.includes(key)) {
           if (key === 'dateOfBirth' && updatedUserData[key]) {
-            // Format the date to YYYY-MM-DD
             userUpdates[key] = new Date(updatedUserData[key]).toISOString().split('T')[0];
           } else {
             userUpdates[key] = updatedUserData[key];
@@ -42,33 +41,25 @@ class userController {
         }
       });
 
+      // Update role-specific data
       let updated;
-      if (realUser.role == "Student") {
-        let student = await Student.findStudentByUserID(userID);
+      if (realUser.role === "Student") {
+        const student = await Student.findStudentByUserID(userID);
         if (!student) {
-          return res.status(404).json({
-            message: "Student not found",
-          });
+          return res.status(404).json({ message: "Student not found" });
         }
-        console.log("Student found:", student);
 
         student.grade = roleSpecificUpdates.grade || student.grade;
         student.school = roleSpecificUpdates.school || student.school;
         updated = await Student.updateStudent(userID, student);
         if (!updated) {
-          return res.status(500).json({
-            message: "Student update fail",
-          });
+          return res.status(500).json({ message: "Student update fail" });
         }
-        console.log("Student updated:", updated);
-      } else if (realUser.role == "Tutor") {
-        let tutor = await Tutor.findTutorByTutorUserID(userID);
+      } else if (realUser.role === "Tutor") {
+        const tutor = await Tutor.findTutorByTutorUserID(userID);
         if (!tutor) {
-          return res.status(404).json({
-            message: "Tutor not found",
-          });
+          return res.status(404).json({ message: "Tutor not found" });
         }
-        console.log("Tutor found:", tutor);
 
         tutor.degrees = roleSpecificUpdates.degrees || tutor.degrees;
         tutor.identityCard = roleSpecificUpdates.identityCard || tutor.identityCard;
@@ -76,52 +67,41 @@ class userController {
         tutor.description = roleSpecificUpdates.description || tutor.description;
         updated = await Tutor.updateTutor(userID, tutor);
         if (!updated) {
-          return res.status(500).json({
-            message: "Tutor update fail",
-          });
+          return res.status(500).json({ message: "Tutor update fail" });
         }
-        console.log("Tutor updated:", updated);
       }
 
-      // Only update user fields in the Users table
+      // Update user data
       const data = await User.updateUser(userID, userUpdates);
       if (!data) {
-        return res.status(500).json({
-          message: "Error in update user",
-        });
+        return res.status(500).json({ message: "Error in update user" });
       }
-      console.log("User updated:", data);
 
-      // Get updated user data
+      // Get final updated data
       const updatedUser = await User.findUserByID(userID);
       if (!updatedUser) {
-        return res.status(500).json({
-          message: "Error fetching updated user data",
-        });
+        return res.status(500).json({ message: "Error fetching updated user data" });
       }
-      console.log("Updated user fetched:", updatedUser);
 
-      // Combine user data with role-specific data
+      // Prepare response
       const finalUserData = { ...updatedUser, ...updated };
-      console.log("Final user data:", finalUserData);
-
       const token = User.generateAuthToken(finalUserData);
+
       const response = {
         message: "User's detail updated",
         token,
         user: finalUserData
       };
-      console.log("Final response:", response);
 
       return res.status(200).json(response);
     } catch (error) {
-      console.log("Error in updateUserForUser:", error);
       res.status(500).json({
         message: "Error in update user in Server",
         error: error.message
       });
     }
   };
+
   static sendComplains = async (req, res) => {
     try {
       const { userID, message } = req.body;

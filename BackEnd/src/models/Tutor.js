@@ -181,25 +181,6 @@ class Tutor {
     return rows[0]?.status;
   }
 
-  /**
-   * Xóa toàn bộ thông tin của gia sư và các dữ liệu liên quan
-   * @param {number} userID - ID của người dùng cần xóa
-   * @returns {Promise<boolean>} - Trả về true nếu xóa thành công, false nếu không
-   * @throws {Error} - Ném lỗi nếu gia sư không tồn tại hoặc có lỗi trong quá trình xóa
-   * 
-   * Quy trình xóa:
-   * 1. Xóa tất cả feedback của gia sư
-   * 2. Xóa tất cả tin nhắn liên quan đến gia sư
-   * 3. Xóa tất cả đăng ký lớp học của học sinh với gia sư
-   * 4. Xóa tất cả lớp học do gia sư tạo
-   * 5. Xóa tất cả yêu cầu đăng ký lớp liên quan đến gia sư
-   * 6. Xóa yêu cầu đăng ký làm gia sư
-   * 7. Xóa tất cả khiếu nại của gia sư
-   * 8. Xóa bản ghi gia sư
-   * 9. Xóa tài khoản người dùng
-   * 
-   * Tất cả các thao tác được thực hiện trong một transaction để đảm bảo tính toàn vẹn dữ liệu
-   */
   static async deleteTutor(userID) {
     const connection = await connectDB();
     try {
@@ -228,12 +209,6 @@ class Tutor {
       await connection.execute(
         `DELETE FROM Messages WHERE senderID = ? OR receiverID = ?`,
         [userID, userID]
-      );
-
-      // 3. Delete all class enrollments
-      await connection.execute(
-        `DELETE FROM Class_Students WHERE tutorID = ?`,
-        [tutorID]
       );
 
       // 4. Delete all classes of tutor
