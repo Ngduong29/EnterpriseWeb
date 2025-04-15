@@ -88,7 +88,7 @@ class Classroom {
     const [rows] = await connection.execute(`
       SELECT 
         c.classID, c.className, c.videoLink, c.subject, c.tutorID,
-        t.userID, u.fullName AS tutorFullName, c.studentID, c.paymentID,
+        t.userID, u.fullName AS tutorFullName, c.paymentID,
         c.length, c.available, c.type, c.description, c.price,
         t.rating, c.isActive
       FROM Classes c
