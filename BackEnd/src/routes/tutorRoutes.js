@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/auth');
 const blogController = require('../controllers/blogController');
 
 const router = express.Router();
-router.use(authenticateToken('Tutor'));
+//router.use(authenticateToken('Tutor'));
 
 router.post("/createClasses", tutorController.createClasses);
 router.post("/updateClasses/:id", tutorController.updateClasses); //need auth for update
