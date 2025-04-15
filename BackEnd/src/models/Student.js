@@ -22,7 +22,7 @@ class Student {
     if (!rows[0]) {
       return "S1";
     } else {
-      let lastID = rows[0].studentID.toString(); // Ensure lastID is a string  
+      let lastID = rows[0].studentID.toString(); // Ensure lastID is a string
       const alphabet = lastID.match(/[A-Za-z]+/)[0];
       const number = parseInt(lastID.match(/\d+/)[0]) + 1;
       return alphabet + number;
@@ -33,34 +33,34 @@ class Student {
     const connection = await connectDB();
     try {
       await connection.beginTransaction();
-      
+
       // Verify that the user exists
       const [userRows] = await connection.execute(
         "SELECT * FROM Users WHERE userID = ?",
         [userId]
       );
-      
+
       if (!userRows[0]) {
         throw new Error("User not found");
       }
-      
+
       const studentID = await this.createStudentID();
-      
+
       await connection.execute(
         `INSERT INTO Students (userID, studentID, grade, school) VALUES (?, ?, ?, ?)`,
         [userId, studentID, studentData.grade, studentData.school]
       );
-      
+
       // Verify the student was created
       const [studentRows] = await connection.execute(
         "SELECT * FROM Students WHERE userID = ?",
         [userId]
       );
-      
+
       if (!studentRows[0]) {
         throw new Error("Failed to create student record");
       }
-      
+
       await connection.commit();
       return new Student({ userID: userId, studentID, ...studentData });
     } catch (error) {
@@ -75,7 +75,9 @@ class Student {
       `UPDATE Students SET grade = ?, school = ? WHERE userID = ?`,
       [studentData.grade, studentData.school, userID]
     );
-    return rows.affectedRows > 0 ? await this.findStudentByUserID(userID) : null;
+    return rows.affectedRows > 0
+      ? await this.findStudentByUserID(userID)
+      : null;
   }
 
   static async sendRequestToTutor(tutorID, studentID, message) {
@@ -181,10 +183,10 @@ class Student {
       [classroom.tutorID]
     );
     const avgRating = avgRows[0]?.avg_rating?.toString() || "0.0";
-    await connection.execute(
-      `UPDATE Tutors SET rating = ? WHERE tutorID = ?`,
-      [avgRating, classroom.tutorID]
-    );
+    await connection.execute(`UPDATE Tutors SET rating = ? WHERE tutorID = ?`, [
+      avgRating,
+      classroom.tutorID,
+    ]);
     return { classroom, message, rating, date };
   }
 
@@ -200,22 +202,20 @@ class Student {
       );
 
       if (!student) {
-        throw new Error('Student not found');
+        throw new Error("Student not found");
       }
 
       const studentID = student.studentID;
 
       // Delete blogs first
-      await connection.execute(
-        `DELETE FROM Blogs WHERE student_id = ?`,
-        [userID]
-      );
+      await connection.execute(`DELETE FROM Blogs WHERE student_id = ?`, [
+        userID,
+      ]);
 
       // Delete feedbacks
-      await connection.execute(
-        `DELETE FROM Feedbacks WHERE studentID = ?`,
-        [studentID]
-      );
+      await connection.execute(`DELETE FROM Feedbacks WHERE studentID = ?`, [
+        studentID,
+      ]);
 
       // Delete messages
       await connection.execute(
@@ -223,23 +223,13 @@ class Student {
         [userID, userID]
       );
 
-      // Unenroll from classes
-      await connection.execute(
-        `UPDATE Classes SET studentID = NULL WHERE studentID = ?`,
-        [studentID]
-      );
-
       // Delete requests
-      await connection.execute(
-        `DELETE FROM Requests WHERE studentID = ?`,
-        [studentID]
-      );
+      await connection.execute(`DELETE FROM Requests WHERE studentID = ?`, [
+        studentID
+      ]);
 
       // Delete complains
-      await connection.execute(
-        `DELETE FROM Complains WHERE uID = ?`,
-        [userID]
-      );
+      await connection.execute(`DELETE FROM Complains WHERE uID = ?`, [userID]);
 
       // Delete student record
       const [result] = await connection.execute(
@@ -247,16 +237,43 @@ class Student {
         [userID]
       );
 
+      // Unenroll from classes
+      await connection.execute(`DELETE FROM Class_Students WHERE studentID = ?`, [
+        studentID
+      ]);
+
       // Delete user record
-      await connection.execute(
-        `DELETE FROM Users WHERE userID = ?`,
-        [userID]
-      );
-      
+      await connection.execute(`DELETE FROM Users WHERE userID = ?`, [userID]);
+
       await connection.commit();
       return result.affectedRows > 0;
     } catch (error) {
       await connection.rollback();
+      throw error;
+    }
+  }
+
+  static async getClassesByStudentID(studentID) {
+    try {
+      const connection = await connectDB();
+      const [classes] = await connection.execute(
+        `
+        SELECT 
+          c.classID, c.className, c.videoLink, c.subject, c.tutorID,
+          t.userID, u.fullName AS tutorFullName, c.paymentID,
+          c.length, c.available, c.type, c.description, c.price,
+          t.rating, c.isActive, cs.enrolledAt, cs.status
+        FROM Classes c
+        JOIN Tutors t ON c.tutorID = t.tutorID
+        JOIN Users u ON t.userID = u.userID
+        JOIN Class_Students cs ON c.classID = cs.classID
+        WHERE cs.studentID = ? AND cs.status = 'Active'
+      `,
+        [studentID]
+      );
+      return classes;
+    } catch (error) {
+      console.error("Error getting classes by student ID:", error);
       throw error;
     }
   }

@@ -14,7 +14,7 @@ const AdminPortalClass = () => {
 
   const fetchClasses = async () => {
     axios
-      .get('http://localhost:5000/api/admin/classListExisted')
+      .get('http://localhost:5000/api/admin/classList')
       .then((response) => {
         setClasses(response.data.data)
         setAllClasses(response.data.data)
@@ -76,7 +76,7 @@ const AdminPortalClass = () => {
               <th className='p-4 text-left'>Class Name</th>
               <th className='p-4 text-left'>Video</th>
               <th className='p-4 text-left'>TutorID</th>
-              <th className='p-4 text-left'>StudentID</th>
+              <th className='p-4 text-left'>Students</th>
               <th className='p-4 text-left'>Subscription type</th>
               <th className='p-4 text-left'>Type</th>
               <th className='p-4 text-left'>Description</th>
@@ -93,7 +93,7 @@ const AdminPortalClass = () => {
                 <td className='p-4'>{classItem.className}</td>
                 <td className='p-4'>{classItem.videoLink}</td>
                 <td className='p-4'>{classItem.tutorID}</td>
-                <td className='p-4'>{classItem.studentID}</td>
+                <td className='p-4'>{classItem.studentCount}</td>
                 <td className='p-4'>{classItem.paymentID}</td>
                 <td className='p-4'>{classItem.type}</td>
                 <td className='p-4 break-after-column break-word'>{classItem.description}</td>
