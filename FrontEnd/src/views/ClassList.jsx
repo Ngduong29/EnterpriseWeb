@@ -86,7 +86,7 @@ const ClassList = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await makeGet('api/users/getAllClass')
+        const response = await makeGet('users/getAllClass')
 
         let filteredData = response.data
         filteredData = filterByPrice(filteredData, priceRange)

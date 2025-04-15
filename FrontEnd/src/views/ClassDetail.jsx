@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 import { Button, Card, CardBody, Typography } from '@material-tailwind/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

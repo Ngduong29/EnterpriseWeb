@@ -1,11 +1,9 @@
-// FrontEnd/src/views/AdminPortal.jsx
-
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { makeDelete, makeGet, makePost, makePut } from '../apiService/httpService.js'
 
 const AdminPortal = () => {
   const [users, setUsers] = useState([])
@@ -25,14 +23,7 @@ const AdminPortal = () => {
     address: '',
     active: 1
   })
-  const token = localStorage.getItem("token") // hoặc nơi bạn lưu token
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  }
-
+  const token = localStorage.getItem('token') // hoặc nơi bạn lưu token
   const role = localStorage.getItem('role')
 
   if (!token || role !== 'Admin') {
@@ -41,15 +32,14 @@ const AdminPortal = () => {
 
   useEffect(() => {
     // Fetch users from the API
-    axios
-      .get('http://localhost:5000/api/admin/getUser')
+    makeGet('admin/getUser')
       .then((response) => {
-        setUsers(response.data.data)
-        setAllUsers(response.data.data)
+        setUsers(response.data)
+        setAllUsers(response.data)
       })
       .catch((error) => {
         console.error('Error fetching users:', error)
-        toast.error('Không thể tải dữ liệu người dùng')
+        toast.error('Can not load users data')
       })
   }, [])
 
@@ -79,7 +69,7 @@ const AdminPortal = () => {
     }
 
     if (role !== 'User') {
-      filteredUsers = filteredUsers.filter((user) => user.role && user.role.toLowerCase() === role.toLowerCase())
+      filteredUsers = filteredUsers?.filter((user) => user.role && user.role.toLowerCase() === role.toLowerCase())
     }
 
     setUsers(filteredUsers)
@@ -88,18 +78,15 @@ const AdminPortal = () => {
   const toggleActiveStatus = (id, isActive) => {
     // Update user's active status
     const newStatus = isActive ? 0 : 1
-    const apiUrl = isActive
-      ? `http://localhost:5000/api/admin/banUsers/${id}`
-      : `http://localhost:5000/api/admin/unbanUsers/${id}`
-    axios
-      .put(apiUrl)
+    const apiUrl = isActive ? `admin/banUsers/${id}` : `admin/unbanUsers/${id}`
+    makePut(apiUrl)
       .then((response) => {
         setUsers(users.map((user) => (user.userID === id ? { ...user, isActive: newStatus } : user)))
-        toast.success(isActive ? 'Đã khóa người dùng' : 'Đã mở khóa người dùng')
+        toast.success(isActive ? 'User has been banned' : 'Unbanned user')
       })
       .catch((error) => {
         console.error('Error updating user status:', error)
-        toast.error('Không thể cập nhật trạng thái')
+        toast.error('Can not up date user data')
       })
   }
 
@@ -158,11 +145,10 @@ const AdminPortal = () => {
   }
 
   const refreshUsersList = () => {
-    axios
-      .get('http://localhost:5000/api/admin/getUser')
+    makeGet('admin/getUser')
       .then((response) => {
-        setUsers(response.data.data)
-        setAllUsers(response.data.data)
+        setUsers(response.data)
+        setAllUsers(response.data)
       })
       .catch((error) => {
         console.error('Error fetching users:', error)
@@ -171,48 +157,50 @@ const AdminPortal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     try {
       if (editingUser) {
         // Cập nhật người dùng hiện có
-        await axios.put(`http://localhost:5000/api/users/update/${editingUser.userID}`, JSON.stringify(formData), config)
-        toast.success('Cập nhật người dùng thành công')
+        await makePut(`users/update/${editingUser.userID}`, JSON.stringify(formData))
+        toast.success('User update success')
       } else {
         // Tạo người dùng mới
-        await axios.post('http://localhost:5000/registerTutor', formData)
-        toast.success('Tạo người dùng thành công')
+        await makePost('auth/registerTutor', formData)
+        toast.success('User registered success')
       }
-      
+
       closeModal()
       refreshUsersList() // Tải lại danh sách người dùng
     } catch (error) {
-      console.error('Lỗi khi lưu người dùng:', error)
-      toast.error(error.response?.data?.message || 'Lỗi khi lưu người dùng')
+      console.error('Failed when saving data', error)
+      toast.error(error.response?.data?.message || 'Failed when saving data')
     }
   }
 
   const handleDeleteUser = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
+    if (window.confirm('Do you confirm that you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${id}`, config)
-        toast.success('Xóa người dùng thành công')
+        await makeDelete(`users/${id}`)
+        toast.success('User deleted')
         refreshUsersList() // Tải lại danh sách người dùng
       } catch (error) {
-        console.error('Lỗi khi xóa người dùng:', error)
-        toast.error(error.response?.data?.message || 'Không thể xóa người dùng')
+        console.error('Failed to delete user:', error)
+        toast.error(error.response?.data?.message || 'Failed to delete user')
       }
     }
   }
 
   return (
     <div className='mx-auto p-6 bg-gray-100 min-h-screen'>
-      <ToastContainer position="top-right" />
+      <ToastContainer position='top-right' />
       <header className='bg-purple-600 text-white shadow-md py-4'>
         <MegaMenuWithHover />
       </header>
       <div className='pt-20'>
-        <h1 className='text-4xl font-bold mb-6 text-center text-black'>Admin Portal - Users100</h1>
-        
+        <h1 className='text-4xl font-bold mb-6 text-center text-black'>
+          Admin Portal - {allUsers?.length > 0 && allUsers.length} Users
+        </h1>
+
         <div className='flex justify-between mb-6'>
           <div className='flex justify-center'>
             <input
@@ -233,7 +221,7 @@ const AdminPortal = () => {
               <option value='Moderator'>Moderator</option>
             </select>
           </div>
-          
+
           <button
             onClick={openAddModal}
             className='bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors duration-300'
@@ -241,7 +229,7 @@ const AdminPortal = () => {
             New
           </button>
         </div>
-        
+
         <table className='mx-auto min-w-full bg-white shadow-md rounded-lg overflow-hidden'>
           <thead className='bg-gradient-to-t from-yellow-700 to-yellow-300 text-black'>
             <tr>
@@ -288,14 +276,14 @@ const AdminPortal = () => {
                       >
                         {user.isActive ? 'Ban' : 'Unban'}
                       </button>
-                      
+
                       <button
                         onClick={() => openEditModal(user)}
                         className='p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-300'
                       >
                         Edit
                       </button>
-                      
+
                       <button
                         onClick={() => handleDeleteUser(user.userID)}
                         className='p-2 rounded-lg bg-red-700 hover:bg-red-800 text-white transition-colors duration-300'
@@ -310,15 +298,13 @@ const AdminPortal = () => {
           </tbody>
         </table>
       </div>
-      
+
       {/* Modal thêm/sửa người dùng */}
       {isModalOpen && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white rounded-lg p-8 w-full max-w-2xl'>
-            <h2 className='text-2xl font-bold mb-6 text-center'>
-              {editingUser ? 'Edit User' : 'Add New User'}
-            </h2>
-            
+            <h2 className='text-2xl font-bold mb-6 text-center'>{editingUser ? 'Edit User' : 'Add New User'}</h2>
+
             <form onSubmit={handleSubmit}>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='mb-4'>
@@ -332,7 +318,7 @@ const AdminPortal = () => {
                     required
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Full Name</label>
                   <input
@@ -344,7 +330,7 @@ const AdminPortal = () => {
                     required
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Email</label>
                   <input
@@ -356,7 +342,7 @@ const AdminPortal = () => {
                     required
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>
                     {editingUser ? 'Password (leave empty to keep current)' : 'Password'}
@@ -370,7 +356,7 @@ const AdminPortal = () => {
                     required={!editingUser}
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Date of Birth</label>
                   <input
@@ -382,7 +368,7 @@ const AdminPortal = () => {
                     required
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Role</label>
                   <select
@@ -398,7 +384,7 @@ const AdminPortal = () => {
                     <option value='Admin'>Admin</option>
                   </select>
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Phone</label>
                   <input
@@ -410,7 +396,7 @@ const AdminPortal = () => {
                     required
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Address</label>
                   <input
@@ -422,7 +408,7 @@ const AdminPortal = () => {
                     required
                   />
                 </div>
-                
+
                 <div className='mb-4'>
                   <label className='block text-gray-700 mb-2'>Status</label>
                   <select
@@ -436,7 +422,7 @@ const AdminPortal = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className='flex justify-end gap-4 mt-6'>
                 <button
                   type='button'
