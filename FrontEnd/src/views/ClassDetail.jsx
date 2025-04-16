@@ -204,7 +204,7 @@ const ClassDetail = () => {
       </header>
       <div className='container mx-auto pl-4 flex flex-col md:flex-row gap-8'>
         <div className='w-full md:w-3/4 mb-4 flex flex-col pt-16'>
-          <BreadcrumbsWithIcon pathnames={['Home', 'ClassList', `Class ${classData.classID}`]} />
+          <BreadcrumbsWithIcon pathnames={['Home', 'ClassList', `Class ${classData.classID ?? ''}`]} />
         </div>
       </div>
 
