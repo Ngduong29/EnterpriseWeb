@@ -21,7 +21,7 @@ class Payment {
 
   // Create a new payment record and associate it with a tutor
   static async createPayment(paymentInfo, tutorID) {
-    const connection = await connectDB(); 
+    const connection = await connectDB();
     const { id, orderCode, amount, status, createdAt } = paymentInfo;
     const [check] = await connection.execute(
       "SELECT COUNT(*) AS count FROM Payments WHERE id = ?",
@@ -56,6 +56,18 @@ class Payment {
                 createdAt
               FROM 
                 Payments`);
+    return rows;
+  }
+
+  static async getPaymentInfoThisMonth() {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT COUNT(*) AS total_payments, SUM(amount) AS total_amount, MONTH(createdAt) AS month, YEAR(createdAt) AS year
+       FROM Payments
+       WHERE MONTH(createdAt) = MONTH(CURRENT_DATE())
+       AND YEAR(createdAt) = YEAR(CURRENT_DATE())
+       AND status = 'Completed'
+       GROUP BY MONTH(createdAt), YEAR(createdAt)`);
     return rows;
   }
 }

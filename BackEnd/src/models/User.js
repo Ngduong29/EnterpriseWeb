@@ -53,6 +53,19 @@ class User {
     return rows;
   }
 
+  // Get all users active group by month and year
+  static async getAllUserActiveGroupByMonthAndYear() {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT COUNT(*) AS total_registered_students, MONTH(u.createdAt) AS month, YEAR(u.createdAt) AS year 
+       FROM Students s 
+       JOIN Users u ON s.userID = u.userID 
+       WHERE MONTH(u.createdAt) = MONTH(CURRENT_DATE()) AND YEAR(u.createdAt) = YEAR(CURRENT_DATE()) 
+       GROUP BY MONTH(u.createdAt), YEAR(u.createdAt)`
+    );
+    return rows;
+  }
+
   // Get all active users
   static async getActiveUser() {
     const connection = await connectDB();
@@ -95,7 +108,10 @@ class User {
   // Find user by userID
   static async findUserByID(userID) {
     const connection = await connectDB();
-    const [rows] = await connection.execute("SELECT * FROM Users WHERE userID = ?", [userID]);
+    const [rows] = await connection.execute(
+      "SELECT * FROM Users WHERE userID = ?",
+      [userID]
+    );
     console.log("Found user:", rows[0]); // Debug log
     return rows[0];
   }
@@ -120,8 +136,8 @@ class User {
     }
 
     const fields = Object.keys(updates)
-      .map(key => `${key} = ?`)
-      .join(', ');
+      .map((key) => `${key} = ?`)
+      .join(", ");
 
     const values = Object.values(updates);
     values.push(userID);
@@ -133,17 +149,16 @@ class User {
     return result.affectedRows > 0;
   }
 
- // Update user by email
- static async updateUserPasswordByEmail(email, newPassword) {
-  const connection = await connectDB();
+  // Update user by email
+  static async updateUserPasswordByEmail(email, newPassword) {
+    const connection = await connectDB();
 
-
-  const [result] = await connection.execute(
-    `UPDATE Users SET password = ? WHERE email = ?`,
-    [newPassword, email]
-  );
-  return result.affectedRows > 0;
-}
+    const [result] = await connection.execute(
+      `UPDATE Users SET password = ? WHERE email = ?`,
+      [newPassword, email]
+    );
+    return result.affectedRows > 0;
+  }
 
   // Ban a user by setting isActive to 0
   static async banUser(userID) {
@@ -257,14 +272,14 @@ User.deleteUser = async (userID) => {
     );
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     // Delete based on role
-    if (user.role === 'Student') {
+    if (user.role === "Student") {
       // Delete student and all related data
       await Student.deleteStudent(userID);
-    } else if (user.role === 'Tutor') {
+    } else if (user.role === "Tutor") {
       // Delete tutor and all related data
       await Tutor.deleteTutor(userID);
     } else {
@@ -274,7 +289,7 @@ User.deleteUser = async (userID) => {
         [userID]
       );
       if (result.affectedRows === 0) {
-        throw new Error('Failed to delete user');
+        throw new Error("Failed to delete user");
       }
     }
 

@@ -7,6 +7,11 @@ const userController = require("../controllers/userController");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+
+//Get
+router.get("/profile", auth('Student', 'Tutor'), authController.fetchUserProfile);
+
+//Post
 router.post(
   "/registerStudent",
   upload.fields([{ name: "avatar", maxCount: 1 }]),
@@ -22,7 +27,7 @@ router.post(
   authController.registerTutor
 );
 router.post("/login", authController.loginUser);
-router.get("/profile", auth('Student', 'Tutor'), authController.fetchUserProfile);
+
 router.put("/update-password", userController.updateUserPassword);
 
 module.exports = router;
