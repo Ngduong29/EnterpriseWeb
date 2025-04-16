@@ -1,39 +1,21 @@
 import { ExpandLess, StarOutline, TrendingUp } from '@mui/icons-material'
 import { Card, Fab, Grid, lighten, styled, useTheme } from '@mui/material'
 import axios from 'axios'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { formatVND } from '../utils/format'
 
-const StatCard2 = () => {
-  const [countUser, setCountUsers] = useState([])
-  const [sum, setSum] = useState([])
+const StatCard = (props) => {
+  const { userData, paymentData } = props
 
-  useEffect(() => {
-    fetchCount()
-  }, [])
+  const amountGrowPercent = useMemo(() => {
+    if (!paymentData.totalAmount || !paymentData.lastMonthAmount) return 0
+    else return Math.ceil((100 * paymentData.lastMonthAmount) / paymentData.totalAmount)
+  }, [paymentData])
 
-  const fetchCount = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/admin/getActiveUser')
-      setCountUsers(response.data.count)
-    } catch (error) {
-      console.error('Failed to fetch feedbacks:', error)
-    }
-  }
-
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/getPaymentInfo')
-        const payments = response.data.data
-        const sum = payments.reduce((sum, payment) => sum + payment.amount, 0)
-
-        setSum(sum)
-      } catch (error) {
-        console.error('Error fetching payments:', error)
-      }
-    }
-    fetchPayments()
-  }, [])
+  const userGrowPercent = useMemo(() => {
+    if (!userData.totalCount || !userData.createLastMonthCount) return 0
+    else return Math.ceil((100 * userData.createLastMonthCount) / userData.totalCount)
+  }, [userData])
 
   // STYLED COMPONENTS
   const ContentBox = styled('div')(() => ({
@@ -93,13 +75,13 @@ const StatCard2 = () => {
           </ContentBox>
 
           <ContentBox sx={{ pt: 2 }}>
-            <H1>{countUser}</H1>
+            <H1>{userData.totalCount ?? 0}</H1>
 
-            {/* <IconBox sx={{ backgroundColor: 'success.main' }}>
+            <IconBox sx={{ backgroundColor: 'success.main' }}>
               <ExpandLess className='icon' />
-            </IconBox> */}
+            </IconBox>
 
-            {/* <Span color='#08ad6c'>(+21%)</Span> */}
+            <Span color='#08ad6c'>{userGrowPercent} %</Span>
           </ContentBox>
         </Card>
       </Grid>
@@ -115,13 +97,13 @@ const StatCard2 = () => {
           </ContentBox>
 
           <ContentBox sx={{ pt: 2 }}>
-            <H1>{sum} vnd</H1>
+            <H1>{formatVND(paymentData?.totalAmount)}</H1>
 
-            {/* <IconBox sx={{ backgroundColor: 'error.main' }}>
+            <IconBox sx={{ backgroundColor: 'error.main' }}>
               <ExpandLess className='icon' />
-            </IconBox> */}
+            </IconBox>
 
-            {/* <Span color='error.main'>(+21%)</Span> */}
+            <Span color='error.main'>{amountGrowPercent} %</Span>
           </ContentBox>
         </Card>
       </Grid>
@@ -129,4 +111,4 @@ const StatCard2 = () => {
   )
 }
 
-export default StatCard2
+export default StatCard

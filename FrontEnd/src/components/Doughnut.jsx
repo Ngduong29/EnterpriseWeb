@@ -1,33 +1,12 @@
 import { useTheme } from '@mui/material/styles'
-import axios from 'axios'
 import ReactEcharts from 'echarts-for-react'
 import { useEffect, useState } from 'react'
 
-export default function DoughnutChart({ height, color = [] }) {
+export default function DoughnutChart({ height, color = [], paymentList = [] }) {
   const theme = useTheme()
-  const [payment2000, setPayment2000] = useState([])
-  const [payment4000, setPayment4000] = useState([])
-  const [payment6000, setPayment6000] = useState([])
-
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/getPaymentInfo')
-        const payments = response.data.data
-        const payments2000 = payments.filter((payment) => payment.amount === 2000)
-        const payments4000 = payments.filter((payment) => payment.amount === 4000)
-        const payments6000 = payments.filter((payment) => payment.amount === 6000)
-
-        console.log(payments.length)
-        setPayment2000((payments2000.length / payments.length) * 100)
-        setPayment4000((payments4000.length / payments.length) * 100)
-        setPayment6000((payments6000.length / payments.length) * 100)
-      } catch (error) {
-        console.error('Error fetching payments:', error)
-      }
-    }
-    fetchPayments()
-  }, [])
+  const payment500 = paymentList.filter((payment) => payment.amount <= 500000).length
+  const payment1000 = paymentList.filter((payment) => payment.amount <= 1000000 && payment.amount > 500000).length
+  const payment2000 = paymentList.filter((payment) => payment.amount <= 2000000 && payment.amount > 1000000).length
 
   const option = {
     legend: {
@@ -35,15 +14,20 @@ export default function DoughnutChart({ height, color = [] }) {
       itemGap: 20,
       icon: 'circle',
       bottom: 0,
-      textStyle: { color: theme.palette.text.secondary, fontSize: 13, fontFamily: 'roboto' }
+      textStyle: {
+        color: theme.palette.text.secondary,
+        fontSize: 13,
+        fontFamily: 'roboto'
+      }
     },
-    tooltip: { show: false, trigger: 'item', formatter: '{a} <br/>{b}: {c} ({d}%)' },
-    xAxis: [{ axisLine: { show: false }, splitLine: { show: false } }],
-    yAxis: [{ axisLine: { show: false }, splitLine: { show: false } }],
-
+    tooltip: {
+      show: true,
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
     series: [
       {
-        name: 'Traffic Rate',
+        name: 'Subscription Range',
         type: 'pie',
         radius: ['45%', '72.55%'],
         center: ['50%', '50%'],
@@ -51,30 +35,39 @@ export default function DoughnutChart({ height, color = [] }) {
         hoverOffset: 5,
         stillShowZeroSum: false,
         label: {
-          normal: {
-            show: false,
-            position: 'center', // shows the description data to center, turn off to show in right side
-            textStyle: { color: theme.palette.text.secondary, fontSize: 13, fontFamily: 'roboto' },
-            formatter: '{a}'
+          show: false,
+          position: 'center',
+          textStyle: {
+            color: theme.palette.text.secondary,
+            fontSize: 13,
+            fontFamily: 'roboto'
           },
-          emphasis: {
+          formatter: '{a}'
+        },
+        emphasis: {
+          label: {
             show: true,
-            textStyle: { fontSize: '14', fontWeight: 'normal' },
+            fontSize: '14',
+            fontWeight: 'normal',
             formatter: '{b} \n({d}%)'
           }
         },
-        labelLine: { normal: { show: false } },
+        labelLine: { show: false },
         data: [
-          { value: payment2000, name: 'Subcription 2000' },
-          { value: payment4000, name: 'Subcription 4000' },
-          { value: payment6000, name: 'Subcription 6000' }
+          { value: payment500, name: '≤ 500.000₫' },
+          { value: payment1000, name: '500.000₫ - 1.000.000₫' },
+          { value: payment2000, name: '1.000.000₫ - 2.000.000₫' }
         ],
         itemStyle: {
-          emphasis: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' }
+          emphasis: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
         }
       }
     ]
   }
 
-  return <ReactEcharts style={{ height: height }} option={{ ...option, color: [...color] }} />
+  return <ReactEcharts style={{ height }} option={{ ...option, color }} notMerge={true} lazyUpdate={true} />
 }
