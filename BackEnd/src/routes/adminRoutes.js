@@ -6,8 +6,10 @@ const multer = require("multer");
 const authController = require("../controllers/authController");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-const auth = require("../middleware/auth");
+const authenticateToken = require('../middleware/auth');
+router.use(authenticateToken('Admin'));
 
+//Get
 router.put("/updateUsers/:id", adminController.updateUser);
 router.put("/banUsers/:id", adminController.banUsers);
 router.put("/unbanUsers/:id", adminController.unbanUsers);
@@ -16,18 +18,15 @@ router.get("/classList", classController.getAllClass);
 router.get("/classListExisted", classController.getAllClassExisted);
 router.get("/getRequest", adminController.getTutorRequest);
 router.get("/getUser", adminController.getAllUser);
+router.get("/getUserActiveByMonthAndYear", adminController.getActiveUserByMonthAndYear);
 router.get("/getActiveUser", adminController.getActiveUser);
+router.get("/getPaymentInfoThisMonth", adminController.getPaymentInfoThisMonth);
+
+//Post
 router.post("/handleTutor/:id", adminController.handleTutor);
-router.delete("/deleteClass/:id", adminController.deleteClass);
-// Delete student route (must be last due to :id parameter)
-router.delete("/deleteStudent/:id", adminController.deleteStudent);
-
-router.delete('/deleteComplains/:id', adminController.deleteComplain);
-
 router.post(
     "/registerStudent",
     upload.fields([{ name: "avatar", maxCount: 1 }]),
-    auth('Admin'),
     authController.registerStudent
 );
 router.post(
@@ -37,7 +36,14 @@ router.post(
         { name: "degreeFile", maxCount: 1 },
         { name: "credentialFile", maxCount: 1 },
     ]),
-    auth('Admin'),
     authController.registerTutor
 );
+
+// Delete
+router.delete("/deleteClass/:id", adminController.deleteClass);
+router.delete("/deleteUser/:id", adminController.deleteUser);
+router.delete("/deleteStudent/:id", adminController.deleteStudent);
+router.delete('/deleteComplains/:id', adminController.deleteComplain);
+
+
 module.exports = router;

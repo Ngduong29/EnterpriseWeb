@@ -11,21 +11,25 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
+// Get
+router.get("/getClass/:id?", classController.getClass);
+router.get("/getAllClass", classController.getAllClass);
+router.get("/getTutor/:id", tutorController.getTutor);
+router.get("/getMessage/:senderID&:receiverID", messageController.getMessage);
+
+// Post
+router.post("/complain", userController.sendComplains);
+router.post(
+  "/sendMessage/:senderID&:receiverID",
+  messageController.sendMessage
+);
+
+// Put
 router.put(
   "/update/:id",
   upload.fields([{ name: "avatar", maxCount: 1 }]),
   userController.updateUserForUser
 );
 
-router.get("/getClass/:id?", classController.getClass);
-router.get("/getAllClass", classController.getAllClass);
-router.get("/getTutor/:id", tutorController.getTutor);
-router.post("/complain", userController.sendComplains);
-router.get("/getMessage/:senderID&:receiverID", messageController.getMessage);
-router.post(
-  "/sendMessage/:senderID&:receiverID",
-  messageController.sendMessage
-);
-router.delete("/:id", auth("Admin"), userController.deleteUser);
 
 module.exports = router;

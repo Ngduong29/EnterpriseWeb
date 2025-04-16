@@ -2,12 +2,35 @@ const Classroom = require("../models/Class");
 const User = require("../models/User");
 const Student = require("../models/Student");
 const Tutor = require("../models/Tutor");
+const Payment = require("../models/Payment");
 const { sendApprovalEmail, sendDenialEmail } = require("../email/EmailApproved");
 
 class adminController {
   static getAllUser = async (req, res) => {
     try {
       const data = await User.getAllUser();
+      if (!data) {
+        return res.status(404).json({
+          message: "Cannot find user list",
+        });
+      }
+
+      return res.status(200).json({
+        message: "User list",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in get user in Server",
+        error,
+      });
+    }
+  };
+
+  static getActiveUserByMonthAndYear = async (req, res) => {
+    try {
+      const data = await User.getAllUserActiveGroupByMonthAndYear();
       if (!data) {
         return res.status(404).json({
           message: "Cannot find user list",
@@ -161,6 +184,34 @@ class adminController {
     }
   };
 
+  static deleteUser = async (req, res) => {
+    try {
+      const userID = req.params.id;
+      if (!userID) {
+        return res.status(404).json({
+          message: "Please provide user ID",
+        });
+      }
+
+      const result = await User.deleteUser(userID);
+      if (!result) {
+        return res.status(404).json({
+          message: "User not found or could not be deleted",
+        });
+      }
+
+      res.status(200).json({
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error deleting user",
+        error: error.message,
+      });
+    }
+  };
+
   static deleteClass = async (req, res) => {
     try {
       const classId = req.params.id;
@@ -309,6 +360,61 @@ class adminController {
       });
     }
   };
+
+  static deleteTutor = async (req, res) => {
+    try {
+      const userID = req.params.id;
+      if (!userID) {
+        return res.status(404).json({
+          message: "Please provide user ID",
+        });
+      }
+
+      const result = await Tutor.deleteTutor(userID);
+      if (!result) {
+        return res.status(404).json({
+          message: "Tutor not found or could not be deleted",
+        });
+      }
+
+      res.status(200).json({
+        message: "Tutor deleted successfully",
+      });
+    } catch (error) {
+      console.log(error);
+      if (error.message === 'Cannot delete tutor with active classes') {
+        return res.status(400).json({
+          message: "Cannot delete tutor with active classes. Please deactivate or delete the classes first.",
+        });
+      }
+      res.status(500).json({
+        message: "Error deleting tutor",
+        error: error.message,
+      });
+    }
+  };
+
+  static getPaymentInfoThisMonth = async (req, res) => {
+    try {
+      const data = await Payment.getPaymentInfoThisMonth();
+      if (!data) {
+        return res.status(404).json({
+          message: "Cannot find payment info",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Payment info",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in getting payment info this month",
+        error,
+      });
+    }
+  }
 
   static getComplainList = async (req, res) => {
     try {

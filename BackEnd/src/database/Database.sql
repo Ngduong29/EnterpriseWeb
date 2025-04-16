@@ -116,17 +116,16 @@ CREATE TABLE IF NOT EXISTS `Complains` (
   `message` text NOT NULL,
   `status` enum('Pending','Resolved') DEFAULT 'Pending',
   `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`complainID`),
   KEY `uID` (`uID`),
   CONSTRAINT `Complains_ibfk_1` FOREIGN KEY (`uID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Complains: ~3 rows (approximately)
-INSERT IGNORE INTO `Complains` (`complainID`, `uID`, `message`, `status`, `createdAt`, `updatedAt`) VALUES
-	(1, 4, 'The class schedule is not convenient', 'Pending', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	(2, 5, 'Need more practice materials', 'Resolved', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	(3, 4, 'chán vcl', 'Pending', '2025-04-13 08:35:27', '2025-04-13 08:35:27');
+INSERT IGNORE INTO `Complains` (`complainID`, `uID`, `message`, `status`, `createdAt`) VALUES
+	(1, 4, 'The class schedule is not convenient', 'Pending', '2025-04-13 06:33:04'),
+	(2, 5, 'Need more practice materials', 'Resolved', '2025-04-13 06:33:04'),
+	(3, 4, 'chán vcl', 'Pending', '2025-04-13 08:35:27');
 
 -- Dumping structure for table tutordb.Feedbacks
 CREATE TABLE IF NOT EXISTS `Feedbacks` (
@@ -188,15 +187,14 @@ CREATE TABLE IF NOT EXISTS `Payments` (
   `paymentMethod` varchar(50) DEFAULT NULL,
   `transactionID` varchar(100) DEFAULT NULL,
   `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`paymentID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Payments: ~3 rows (approximately)
-INSERT IGNORE INTO `Payments` (`paymentID`, `amount`, `status`, `paymentMethod`, `transactionID`, `createdAt`, `updatedAt`) VALUES
-	(1, 100.00, 'Completed', 'Credit Card', 'TRX123456', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	(2, 150.00, 'Pending', 'Bank Transfer', 'TRX123457', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	(3, 200.00, 'Completed', 'Credit Card', 'TRX123458', '2025-04-13 06:33:04', '2025-04-13 06:33:04');
+INSERT IGNORE INTO `Payments` (`paymentID`, `amount`, `status`, `paymentMethod`, `transactionID`, `createdAt`) VALUES
+	(1, 100.00, 'Completed', 'Credit Card', 'TRX123456', '2025-04-13 06:33:04'),
+	(2, 150.00, 'Pending', 'Bank Transfer', 'TRX123457', '2025-04-13 06:33:04'),
+	(3, 200.00, 'Completed', 'Credit Card', 'TRX123458', '2025-04-13 06:33:04');
 
 -- Dumping structure for table tutordb.Requests
 CREATE TABLE IF NOT EXISTS `Requests` (
@@ -227,17 +225,15 @@ CREATE TABLE IF NOT EXISTS `Students` (
   `userID` int NOT NULL,
   `grade` varchar(50) DEFAULT NULL,
   `school` varchar(100) DEFAULT NULL,
-  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`studentID`),
   KEY `userID` (`userID`),
   CONSTRAINT `Students_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Students: ~2 rows (approximately)
-INSERT IGNORE INTO `Students` (`studentID`, `userID`, `grade`, `school`, `createdAt`, `updatedAt`) VALUES
-	('S1', 4, 'Grade 10', 'High School A', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	('S2', 5, 'Grade 11', 'High School B', '2025-04-13 06:33:04', '2025-04-13 06:33:04');
+INSERT IGNORE INTO `Students` (`studentID`, `userID`, `grade`, `school`) VALUES
+	('S1', 4, 'Grade 10', 'High School A'),
+	('S2', 5, 'Grade 11', 'High School B');
 
 -- Dumping structure for table tutordb.TutorRequests
 CREATE TABLE IF NOT EXISTS `TutorRequests` (
@@ -269,19 +265,17 @@ CREATE TABLE IF NOT EXISTS `Tutors` (
   `description` text,
   `rating` float DEFAULT '0',
   `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
-  `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`tutorID`),
   KEY `userID` (`userID`),
   CONSTRAINT `Tutors_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `Users` (`userID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table tutordb.Tutors: ~4 rows (approximately)
-INSERT IGNORE INTO `Tutors` (`tutorID`, `userID`, `degrees`, `identityCard`, `workplace`, `description`, `rating`, `status`, `createdAt`, `updatedAt`) VALUES
-	('T1', 2, 'PhD in Mathematics', 'ID123456', 'University of Science', 'Experienced math tutor with 5 years of teaching', 4.5, 'Approved', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	('T2', 3, 'MSc in Physics', 'ID123457', 'High School Teacher', 'Physics expert with 3 years of tutoring experience', 4.8, 'Approved', '2025-04-13 06:33:04', '2025-04-13 06:33:04'),
-	('T3', 10, 'https://firebasestorage.googleapis.com/v0/b/tutorverse-7a900.appspot.com/o/images%2F1a2a7252-0799-42ae-9256-c5776c6c05f5-images_69.jpg?alt=media&token=cf5e3e16-437b-48c6-b648-7f6f00e2ca60', 'ID123457', 'student1@example.com', 'he', 0, 'Pending', '2025-04-13 08:48:06', '2025-04-13 08:48:06'),
-	('T4', 12, 'https://firebasestorage.googleapis.com/v0/b/tutorverse-7a900.appspot.com/o/images%2F448915af-6ba2-4f46-bee9-3ea139b627f1-images_64.jpg?alt=media&token=1b51163e-0274-4598-b48e-abbbfc698ff5', 'ID123457', 'dinhduy2012001@gmail.com', 'fe2222', 0, 'Pending', '2025-04-13 10:07:41', '2025-04-13 13:46:38');
+INSERT IGNORE INTO `Tutors` (`tutorID`, `userID`, `degrees`, `identityCard`, `workplace`, `description`, `rating`, `status`) VALUES
+	('T1', 2, 'PhD in Mathematics', 'ID123456', 'University of Science', 'Experienced math tutor with 5 years of teaching', 4.5, 'Approved'),
+	('T2', 3, 'MSc in Physics', 'ID123457', 'High School Teacher', 'Physics expert with 3 years of tutoring experience', 4.8, 'Approved'),
+	('T3', 10, 'https://firebasestorage.googleapis.com/v0/b/tutorverse-7a900.appspot.com/o/images%2F1a2a7252-0799-42ae-9256-c5776c6c05f5-images_69.jpg?alt=media&token=cf5e3e16-437b-48c6-b648-7f6f00e2ca60', 'ID123457', 'student1@example.com', 'he', 0, 'Pending'),
+	('T4', 12, 'https://firebasestorage.googleapis.com/v0/b/tutorverse-7a900.appspot.com/o/images%2F448915af-6ba2-4f46-bee9-3ea139b627f1-images_64.jpg?alt=media&token=1b51163e-0274-4598-b48e-abbbfc698ff5', 'ID123457', 'dinhduy2012001@gmail.com', 'fe2222', 0, 'Pending');
 
 -- Dumping structure for table tutordb.Users
 CREATE TABLE IF NOT EXISTS `Users` (
