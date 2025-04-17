@@ -12,12 +12,12 @@ const StatCard = (props) => {
       paymentData && paymentData.length
         ? paymentData.filter((item) => item.status === 'Completed').reduce((sum, a) => sum + +a.amount, 0)
         : 0
-    if (!totalAmount || !paymentsInMonth.total_amount) return 0
+    if (!totalAmount || !paymentsInMonth?.total_amount) return 0
     else return Math.ceil((100 * paymentsInMonth.total_amount) / totalAmount)
   }, [paymentData, paymentsInMonth])
 
   const userGrowPercent = useMemo(() => {
-    if (!userData.length || !usersInMonth.total_registered_students) return 0
+    if (!userData.length || !usersInMonth?.total_registered_students) return 0
     else return Math.ceil((100 * usersInMonth.total_registered_students) / userData.length)
   }, [userData, usersInMonth])
 
