@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { Height } from '@mui/icons-material'
+import { makeGet } from '../apiService/httpService'
 
 const socket = io('http://localhost:5000') // Ensure the URL matches your server
 
@@ -54,8 +55,7 @@ const ChatBox = forwardRef((props, ref) => {
     },
     refreshUsers: async () => {
       // Fetch users (tutors or students) from the server again
-      axios
-        .get('http://localhost:5000/api/admin/getUser')
+      makeGet('admin/getUser')
         .then(async (response) => {
           let filterRole = ''
           let id = ''

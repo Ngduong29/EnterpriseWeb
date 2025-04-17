@@ -5,17 +5,21 @@ import { useEffect, useMemo, useState } from 'react'
 import { formatVND } from '../utils/format'
 
 const StatCard = (props) => {
-  const { userData, paymentData } = props
+  const { userData, paymentData, usersInMonth, paymentsInMonth } = props
 
   const amountGrowPercent = useMemo(() => {
-    if (!paymentData.totalAmount || !paymentData.lastMonthAmount) return 0
-    else return Math.ceil((100 * paymentData.lastMonthAmount) / paymentData.totalAmount)
-  }, [paymentData])
+    const totalAmount =
+      paymentData && paymentData.length
+        ? paymentData.filter((item) => item.status === 'Completed').reduce((sum, a) => sum + +a.amount, 0)
+        : 0
+    if (!totalAmount || !paymentsInMonth.total_amount) return 0
+    else return Math.ceil((100 * paymentsInMonth.total_amount) / totalAmount)
+  }, [paymentData, paymentsInMonth])
 
   const userGrowPercent = useMemo(() => {
-    if (!userData.totalCount || !userData.createLastMonthCount) return 0
-    else return Math.ceil((100 * userData.createLastMonthCount) / userData.totalCount)
-  }, [userData])
+    if (!userData.length || !usersInMonth.total_registered_students) return 0
+    else return Math.ceil((100 * usersInMonth.total_registered_students) / userData.length)
+  }, [userData, usersInMonth])
 
   // STYLED COMPONENTS
   const ContentBox = styled('div')(() => ({
@@ -75,7 +79,7 @@ const StatCard = (props) => {
           </ContentBox>
 
           <ContentBox sx={{ pt: 2 }}>
-            <H1>{userData.totalCount ?? 0}</H1>
+            <H1>New student this month: {usersInMonth?.total_registered_students ?? 0}</H1>
 
             <IconBox sx={{ backgroundColor: 'success.main' }}>
               <ExpandLess className='icon' />
@@ -97,7 +101,7 @@ const StatCard = (props) => {
           </ContentBox>
 
           <ContentBox sx={{ pt: 2 }}>
-            <H1>{formatVND(paymentData?.totalAmount)}</H1>
+            <H1>This month: {formatVND(paymentsInMonth?.total_amount)}</H1>
 
             <IconBox sx={{ backgroundColor: 'error.main' }}>
               <ExpandLess className='icon' />
