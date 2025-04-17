@@ -110,6 +110,38 @@ class classController {
     }
   };
 
+  static getClassByUserID = async (req, res) => {
+    try {
+      const userID = req.user.userID;
+      
+      console.log(req.user);
+      
+      if (!userID) {
+        return res.status(404).json({
+          message: "Please provide userID", 
+        });
+      }
+    
+      const data = await Classroom.getClassByUserID(userID);
+      if (!data) {
+        return res.status(404).json({ 
+          message: "Cannot find class",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Found classroom",  
+        data: data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in get class by user id in Server",
+        error, 
+      });
+    }
+  };
+
   static findClassroomByTutorID = async (req, res) => {
     try {
       const tutorID = req.params.search;

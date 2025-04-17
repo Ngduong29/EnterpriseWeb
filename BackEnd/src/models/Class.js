@@ -5,7 +5,8 @@ class Classroom {
   // Get all feedbacks for a specific class including student information
   static async getFeedback(classID) {
     const connection = await connectDB();
-    const [rows] = await connection.execute(`
+    const [rows] = await connection.execute(
+      `
       SELECT
         f.feedbackID,
         f.tutorID,
@@ -18,10 +19,12 @@ class Classroom {
       FROM Feedbacks f
       JOIN Students s ON f.studentID = s.studentID
       JOIN Users u ON s.userID = u.userID
-      WHERE f.classID = ?`, [classID]);
+      WHERE f.classID = ?`,
+      [classID]
+    );
     return rows;
   }
- 
+
   // Get all active classes with tutor information
   static async getAllClass() {
     const connection = await connectDB();
@@ -62,10 +65,57 @@ class Classroom {
     return rows;
   }
 
+  static async getClassByUserID(userID) {
+    const connection = await connectDB();
+    const [user] = await connection.execute(
+      `
+      SELECT * FROM Users WHERE userID = ?
+    `,
+      [userID]
+    );
+    if (user[0].role === "Student") {
+      const [student] = await connection.execute(
+        `
+        SELECT * FROM Students WHERE userID = ?
+      `,
+        [userID]
+      );
+      const [classRowsID] = await connection.execute(
+        `
+        SELECT classID FROM Class_Students WHERE studentID = ?
+      `,
+        [student[0].studentID]
+      );
+      const classIDs = classRowsID.map((row) => row.classID).join(",");
+      const [classRows] = await connection.execute(
+        `
+        SELECT * FROM Classes WHERE classID IN (${classIDs})
+      `
+      );
+      return classRows;
+    } else if (user[0].role === "Tutor") {
+      const [tutor] = await connection.execute(
+        `
+        SELECT * FROM Tutors WHERE userID = ?
+      `,
+        [userID]
+      );
+
+      const [classRows] = await connection.execute(
+        `
+        SELECT * FROM Classes WHERE tutorID = ?
+      `,
+        [tutor[0].tutorID]
+      );
+      return classRows;
+    }
+  }
+
   // Get detailed information of a specific class by classID
   static async getClassroom(classID) {
     const connection = await connectDB();
-    const [rows] = await connection.execute(`
+    const [rows] = await connection.execute(
+      `
       SELECT 
         c.classID, c.className, c.videoLink, c.subject, c.tutorID,
         t.userID, u.fullName AS tutorFullName, c.paymentID,
@@ -78,14 +128,17 @@ class Classroom {
       LEFT JOIN Class_Students cs ON c.classID = cs.classID
       WHERE c.classID = ?
       GROUP BY c.classID;
-    `, [classID]);
+    `,
+      [classID]
+    );
     return rows[0];
   }
 
   // Search for classes by subject name
   static async findClassroomBySubject(subject) {
     const connection = await connectDB();
-    const [rows] = await connection.execute(`
+    const [rows] = await connection.execute(
+      `
       SELECT 
         c.classID, c.className, c.videoLink, c.subject, c.tutorID,
         t.userID, u.fullName AS tutorFullName, c.paymentID,
@@ -95,21 +148,26 @@ class Classroom {
       JOIN Tutors t ON c.tutorID = t.tutorID
       JOIN Users u ON t.userID = u.userID
       WHERE c.subject LIKE ?;
-    `, [`%${subject}%`]);
+    `,
+      [`%${subject}%`]
+    );
     return rows;
   }
 
   // Get student information enrolled in a specific class
   static async viewStudent(classID) {
     const connection = await connectDB();
-    const [rows] = await connection.execute(`
+    const [rows] = await connection.execute(
+      `
       SELECT Students.studentID, fullName, Students.grade, Students.school
       FROM Users
       JOIN Students ON Users.userID = Students.userID
       WHERE Students.studentID = (
         SELECT studentID FROM Classes WHERE classID = ?
       );
-    `, [classID]);
+    `,
+      [classID]
+    );
     return rows[0];
   }
 
@@ -117,32 +175,30 @@ class Classroom {
   static async DeleteClass(classID) {
     const connection = await connectDB();
     const existing = await this.getClassroom(classID);
-    
+
     // Start a transaction
     await connection.beginTransaction();
-    
+
     try {
       // First delete related feedbacks
-      await connection.execute(
-        `DELETE FROM Feedbacks WHERE classID = ?`,
-        [classID]
-      );
+      await connection.execute(`DELETE FROM Feedbacks WHERE classID = ?`, [
+        classID,
+      ]);
 
       // Then delete related blog entries
-      await connection.execute(
-        `DELETE FROM Blogs WHERE class_id = ?`,
-        [classID]
-      );
-      
+      await connection.execute(`DELETE FROM Blogs WHERE class_id = ?`, [
+        classID,
+      ]);
+
       // Finally delete the class
       const [result] = await connection.execute(
         `DELETE FROM Classes WHERE classID = ?`,
         [classID]
       );
-      
+
       // Commit the transaction
       await connection.commit();
-      
+
       return result.affectedRows > 0 ? existing : null;
     } catch (error) {
       // If anything fails, rollback the transaction
@@ -161,8 +217,8 @@ class Classroom {
       [classroom.tutorID]
     );
 
-    if (!tutorStatus[0] || tutorStatus[0].status !== 'Approved') {
-      throw new Error('Tutor account is not approved for creating classes');
+    if (!tutorStatus[0] || tutorStatus[0].status !== "Approved") {
+      throw new Error("Tutor account is not approved for creating classes");
     }
 
     const [result] = await connection.execute(
@@ -185,7 +241,7 @@ class Classroom {
     const connection = await connectDB();
 
     if (!studentID) {
-      throw new Error('Student ID is required');
+      throw new Error("Student ID is required");
     }
 
     try {
@@ -210,7 +266,7 @@ class Classroom {
     const connection = await connectDB();
 
     if (!tutorID) {
-      throw new Error('Tutor ID is required');
+      throw new Error("Tutor ID is required");
     }
 
     try {
@@ -243,7 +299,7 @@ class Classroom {
       );
       return rows;
     } catch (error) {
-      console.error('Error finding students in class:', error);
+      console.error("Error finding students in class:", error);
       throw error;
     }
   }
@@ -267,7 +323,7 @@ class Classroom {
       );
       return true;
     } catch (error) {
-      console.error('Error enrolling student:', error);
+      console.error("Error enrolling student:", error);
       throw error;
     }
   }
@@ -283,7 +339,7 @@ class Classroom {
       );
       return true;
     } catch (error) {
-      console.error('Error unenrolling student:', error);
+      console.error("Error unenrolling student:", error);
       throw error;
     }
   }

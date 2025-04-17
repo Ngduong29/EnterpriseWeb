@@ -8,11 +8,13 @@ class userController {
     try {
       // Validate input
       const userID = req.params.id;
+      console.log(userID);
+      
       if (!userID) {
         return res.status(404).json({ message: "Missing user id" });
       }
 
-      const { updatedUserData } = req.body;
+      const updatedUserData  = req.body;
       if (!updatedUserData) {
         return res.status(404).json({ message: "Cannot found user" });
       }
