@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { makeDelete, makeGet, makePost, makePut } from '../apiService/httpService.js'
+import { makeDelete, makeGet, makePostFormData, makePut } from '../apiService/httpService.js'
+import axios from 'axios'
 
 const AdminPortal = () => {
   const [users, setUsers] = useState([])
@@ -12,6 +13,8 @@ const AdminPortal = () => {
   const [selectedRole, setSelectedRole] = useState('User') // Default selection is 'User'
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+
+  // Form data cho cả Student và Tutor
   const [formData, setFormData] = useState({
     userName: '',
     fullName: '',
@@ -21,9 +24,23 @@ const AdminPortal = () => {
     role: 'Student',
     phone: '',
     address: '',
-    active: 1
+    active: 1,
+    // Trường cho Student
+    grade: '10',
+    school: 'Default School',
+    // Trường cho Tutor
+    workplace: 'Default Workplace',
+    description: 'Default Description',
+    // URL ảnh đại diện
+    avatar: ''
   })
-  const token = localStorage.getItem('token') // hoặc nơi bạn lưu token
+
+  // Refs cho file uploads
+  const avatarRef = useRef(null)
+  const degreesRef = useRef(null)
+  const identityCardRef = useRef(null)
+
+  const token = localStorage.getItem('token')
   const role = localStorage.getItem('role')
 
   if (!token || role !== 'Admin') {
@@ -76,7 +93,6 @@ const AdminPortal = () => {
   }
 
   const toggleActiveStatus = (id, isActive) => {
-    // Update user's active status
     const newStatus = isActive ? 0 : 1
     const apiUrl = isActive ? `admin/banUsers/${id}` : `admin/unbanUsers/${id}`
     makePut(apiUrl)
@@ -86,7 +102,7 @@ const AdminPortal = () => {
       })
       .catch((error) => {
         console.error('Error updating user status:', error)
-        toast.error('Can not up date user data')
+        toast.error('Can not update user data')
       })
   }
 
@@ -98,7 +114,6 @@ const AdminPortal = () => {
     return `${day}/${month}/${year}`
   }
 
-  // Thêm các hàm xử lý form
   const handleFormChange = (e) => {
     const { name, value } = e.target
     setFormData({
@@ -118,14 +133,28 @@ const AdminPortal = () => {
       role: 'Student',
       phone: '',
       address: '',
-      active: 1
+      active: 1,
+      grade: '10',
+      school: 'Default School',
+      workplace: 'Default Workplace',
+      description: 'Default Description',
+      avatar: ''
     })
+
+    // Reset các file input
+    if (avatarRef.current) avatarRef.current.value = ''
+    if (degreesRef.current) degreesRef.current.value = ''
+    if (identityCardRef.current) identityCardRef.current.value = ''
+
     setIsModalOpen(true)
   }
 
   const openEditModal = (user) => {
+    console.log("Found user:", user);
     setEditingUser(user)
-    setFormData({
+    // Lấy thông tin cơ bản
+    const baseFormData = {
+      userID: user.userID,
       userName: user.userName || '',
       fullName: user.fullName || '',
       email: user.email || '',
@@ -134,8 +163,33 @@ const AdminPortal = () => {
       role: user.role || 'Student',
       phone: user.phone || '',
       address: user.address || '',
-      active: user.active || 0
-    })
+      active: user.isActive, // Sửa lỗi: sử dụng isActive từ API
+      avatar: user.avatar || ''
+    };
+
+    // Thêm thông tin đặc biệt dựa theo role
+    if (user.role === 'Student') {
+      setFormData({
+        ...baseFormData,
+        grade: user.grade || '10',
+        school: user.school || 'Default School'
+      });
+    }
+    else if (user.role === 'Tutor') {
+      setFormData({
+        ...baseFormData,
+        workplace: user.workplace || 'Default Workplace',
+        description: user.description || 'Default Description',
+        degrees: user.degrees || '',
+        identityCard: user.identityCard || ''
+      });
+    }
+    else {
+      // Cho Admin, Moderator và các role khác
+      setFormData(baseFormData);
+    }
+
+    setIsModalOpen(true);
     setIsModalOpen(true)
   }
 
@@ -156,33 +210,89 @@ const AdminPortal = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
+    e.preventDefault();
+  
     try {
       if (editingUser) {
         // Cập nhật người dùng hiện có
-        await makePut(`users/update/${editingUser.userID}`, JSON.stringify(formData))
-        toast.success('User update success')
+        await makePut(`users/update/${editingUser.userID}`, JSON.stringify(formData));
+        toast.success('User update success');
       } else {
-        // Tạo người dùng mới
-        await makePost('auth/registerTutor', formData)
-        toast.success('User registered success')
+        // Tạo FormData để xử lý file uploads
+        const formDataToSend = new FormData();
+        
+        // Thêm các trường cơ bản
+        formDataToSend.append('userName', formData.userName);
+        formDataToSend.append('fullName', formData.fullName);
+        formDataToSend.append('email', formData.email);
+        formDataToSend.append('password', formData.password);
+        formDataToSend.append('dateOfBirth', formData.dateOfBirth);
+        formDataToSend.append('phone', formData.phone);
+        formDataToSend.append('address', formData.address);
+        
+        // Thêm avatar nếu có
+        if (avatarRef.current && avatarRef.current.files[0]) {
+          formDataToSend.append('avatar', avatarRef.current.files[0]);
+        } else {
+          // Nếu không có file, dùng URL nếu đã nhập
+          formDataToSend.append('avatar', formData.avatar || '');
+        }
+        
+        // Thêm các trường dựa trên role
+        if (formData.role === 'Student') {
+          formDataToSend.append('grade', formData.grade || '10');
+          formDataToSend.append('school', formData.school || 'Default School');
+          
+          // Debug log
+          console.log("FormData contents:", Object.fromEntries(formDataToSend.entries()));
+          
+          // Gọi API
+          await makePostFormData('admin/registerStudent', formDataToSend);
+        } else if (formData.role === 'Tutor') {
+          formDataToSend.append('workplace', formData.workplace || 'Default Workplace');
+          formDataToSend.append('description', formData.description || 'Default Description');
+          
+          // Thêm file bằng cấp và CMND nếu có
+          if (degreesRef.current && degreesRef.current.files[0]) {
+            formDataToSend.append('degrees', degreesRef.current.files[0]);
+          } else {
+            formDataToSend.append('degrees', 'default_degree.pdf');
+          }
+          
+          if (identityCardRef.current && identityCardRef.current.files[0]) {
+            formDataToSend.append('identityCard', identityCardRef.current.files[0]);
+          } else {
+            formDataToSend.append('identityCard', 'default_id.pdf');
+          }
+          
+          // Gọi API đăng ký gia sư
+          await makePostFormData('admin/registerTutor', formDataToSend);
+        } else if (formData.role === 'Admin' || formData.role === 'Moderator') {
+          // Dùng API registerStudent nhưng thay đổi role
+          formDataToSend.append('grade', 'N/A');
+          formDataToSend.append('school', 'N/A');
+          formDataToSend.append('role', formData.role);
+          
+          await makePostFormData('admin/registerStudent', formDataToSend);
+        }
+        
+        toast.success('User registered success');
       }
-
-      closeModal()
-      refreshUsersList() // Tải lại danh sách người dùng
+  
+      closeModal();
+      refreshUsersList();
     } catch (error) {
-      console.error('Failed when saving data', error)
-      toast.error(error.response?.data?.message || 'Failed when saving data')
+      console.error('Failed when saving data:', error);
+      toast.error(error.message || 'Failed when saving data');
     }
-  }
+  };
 
   const handleDeleteUser = async (id) => {
     if (window.confirm('Do you confirm that you want to delete this user?')) {
       try {
         await makeDelete(`users/${id}`)
         toast.success('User deleted')
-        refreshUsersList() // Tải lại danh sách người dùng
+        refreshUsersList()
       } catch (error) {
         console.error('Failed to delete user:', error)
         toast.error(error.response?.data?.message || 'Failed to delete user')
@@ -258,9 +368,8 @@ const AdminPortal = () => {
                 <td className='p-4'>{user.address}</td>
                 <td className='p-4'>
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm ${
-                      user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}
+                    className={`inline-block px-3 py-1 rounded-full text-sm ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}
                   >
                     {user.isActive ? 'Active' : 'Inactive'}
                   </span>
@@ -270,9 +379,8 @@ const AdminPortal = () => {
                     <>
                       <button
                         onClick={() => toggleActiveStatus(user.userID, user.isActive)}
-                        className={`p-2 rounded-lg transition-colors duration-300 ${
-                          user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                        } text-white`}
+                        className={`p-2 rounded-lg transition-colors duration-300 ${user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                          } text-white`}
                       >
                         {user.isActive ? 'Ban' : 'Unban'}
                       </button>
@@ -301,139 +409,250 @@ const AdminPortal = () => {
 
       {/* Modal thêm/sửa người dùng */}
       {isModalOpen && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <div className='bg-white rounded-lg p-8 w-full max-w-2xl'>
-            <h2 className='text-2xl font-bold mb-6 text-center'>{editingUser ? 'Edit User' : 'Add New User'}</h2>
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'>
+          <div className='bg-white rounded-lg p-8 w-full max-w-xl mx-4 my-6'>
+            <h2 className='text-2xl font-bold mb-4 text-center'>{editingUser ? 'Edit User' : 'Add New User'}</h2>
 
             <form onSubmit={handleSubmit}>
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Username</label>
-                  <input
-                    type='text'
-                    name='userName'
-                    value={formData.userName}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required
-                  />
+              <div className='space-y-3'>
+                {/* Thông tin cơ bản - luôn hiển thị */}
+                <div className='grid grid-cols-2 gap-3'>
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Username</label>
+                    <input
+                      type='text'
+                      name='userName'
+                      value={formData.userName}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Full Name</label>
+                    <input
+                      type='text'
+                      name='fullName'
+                      value={formData.fullName}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Full Name</label>
-                  <input
-                    type='text'
-                    name='fullName'
-                    value={formData.fullName}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required
-                  />
+                <div className='grid grid-cols-2 gap-3'>
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Email</label>
+                    <input
+                      type='email'
+                      name='email'
+                      value={formData.email}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>
+                      {editingUser ? 'Password (leave empty to keep current)' : 'Password'}
+                    </label>
+                    <input
+                      type='password'
+                      name='password'
+                      value={formData.password}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      required={!editingUser}
+                    />
+                  </div>
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Email</label>
-                  <input
-                    type='email'
-                    name='email'
-                    value={formData.email}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required
-                  />
+                <div className='grid grid-cols-2 gap-3'>
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Date of Birth</label>
+                    <input
+                      type='date'
+                      name='dateOfBirth'
+                      value={formData.dateOfBirth}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Role</label>
+                    <select
+                      name='role'
+                      value={formData.role}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm bg-white'
+                      required
+                    >
+                      <option value='Student'>Student</option>
+                      <option value='Tutor'>Tutor</option>
+                      <option value='Moderator'>Moderator</option>
+                      <option value='Admin'>Admin</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>
-                    {editingUser ? 'Password (leave empty to keep current)' : 'Password'}
-                  </label>
-                  <input
-                    type='password'
-                    name='password'
-                    value={formData.password}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required={!editingUser}
-                  />
+                <div className='grid grid-cols-2 gap-3'>
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Phone</label>
+                    <input
+                      type='text'
+                      name='phone'
+                      value={formData.phone}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-gray-700 text-sm font-semibold mb-1'>Status</label>
+                    <select
+                      name='active'
+                      value={formData.active}
+                      onChange={handleFormChange}
+                      className='w-full border border-gray-300 rounded-md p-2 text-sm bg-white'
+                    >
+                      <option value={1}>Active</option>
+                      <option value={0}>Inactive</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Date of Birth</label>
-                  <input
-                    type='date'
-                    name='dateOfBirth'
-                    value={formData.dateOfBirth}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required
-                  />
-                </div>
-
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Role</label>
-                  <select
-                    name='role'
-                    value={formData.role}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required
-                  >
-                    <option value='Student'>Student</option>
-                    <option value='Tutor'>Tutor</option>
-                    <option value='Moderator'>Moderator</option>
-                    <option value='Admin'>Admin</option>
-                  </select>
-                </div>
-
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Phone</label>
-                  <input
-                    type='text'
-                    name='phone'
-                    value={formData.phone}
-                    onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                    required
-                  />
-                </div>
-
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Address</label>
+                <div>
+                  <label className='block text-gray-700 text-sm font-semibold mb-1'>Address</label>
                   <input
                     type='text'
                     name='address'
                     value={formData.address}
                     onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
+                    className='w-full border border-gray-300 rounded-md p-2 text-sm'
                     required
                   />
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>Status</label>
-                  <select
-                    name='active'
-                    value={formData.active}
+                {/* Upload Avatar cho tất cả người dùng */}
+                <div>
+                  <label className='block text-gray-700 text-sm font-semibold mb-1'>Avatar</label>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    ref={avatarRef}
+                    className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                  />
+                  <p className='text-xs text-gray-500 mt-1'>Or enter image URL:</p>
+                  <input
+                    type='text'
+                    name='avatar'
+                    value={formData.avatar}
                     onChange={handleFormChange}
-                    className='w-full border border-gray-300 rounded-lg p-2'
-                  >
-                    <option value={1}>Active</option>
-                    <option value={0}>Inactive</option>
-                  </select>
+                    placeholder='URL to avatar image'
+                    className='w-full border border-gray-300 rounded-md p-2 text-sm mt-1'
+                  />
                 </div>
+
+                {/* Các trường riêng cho Student */}
+                {!editingUser && formData.role === 'Student' && (
+                  <div className='grid grid-cols-2 gap-3 pt-2 border-t border-gray-200'>
+                    <div>
+                      <label className='block text-gray-700 text-sm font-semibold mb-1'>Grade</label>
+                      <input
+                        type='text'
+                        name='grade'
+                        value={formData.grade}
+                        onChange={handleFormChange}
+                        className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className='block text-gray-700 text-sm font-semibold mb-1'>School</label>
+                      <input
+                        type='text'
+                        name='school'
+                        value={formData.school}
+                        onChange={handleFormChange}
+                        className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Các trường riêng cho Tutor */}
+                {!editingUser && formData.role === 'Tutor' && (
+                  <div className='pt-2 border-t border-gray-200 space-y-3'>
+                    <div className='grid grid-cols-2 gap-3'>
+                      <div>
+                        <label className='block text-gray-700 text-sm font-semibold mb-1'>Workplace</label>
+                        <input
+                          type='text'
+                          name='workplace'
+                          value={formData.workplace}
+                          onChange={handleFormChange}
+                          className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className='block text-gray-700 text-sm font-semibold mb-1'>Description</label>
+                      <textarea
+                        name='description'
+                        value={formData.description}
+                        onChange={handleFormChange}
+                        className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                        rows={2}
+                        required
+                      />
+                    </div>
+
+                    <div className='grid grid-cols-2 gap-3'>
+                      <div>
+                        <label className='block text-gray-700 text-sm font-semibold mb-1'>Degree/Certificate</label>
+                        <input
+                          type='file'
+                          accept='.pdf,.doc,.docx,image/*'
+                          ref={degreesRef}
+                          className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-gray-700 text-sm font-semibold mb-1'>Identity Card</label>
+                        <input
+                          type='file'
+                          accept='.pdf,.doc,.docx,image/*'
+                          ref={identityCardRef}
+                          className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className='flex justify-end gap-4 mt-6'>
+              <div className='flex justify-end gap-3 mt-6'>
                 <button
                   type='button'
                   onClick={closeModal}
-                  className='px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors'
+                  className='px-4 py-2 text-sm bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors'
                 >
                   Cancel
                 </button>
                 <button
                   type='submit'
-                  className='px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
+                  className='px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors'
                 >
                   {editingUser ? 'Update' : 'Create'}
                 </button>
