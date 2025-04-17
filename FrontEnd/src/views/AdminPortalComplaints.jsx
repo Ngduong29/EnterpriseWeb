@@ -1,62 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx';
-import AccessDeniedPage from '../components/AccessDeniedPage.jsx';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState, useEffect } from 'react'
+import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
+import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { makeDelete, makeGet } from '../apiService/httpService.js'
 const AdminPortalComplaints = () => {
-  const [complaints, setComplaints] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
+  const [complaints, setComplaints] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
 
   if (!token || role !== 'Admin') {
-    return <AccessDeniedPage />;
+    return <AccessDeniedPage />
   }
 
   useEffect(() => {
     // Fetch complaints from the API
-    axios
-      .get('http://localhost:5000/api/admin/complainList')
+    makeGet('admin/complainList')
       .then((response) => {
-        setComplaints(response.data.data);
+        setComplaints(response.data)
       })
       .catch((error) => {
-        console.error('Error fetching complaints:', error);
-      });
-  }, []);
+        console.error('Error fetching complaints:', error)
+      })
+  }, [])
 
   const handleInputChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    filterComplaints(value);
-  };
+    const value = e.target.value
+    setSearchTerm(value)
+    filterComplaints(value)
+  }
 
   const filterComplaints = (searchTerm) => {
-    let filteredComplaints = complaints;
+    let filteredComplaints = complaints
 
     if (searchTerm.trim() !== '') {
       filteredComplaints = filteredComplaints.filter(
-        (complaint) =>
-          complaint.message && complaint.message.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+        (complaint) => complaint.message && complaint.message.toLowerCase().includes(searchTerm.toLowerCase())
+      )
     }
 
-    setComplaints(filteredComplaints);
-  };
+    setComplaints(filteredComplaints)
+  }
 
   const handleDeleteComplaint = (id) => {
-    axios
-      .delete(`http://localhost:5000/api/admin/deleteComplains/${id}`)
+    makeDelete(`admin/deleteComplains/${id}`)
       .then((response) => {
-        setComplaints(complaints.filter((complaint) => complaint.complainID !== id));
-        toast.success('Complaint deleted successfully!');
+        setComplaints(complaints.filter((complaint) => complaint.complainID !== id))
+        toast.success('Complaint deleted successfully!')
       })
       .catch((error) => {
-        console.error('Error deleting complaint:', error);
-        toast.error('Failed to delete complaint.');
-      });
-  };
+        console.error('Error deleting complaint:', error)
+        toast.error('Failed to delete complaint.')
+      })
+  }
 
   return (
     <div className='mx-auto p-6 bg-gray-100 min-h-screen'>
@@ -104,7 +101,7 @@ const AdminPortalComplaints = () => {
       </div>
       <ToastContainer />
     </div>
-  );
-};
+  )
+}
 
-export default AdminPortalComplaints;
+export default AdminPortalComplaints

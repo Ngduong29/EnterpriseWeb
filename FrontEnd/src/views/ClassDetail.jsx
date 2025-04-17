@@ -40,7 +40,7 @@ const ClassDetail = () => {
 
   const fetchClass = async () => {
     try {
-      const response = await makeGet(`api/users/getClass/${id}`)
+      const response = await makeGet(`users/getClass/${id}`)
       const classDetails = response.data // Assuming API response contains all required fields
       setClassData(classDetails)
     } catch (error) {
@@ -50,7 +50,7 @@ const ClassDetail = () => {
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await makeGet(`api/tutors/viewFeedback/${id}`)
+      const response = await makeGet(`students/getFeedbackByClass/${id}`)
       setFeedbacks(response.data)
     } catch (error) {
       console.error('Error fetching feedbacks:', error)
@@ -59,7 +59,7 @@ const ClassDetail = () => {
 
   const checkEnrollmentStatus = async () => {
     try {
-      const response = await makeGet(`api/students/checkEnroll/${id}`)
+      const response = await makeGet(`students/checkEnroll/${id}`)
       const token = localStorage.getItem('token')
       if (!token) {
         console.log('User is not logged in')
@@ -94,7 +94,7 @@ const ClassDetail = () => {
       const decodedToken = jwtDecode(token)
       if (decodedToken.user.role == 'Student') {
         const studentID = decodedToken.user.studentID
-        await makePost(`api/students/enrollClass/${classData.classID}`, {
+        await makePost(`students/enrollClass/${classData.classID}`, {
           studentID
         })
         setIsEnrolled(true)
@@ -131,7 +131,7 @@ const ClassDetail = () => {
       }
       const decodedToken = jwtDecode(token)
       const studentID = decodedToken.user.studentID
-      const response = await makePost(`api/students/feedback/${id}`, {
+      const response = await makePost(`students/feedback/${id}`, {
         studentID,
         message: feedbackMessage,
         rating,

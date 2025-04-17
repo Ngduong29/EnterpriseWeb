@@ -2,12 +2,11 @@ import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle
 import io from 'socket.io-client'
 import { FaComments, FaTimes } from 'react-icons/fa'
 import AuthContext from '../contexts/JWTAuthContext'
-import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { Height } from '@mui/icons-material'
-import { makeGet } from '../apiService/httpService'
+import { makeGet, makePost } from '../apiService/httpService'
 
 const socket = io('http://localhost:5000') // Ensure the URL matches your server
 
@@ -37,12 +36,9 @@ const ChatBox = forwardRef((props, ref) => {
           timestamp: new Date()
         }
 
-        const response = await axios.post(
-          `http://localhost:5000/api/users/sendMessage/${user.userID}&${recipient.userID}`,
-          {
-            ...message
-          }
-        )
+        const response = await makePost(`users/sendMessage/${user.userID}&${recipient.userID}`, {
+          ...message
+        })
         setIsOpen(true)
         if (recipient.userID === selectedUser.userID) {
           setMessages((prevMessages) => [...prevMessages, message])
@@ -66,14 +62,14 @@ const ChatBox = forwardRef((props, ref) => {
             return
           }
           const decodedToken = jwtDecode(token)
-          const responseClass = await axios.get('http://localhost:5000/api/admin/classList')
+          const responseClass = await makeGet('admin/classList')
           let userClasses = responseClass.data.data
           let filteredUsers = response.data.data
 
           if (user.role === 'Tutor') {
             filterRole = 'Student'
             id = decodedToken.user.tutorID
-            const requestResponse = await axios.get(`http://localhost:5000/api/tutors/viewRequest/${id}`)
+            const requestResponse = await makeGet(`tutors/viewRequest/${id}`)
             const requests = requestResponse.data.data
             const studentIDsInClasses = userClasses
               .filter((cls) => cls.tutorID == id)
@@ -88,7 +84,7 @@ const ChatBox = forwardRef((props, ref) => {
             filterRole = 'Tutor'
             id = decodedToken.user.studentID
 
-            const requestResponse = await axios.get(`http://localhost:5000/api/students/viewRequest/${id}`)
+            const requestResponse = await makeGet(`students/viewRequest/${id}`)
             const requests = requestResponse.data.data
             const tutorIDsInClasses = userClasses
               .filter((cls) => cls.studentID == id)
@@ -136,8 +132,7 @@ const ChatBox = forwardRef((props, ref) => {
 
   useEffect(() => {
     // Fetch users (tutors or students) from the server
-    axios
-      .get('http://localhost:5000/api/admin/getUser')
+    makeGet('admin/getUser')
       .then(async (response) => {
         let filterRole = ''
         let id = ''
@@ -148,14 +143,14 @@ const ChatBox = forwardRef((props, ref) => {
           return
         }
         const decodedToken = jwtDecode(token)
-        const responseClass = await axios.get('http://localhost:5000/api/admin/classList')
+        const responseClass = await makeGet('admin/classList')
         let userClasses = responseClass.data.data
         let filteredUsers = response.data.data
 
         if (user.role === 'Tutor') {
           filterRole = 'Student'
           id = decodedToken.user.tutorID
-          const requestResponse = await axios.get(`http://localhost:5000/api/tutors/viewRequest/${id}`)
+          const requestResponse = await makeGet(`tutors/viewRequest/${id}`)
           const requests = requestResponse.data.data
           const studentIDsInClasses = userClasses
             .filter((cls) => cls.tutorID == id)
@@ -171,7 +166,7 @@ const ChatBox = forwardRef((props, ref) => {
           filterRole = 'Tutor'
           id = decodedToken.user.studentID
 
-          const requestResponse = await axios.get(`http://localhost:5000/api/students/viewRequest/${id}`)
+          const requestResponse = await makeGet(`students/viewRequest/${id}`)
           const requests = requestResponse.data.data
           const tutorIDsInClasses = userClasses
             .filter((cls) => cls.studentID == id)
@@ -204,7 +199,7 @@ const ChatBox = forwardRef((props, ref) => {
 
   const handleGetMessage = async (senderID, receiverID) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/users/getMessage/${senderID}&${receiverID}`)
+      const response = await makeGet(`users/getMessage/${senderID}&${receiverID}`)
       setMessages(response.data.data)
     } catch (error) {
       console.error('Error fetching messages:', error)
@@ -228,12 +223,9 @@ const ChatBox = forwardRef((props, ref) => {
       timestamp: new Date()
     }
 
-    const response = await axios.post(
-      `http://localhost:5000/api/users/sendMessage/${message.senderID}&${message.receiverID}`,
-      {
-        ...message
-      }
-    )
+    const response = await makePost(`users/sendMessage/${message.senderID}&${message.receiverID}`, {
+      ...message
+    })
     socket.emit('sendMessage', message)
     setNewMessage('')
   }
