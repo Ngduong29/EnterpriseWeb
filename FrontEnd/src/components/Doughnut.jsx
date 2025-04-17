@@ -1,12 +1,24 @@
 import { useTheme } from '@mui/material/styles'
 import ReactEcharts from 'echarts-for-react'
-import { useEffect, useState } from 'react'
-
+import { formatVND } from '../utils/format'
 export default function DoughnutChart({ height, color = [], paymentList = [] }) {
   const theme = useTheme()
-  const payment500 = paymentList.filter((payment) => payment.amount <= 500000).length
-  const payment1000 = paymentList.filter((payment) => payment.amount <= 1000000 && payment.amount > 500000).length
-  const payment2000 = paymentList.filter((payment) => payment.amount <= 2000000 && payment.amount > 1000000).length
+  const amounts = paymentList.map((p) => parseFloat(p.amount))
+
+  const min = Math.min(...amounts)
+  const max = Math.max(...amounts)
+  const range = max - min
+  const step = Math.ceil(range / 3)
+
+  const range1Max = min + step
+  const range2Max = min + step * 2
+
+  const range1 = paymentList.filter((p) => parseFloat(p.amount) <= range1Max).length
+  const range2 = paymentList.filter((p) => {
+    const amt = parseFloat(p.amount)
+    return amt > range1Max && amt <= range2Max
+  }).length
+  const range3 = paymentList.filter((p) => parseFloat(p.amount) > range2Max).length
 
   const option = {
     legend: {
@@ -27,7 +39,7 @@ export default function DoughnutChart({ height, color = [], paymentList = [] }) 
     },
     series: [
       {
-        name: 'Subscription Range',
+        name: 'Amount Range',
         type: 'pie',
         radius: ['45%', '72.55%'],
         center: ['50%', '50%'],
@@ -54,9 +66,18 @@ export default function DoughnutChart({ height, color = [], paymentList = [] }) 
         },
         labelLine: { show: false },
         data: [
-          { value: payment500, name: '≤ 500.000₫' },
-          { value: payment1000, name: '500.000₫ - 1.000.000₫' },
-          { value: payment2000, name: '1.000.000₫ - 2.000.000₫' }
+          {
+            value: range1,
+            name: `≤ ${formatVND(range1Max)}`
+          },
+          {
+            value: range2,
+            name: `${formatVND(range1Max + 1)} - ${formatVND(range2Max)}`
+          },
+          {
+            value: range3,
+            name: `> ${formatVND(range2Max)}`
+          }
         ],
         itemStyle: {
           emphasis: {
