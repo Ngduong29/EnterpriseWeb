@@ -26,7 +26,7 @@ const AdminPortalTransaction = () => {
     const fetchPayments = async () => {
       try {
         // when BE api is ready, change makeGetMock to makeGet
-        const response = await makeGetMock('payments/getPaymentInfo')
+        const response = await makeGet('payments/getPaymentInfo')
         setPayments(response.data)
       } catch (error) {
         console.error('Error fetching payments:', error)

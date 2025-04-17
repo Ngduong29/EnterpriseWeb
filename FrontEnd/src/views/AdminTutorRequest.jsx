@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+// import axios from 'axios'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
 import Loading from '../components/Loading.jsx'
+import { makeGet, makePost } from '../apiService/httpService.js'
 
 const AdminTutorRequests = () => {
   const [requests, setRequests] = useState([])
@@ -17,19 +18,15 @@ const AdminTutorRequests = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/admin/getRequest')
-        const requestsData = response.data.data
+        const response = await makeGet('admin/getRequest')
+        const requestsData = response.data
 
         // Fetch tutor information for each request
-        const tutorRequests = requestsData.map((request) =>
-          axios.get(`http://localhost:5000/api/users/getTutor/${request.userID}`)
-        )
-        console.log(tutorRequests)
-
+        const tutorRequests = requestsData.map((request) => makeGet(`users/getTutor/${request.userID}`))
         const tutorsData = await Promise.all(tutorRequests)
 
         const tutorsInfo = tutorsData.reduce((acc, curr) => {
-          acc[curr.data.data.tutorID] = curr.data.data
+          acc[curr.data.tutorID] = curr.data
           return acc
         }, {})
 
@@ -47,7 +44,7 @@ const AdminTutorRequests = () => {
 
   const handleAction = async (userID, action) => {
     try {
-      await axios.post(`http://localhost:5000/api/admin/handleTutor/${userID}`, { status: action })
+      await makePost(`admin/handleTutor/${userID}`, { status: action })
       setRequests(requests.map((req) => (req.userID === userID ? { ...req, status: action } : req)))
     } catch (error) {
       alert(error.response ? error.response.data.message : 'Error performing action')
@@ -82,7 +79,7 @@ const AdminTutorRequests = () => {
               {requests.map((request, index) => {
                 const tutor = tutors[request.tutorID]
                 return (
-                  <tr key={request.id} className='border-b hover:bg-purple-50'>
+                  <tr key={request.requestID} className='border-b hover:bg-purple-50'>
                     <td className='p-4'>{index + 1}</td>
                     <td className='p-4'>{request.userID}</td>
                     <td className='p-4'>{request.tutorID}</td>
@@ -109,7 +106,7 @@ const AdminTutorRequests = () => {
                         className={`inline-block px-3 py-1 rounded-full text-sm ${
                           request.status === 'Pending'
                             ? 'bg-yellow-100 text-yellow-700'
-                            : request.status === 'Accept'
+                            : request.status === 'Approved'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
                         }`}
@@ -125,13 +122,13 @@ const AdminTutorRequests = () => {
                             onClick={() => handleAction(request.userID, 'Accept')}
                             className='mr-2 p-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors duration-300'
                           >
-                            Accept
+                            Approve
                           </button>
                           <button
                             onClick={() => handleAction(request.userID, 'Deny')}
                             className='p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors duration-300'
                           >
-                            Deny
+                            Reject
                           </button>
                         </>
                       )}

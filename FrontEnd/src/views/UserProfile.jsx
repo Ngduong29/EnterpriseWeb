@@ -22,10 +22,10 @@ import { storage } from '../firebase.js'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { v4 } from 'uuid'
 import { jwtDecode } from 'jwt-decode'
-import axios from 'axios'
 import ChatBox from '../components/ChatBox'
 import { useNavigate } from 'react-router-dom'
 import { RecoveryContext } from '../App'
+import { makePut } from '../apiService/httpService.js'
 const UserProfile = () => {
   const token = localStorage.getItem('token')
   const { user } = useContext(AuthContext)
@@ -125,18 +125,14 @@ const UserProfile = () => {
       const updatedUserData = { ...userData, ...updates }
 
       const userID = user.userID || (await jwtDecode(token).user.userID)
-      const response = await axios.put(`http://localhost:5000/api/users/update/${userID}`, {
+      await makePut(`users/update/${userID}`, {
         updatedUserData
+      }).then((data) => {
+        localStorage.setItem('token', data.token)
+        setUserData(data.user)
+        toast.success('Profile updated successfully!')
+        setTimeout(() => window.location.reload(), 2500)
       })
-
-      if (response.statusText != 'OK') {
-        throw new Error('Failed to update profile')
-      }
-      const data = response.data
-
-      localStorage.setItem('token', data.token)
-      setUserData(data.user)
-      toast.info('Profile updated successfully!')
     } catch (error) {
       console.error('Failed to update profile:', error)
       toast.error('Failed to update profile. Please try again.')
@@ -351,14 +347,13 @@ const UserProfile = () => {
                 </label>
               </div>
               <div className='flex items-center mb-4'>
-                
                 <label className='flex-1'>
                   <span className='block text-sm font-medium text-gray-700'>
-                  <div className='flex items-center'>
-                    <FaGraduationCap className='mr-2 text-gray-600' />
-                    Grade
+                    <div className='flex items-center'>
+                      <FaGraduationCap className='mr-2 text-gray-600' />
+                      Grade
                     </div>
-                    </span>
+                  </span>
                   <input
                     type='text'
                     name='grade'
@@ -373,14 +368,11 @@ const UserProfile = () => {
           {userData.role === 'Tutor' && (
             <>
               <div className='flex items-center mb-4'>
-                
                 <label className='flex-1'>
-                
                   <span className='block text-sm font-medium text-gray-700'>
-                  <div className='flex items-center'>  
-                    <FaBriefcase className='mr-2 text-gray-600' />
-                    Workplace
-
+                    <div className='flex items-center'>
+                      <FaBriefcase className='mr-2 text-gray-600' />
+                      Workplace
                     </div>
                   </span>
                   <input
@@ -393,14 +385,13 @@ const UserProfile = () => {
                 </label>
               </div>
               <div className='flex items-center mb-4'>
-                
                 <label className='flex-1'>
                   <span className='block text-sm font-medium text-gray-700'>
-                  <div className='flex items-center'>  
-                    <FaFileAlt className='mr-2 text-gray-600' />
-                    Description
+                    <div className='flex items-center'>
+                      <FaFileAlt className='mr-2 text-gray-600' />
+                      Description
                     </div>
-                    </span>
+                  </span>
                   <textarea
                     name='description'
                     value={userData.description || ''}
@@ -416,8 +407,6 @@ const UserProfile = () => {
                 </div>
                 <div className='mt-1'>{renderRatingStars()}</div>
               </div>
-
-              
 
               <div className='flex flex-col mb-4'>
                 <div className='flex items-center'>
