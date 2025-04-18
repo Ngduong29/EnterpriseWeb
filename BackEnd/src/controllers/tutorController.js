@@ -93,6 +93,10 @@ class tutorController {
       // const isPaymentValid = paymentList.some(
       //   (payment) => payment.paymentID == classroom.PaymentID
       // );
+      // const paymentList = await Payment.getAllPayment();
+      // const isPaymentValid = paymentList.some(
+      //   (payment) => payment.paymentID == classroom.PaymentID
+      // );
 
       // if (!isPaymentValid) {
       //   return res.status(400).json({

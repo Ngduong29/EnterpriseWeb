@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/auth');
 const blogController = require('../controllers/blogController');
 
 const router = express.Router();
-router.use(authenticateToken('Tutor'));
+// router.use(authenticateToken('Tutor'));
 
 // Get
 router.get("/viewStudent/:classID", classController.viewStudentInClass);

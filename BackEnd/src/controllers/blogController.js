@@ -10,8 +10,8 @@ exports.getAll = async (req, res) => {
             if (!req.user.userID) {
                 return res.status(400).json({ message: "User ID is required" });
             }
-            const blogs = await Blog.findByStudentId(req.user.userID, req.user.classID || null);
-            return res.json({ message: "Danh sách bài viết", data: blogs });
+            const blogs = await Blog.findByStudentId(req.user.userID, req.body.class_id || null);
+            return res.json({ message: "List Blogs", data: blogs });
         }
     } catch (error) {
         console.error('Error in getAll:', error);
@@ -41,9 +41,10 @@ exports.getOne = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-    const { title, content, status } = req.body;
+    const { title, content, status, class_id } = req.body;
     const blog_id = await Blog.create({
         student_id: req.user.userID,
+        class_id,
         title,
         content,
         status,

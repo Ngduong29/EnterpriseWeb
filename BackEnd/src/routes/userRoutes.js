@@ -1,8 +1,9 @@
 const express = require("express");
+const multer = require("multer");
+
 const userController = require("../controllers/userController");
 const classController = require("../controllers/classController");
 const tutorController = require("../controllers/tutorController");
-const multer = require("multer");
 const messageController = require("../controllers/messageController");
 const authenticateToken = require('../middleware/auth');
 
