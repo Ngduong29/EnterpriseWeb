@@ -74,41 +74,44 @@ class Tutor {
   }
 
   // Generate a new class ID
-  static async createClassID() {
-    const connection = await connectDB();
-    const [rows] = await connection.execute(
-      `SELECT * FROM Classes ORDER BY CAST(SUBSTRING(classID, 2) AS UNSIGNED) DESC`
-    );
-    if (!rows.length) return "C1";
-    const id = rows[0].classID;
-    const prefix = id.match(/[A-Za-z]+/)[0];
-    const number = parseInt(id.match(/\d+/)[0]) + 1;
-    return prefix + number;
-  }
+  // static async createClassID() {
+  //   const connection = await connectDB();
+  //   const [rows] = await connection.execute(
+  //     `SELECT * FROM Classes ORDER BY CAST(SUBSTRING(classID, 2) AS UNSIGNED) DESC`
+  //   );
+  //   if (!rows.length) return "C1";
+  //   const id = rows[0].classID;
+  //   console.log('abcc',rows)
+  //   const prefix = id.match(/[A-Za-z]+/)[0];
+  //   const number = parseInt(id.match(/\d+/)[0]) + 1;
+  //   return prefix + number;
+  // }
 
   // Create a new class
   static async createClass(classroom) {
     const connection = await connectDB();
-    const classID = await this.createClassID();
+    // const classID = await this.createClassID();
+    console.log('abcc2',classroom)
     const [result] = await connection.execute(
-      `INSERT INTO Classes (classID, subject, studentID, PaymentID, length, available, type, description, price, tutorID, className, videoLink)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [classID, classroom.subject, classroom.studentID, classroom.PaymentID, classroom.length,
-       classroom.available, classroom.type, classroom.description, classroom.price,
-       classroom.tutorID, classroom.className, classroom.videoLink]
+      `INSERT INTO Classes (subject, length, available, type, description, price, tutorID, className, videoLink)
+       VALUES (?,  ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ classroom.subject, classroom.length,
+        classroom.available, classroom.type, classroom.description, classroom.price,
+        classroom.tutorID, classroom.className, classroom.videoLink]
     );
-    return { classID, ...classroom };
+    console.log('abcc',result)
+    return {...classroom };
   }
 
   // Update class information
   static async updateClass(classroom, classID) {
     const connection = await connectDB();
     await connection.execute(
-      `UPDATE Classes SET subject = ?, studentID = ?, PaymentID = ?, length = ?, available = ?, type = ?,
+      `UPDATE Classes SET subject = ?, length = ?, available = ?, type = ?,
        description = ?, price = ?, tutorID = ?, className = ?, videoLink = ? WHERE classID = ?`,
-      [classroom.subject, classroom.studentID, classroom.PaymentID, classroom.length, classroom.available,
-       classroom.type, classroom.description, classroom.price, classroom.tutorID,
-       classroom.className, classroom.videoLink, classID]
+      [classroom.subject, classroom.length, classroom.available,
+      classroom.type, classroom.description, classroom.price, classroom.tutorID,
+      classroom.className, classroom.videoLink, classID]
     );
     return this.findClassroom(classID);
   }

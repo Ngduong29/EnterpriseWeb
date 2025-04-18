@@ -61,7 +61,25 @@ export const makePostFormData = async (url, formData) => {
     const token = getToken();
     const response = await axios.post(`${API_URL}/${url}`, formData, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+        // KHÔNG đặt Content-Type để browser tự xử lý FormData
+      }
+    });
+    return response.data;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// PUT FormData
+export const makePutFormData = async (url, formData) => {
+  try {
+    const token = getToken();
+    const response = await axios.put(`${API_URL}/${url}`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
         // KHÔNG đặt Content-Type để browser tự xử lý FormData
       }
     });

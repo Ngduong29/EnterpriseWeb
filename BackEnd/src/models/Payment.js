@@ -15,7 +15,7 @@ class Payment {
   // Get all payment records from the Payment table
   static async getAllPayment() {
     const connection = await connectDB();
-    const [rows] = await connection.execute(`SELECT * FROM Payment`);
+    const [rows] = await connection.execute(`SELECT * FROM Payments`);
     return rows;
   }
 
