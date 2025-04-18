@@ -5,7 +5,7 @@ const Blog = {
         const db = await connectDB();
         console.log('Student ID:', studentId, 'Class ID:', classID);
 
-        let query = 'SELECT title, status, created_at FROM Blogs WHERE student_id = ?';
+        let query = 'SELECT blog_id, title, status, created_at FROM Blogs WHERE student_id = ?';
         const params = [studentId];
 
         if (classID !== null) {
@@ -27,9 +27,9 @@ const Blog = {
         const db = await connectDB();
         const now = new Date();
         const [result] = await db.execute(
-            `INSERT INTO Blogs (student_id, title, content, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-            [blog.student_id, blog.title, blog.content, blog.status, now, now]
+            `INSERT INTO Blogs (student_id, class_id, title, content, status)
+       VALUES (?, ?, ?, ?, ?)`,
+            [blog.student_id, blog.class_id, blog.title, blog.content, blog.status]
         );
         return result.insertId;
     },

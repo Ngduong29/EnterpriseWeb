@@ -69,7 +69,7 @@ class authController {
 
       const userID = userResult.insertId;
       const userRole = userResult.role;
-      console.log(userRole);
+
 
       // Verify the user exists before creating student
       const user = await User.findUserByID(userID);
@@ -133,7 +133,7 @@ class authController {
     } = req.body;
 
     const connection = await require("../config/db")();
-    
+
     try {
       // Start transaction
       await connection.beginTransaction();
@@ -157,8 +157,8 @@ class authController {
       const [userResult] = await connection.execute(
         `INSERT INTO Users (userName, email, password, role, fullName, avatar, dateOfBirth, phone, address, isActive) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [userName, email, hashedPassword, "Tutor", fullName, avatar, dateOfBirth, 
-         phone || "0866722601", address || "Ha Noi", 0] // Set isActive to 0 for pending approval
+        [userName, email, hashedPassword, "Tutor", fullName, avatar, dateOfBirth,
+          phone || "0866722601", address || "Ha Noi", 0] // Set isActive to 0 for pending approval
       );
 
       console.log("User Result:", userResult);
@@ -182,7 +182,7 @@ class authController {
       const [lastTutor] = await connection.execute(
         `SELECT * FROM Tutors ORDER BY CAST(SUBSTRING(tutorID, 2) AS UNSIGNED) DESC LIMIT 1`
       );
-      const tutorID = !lastTutor[0] ? "T1" : 
+      const tutorID = !lastTutor[0] ? "T1" :
         "T" + (parseInt(lastTutor[0].tutorID.match(/\d+/)[0]) + 1);
 
       console.log("Generated tutorID:", tutorID);
@@ -190,9 +190,9 @@ class authController {
       await connection.execute(
         `INSERT INTO Tutors (tutorID, userID, degrees, identityCard, workplace, description, status) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [tutorID, userID, degrees, identityCard , workplace, description, "Pending"]
+        [tutorID, userID, degrees, identityCard, workplace, description, "Pending"]
       );
- 
+
       // Create tutor request
       await connection.execute(
         `INSERT INTO TutorRequests (userID, tutorID, status) VALUES (?, ?, ?)`,
@@ -214,10 +214,10 @@ class authController {
       // Generate authentication token
       const token = User.generateAuthToken(userData);
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: "Tutor request sent, please wait for approval",
-        token, 
-        user: userData 
+        token,
+        user: userData
       });
     } catch (error) {
       // Rollback transaction on error
@@ -249,18 +249,18 @@ class authController {
 
       if (user.role == "Student") {
         const student = await Student.findStudentByUserID(user.userID);
-        const classByStudent = await Classroom.GetClassByStudentId(student.studentID);
+        // const classByStudent = await Classroom.GetClassByStudentId(student.studentID);
+        // console.log(classByStudent);
 
-        // user = { ...user, ...student };
-        user = { ...user, ...student, ...classByStudent };
+        user = { ...user, ...student };
+        // user = { ...user, ...student, ...classByStudent };
 
-        console.log(user);
       } else if (user.role == "Tutor") {
         const tutor = await Tutor.findTutorByTutorUserID(user.userID);
-        const classByTutor = await Classroom.GetClassByStudentId(tutor.tutorID);
+        // const classByTutor = await Classroom.GetClassByStudentId(tutor.tutorID);
         // const classByTutor = await Classroom
-        // user = { ...user, ...tutor };
-        user = { ...user, ...tutor, ...classByTutor };
+        user = { ...user, ...tutor };
+        // user = { ...user, ...tutor, ...classByTutor };
       }
 
       const token = User.generateAuthToken(user);
