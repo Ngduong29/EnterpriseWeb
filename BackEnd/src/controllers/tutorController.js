@@ -89,21 +89,22 @@ class tutorController {
     try {
       const classroom = req.body;
 
-      const paymentList = await Payment.getAllPayment();
-      const isPaymentValid = paymentList.some(
-        (payment) => payment.paymentID == classroom.PaymentID
-      );
+      // const paymentList = await Payment.getAllPayment();
+      // const isPaymentValid = paymentList.some(
+      //   (payment) => payment.paymentID == classroom.PaymentID
+      // );
 
-      if (!isPaymentValid) {
-        return res.status(400).json({
-          message: "Invalid PaymentID",
-        });
-      }
+      // if (!isPaymentValid) {
+      //   return res.status(400).json({
+      //     message: "Invalid PaymentID",
+      //   });
+      // }
 
+      console.log('abc',classroom);
       if (
         !classroom.className ||
         !classroom.subject ||
-        !classroom.PaymentID ||
+        // !classroom.PaymentID ||
         !classroom.length ||
         !classroom.available ||
         !classroom.type ||

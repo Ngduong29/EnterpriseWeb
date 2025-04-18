@@ -14,7 +14,7 @@ class userController {
         return res.status(404).json({ message: "Missing user id" });
       }
 
-      const updatedUserData  = req.body;
+      const { updatedUserData } = req.body;
       if (!updatedUserData) {
         return res.status(404).json({ message: "Cannot found user" });
       }

@@ -3,7 +3,7 @@ import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { makeDelete, makeGet, makePostFormData, makePut } from '../apiService/httpService.js'
+import { makeDelete, makeGet, makePostFormData, makePut, makePutFormData } from '../apiService/httpService.js'
 import axios from 'axios'
 
 const AdminPortal = () => {
@@ -13,6 +13,11 @@ const AdminPortal = () => {
   const [selectedRole, setSelectedRole] = useState('User') // Default selection is 'User'
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState(1)
+  const [usersPerPage, setUsersPerPage] = useState(10)
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
 
   // Form data cho cả Student và Tutor
   const [formData, setFormData] = useState({
@@ -58,6 +63,26 @@ const AdminPortal = () => {
         console.error('Error fetching users:', error)
         toast.error('Can not load users data')
       })
+
+    // Thêm event listener để theo dõi kích thước màn hình
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+      // Điều chỉnh số lượng users hiển thị theo kích thước màn hình
+      if (window.innerWidth < 640) {
+        setUsersPerPage(5)
+      } else if (window.innerWidth < 1024) {
+        setUsersPerPage(8)
+      } else {
+        setUsersPerPage(10)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    handleResize() // Gọi ngay khi component mount
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   const handleInputChange = (e) => {
@@ -90,6 +115,7 @@ const AdminPortal = () => {
     }
 
     setUsers(filteredUsers)
+    setCurrentPage(1) // Reset về trang đầu tiên khi lọc
   }
 
   const toggleActiveStatus = (id, isActive) => {
@@ -190,7 +216,6 @@ const AdminPortal = () => {
     }
 
     setIsModalOpen(true);
-    setIsModalOpen(true)
   }
 
   const closeModal = () => {
@@ -211,16 +236,16 @@ const AdminPortal = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       if (editingUser) {
         // Cập nhật người dùng hiện có
-        await makePut(`users/update/${editingUser.userID}`, JSON.stringify(formData));
+        await makePut(`users/update/${editingUser.userID}`, JSON.stringify({ updatedUserData: formData }));
         toast.success('User update success');
       } else {
         // Tạo FormData để xử lý file uploads
         const formDataToSend = new FormData();
-        
+
         // Thêm các trường cơ bản
         formDataToSend.append('userName', formData.userName);
         formDataToSend.append('fullName', formData.fullName);
@@ -229,7 +254,7 @@ const AdminPortal = () => {
         formDataToSend.append('dateOfBirth', formData.dateOfBirth);
         formDataToSend.append('phone', formData.phone);
         formDataToSend.append('address', formData.address);
-        
+
         // Thêm avatar nếu có
         if (avatarRef.current && avatarRef.current.files[0]) {
           formDataToSend.append('avatar', avatarRef.current.files[0]);
@@ -237,34 +262,34 @@ const AdminPortal = () => {
           // Nếu không có file, dùng URL nếu đã nhập
           formDataToSend.append('avatar', formData.avatar || '');
         }
-        
+
         // Thêm các trường dựa trên role
         if (formData.role === 'Student') {
           formDataToSend.append('grade', formData.grade || '10');
           formDataToSend.append('school', formData.school || 'Default School');
-          
+
           // Debug log
           console.log("FormData contents:", Object.fromEntries(formDataToSend.entries()));
-          
+
           // Gọi API
           await makePostFormData('admin/registerStudent', formDataToSend);
         } else if (formData.role === 'Tutor') {
           formDataToSend.append('workplace', formData.workplace || 'Default Workplace');
           formDataToSend.append('description', formData.description || 'Default Description');
-          
+
           // Thêm file bằng cấp và CMND nếu có
           if (degreesRef.current && degreesRef.current.files[0]) {
             formDataToSend.append('degrees', degreesRef.current.files[0]);
           } else {
             formDataToSend.append('degrees', 'default_degree.pdf');
           }
-          
+
           if (identityCardRef.current && identityCardRef.current.files[0]) {
             formDataToSend.append('identityCard', identityCardRef.current.files[0]);
           } else {
             formDataToSend.append('identityCard', 'default_id.pdf');
           }
-          
+
           // Gọi API đăng ký gia sư
           await makePostFormData('admin/registerTutor', formDataToSend);
         } else if (formData.role === 'Admin' || formData.role === 'Moderator') {
@@ -272,13 +297,13 @@ const AdminPortal = () => {
           formDataToSend.append('grade', 'N/A');
           formDataToSend.append('school', 'N/A');
           formDataToSend.append('role', formData.role);
-          
+
           await makePostFormData('admin/registerStudent', formDataToSend);
         }
-        
+
         toast.success('User registered success');
       }
-  
+
       closeModal();
       refreshUsersList();
     } catch (error) {
@@ -290,7 +315,7 @@ const AdminPortal = () => {
   const handleDeleteUser = async (id) => {
     if (window.confirm('Do you confirm that you want to delete this user?')) {
       try {
-        await makeDelete(`users/${id}`)
+        await makeDelete(`admin/deleteUser/${id}`)
         toast.success('User deleted')
         refreshUsersList()
       } catch (error) {
@@ -300,30 +325,41 @@ const AdminPortal = () => {
     }
   }
 
+  // Tính toán số trang
+  const totalPages = Math.ceil(users.length / usersPerPage)
+
+  // Lấy users hiện tại
+  const indexOfLastUser = currentPage * usersPerPage
+  const indexOfFirstUser = indexOfLastUser - usersPerPage
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser)
+
+  // Thay đổi trang
+  const paginate = (pageNumber) => setCurrentPage(pageNumber)
+
   return (
-    <div className='mx-auto p-6 bg-gray-100 min-h-screen'>
+    <div className='mx-auto p-3 md:p-6 bg-gray-100 min-h-screen'>
       <ToastContainer position='top-right' />
       <header className='bg-purple-600 text-white shadow-md py-4'>
         <MegaMenuWithHover />
       </header>
-      <div className='pt-20'>
-        <h1 className='text-4xl font-bold mb-6 text-center text-black'>
+      <div className='pt-16 md:pt-20'>
+        <h1 className='text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-center text-black'>
           Admin Portal - {allUsers?.length > 0 && allUsers.length} Users
         </h1>
 
-        <div className='flex justify-between mb-6'>
-          <div className='flex justify-center'>
+        <div className='flex flex-col md:flex-row justify-between mb-4 md:mb-6 space-y-3 md:space-y-0'>
+          <div className='flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto'>
             <input
               type='text'
               value={searchTerm}
               onChange={handleInputChange}
-              className='border border-gray-400 p-2 rounded-lg flex-grow max-w-xl focus:outline-none focus:ring-2 focus:ring-purple-500'
+              className='border border-gray-400 p-2 rounded-lg md:max-w-xs focus:outline-none focus:ring-2 focus:ring-purple-500'
               placeholder='Search by username'
             />
             <select
               value={selectedRole}
               onChange={handleRoleChange}
-              className='ml-4 border border-gray-400 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500'
+              className='border border-gray-400 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500'
             >
               <option value='User'>User</option>
               <option value='Student'>Student</option>
@@ -340,83 +376,153 @@ const AdminPortal = () => {
           </button>
         </div>
 
-        <table className='mx-auto min-w-full bg-white shadow-md rounded-lg overflow-hidden'>
-          <thead className='bg-gradient-to-t from-yellow-700 to-yellow-300 text-black'>
-            <tr>
-              <th className='p-4 text-left'>ID</th>
-              <th className='p-4 text-left'>UserName</th>
-              <th className='p-4 text-left'>FullName</th>
-              <th className='p-4 text-left'>Email</th>
-              <th className='p-4 text-left'>DateOfBirth</th>
-              <th className='p-4 text-left'>Role</th>
-              <th className='p-4 text-left'>Phone</th>
-              <th className='p-4 text-left'>Address</th>
-              <th className='p-4 text-left'>Active</th>
-              <th className='p-4 text-left'>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, index) => (
-              <tr key={user.userID} className='border-b hover:bg-purple-50'>
-                <td className='p-4'>{index + 1}</td>
-                <td className='p-4'>{user.userName}</td>
-                <td className='p-4'>{user.fullName}</td>
-                <td className='p-4'>{user.email}</td>
-                <td className='p-4'>{formatDate(user.dateOfBirth)}</td>
-                <td className='p-4'>{user.role}</td>
-                <td className='p-4'>{user.phone}</td>
-                <td className='p-4'>{user.address}</td>
-                <td className='p-4'>
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}
-                  >
-                    {user.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className='p-4 flex gap-2'>
-                  {user.role !== 'Admin' && (
-                    <>
-                      <button
-                        onClick={() => toggleActiveStatus(user.userID, user.isActive)}
-                        className={`p-2 rounded-lg transition-colors duration-300 ${user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                          } text-white`}
-                      >
-                        {user.isActive ? 'Ban' : 'Unban'}
-                      </button>
-
-                      <button
-                        onClick={() => openEditModal(user)}
-                        className='p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-300'
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteUser(user.userID)}
-                        className='p-2 rounded-lg bg-red-700 hover:bg-red-800 text-white transition-colors duration-300'
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </td>
+        <div className='overflow-x-auto rounded-lg shadow'>
+          <table className='min-w-full bg-white'>
+            <thead className='bg-gradient-to-t from-yellow-700 to-yellow-300 text-black'>
+              <tr>
+                <th className='p-2 md:p-4 text-left'>ID</th>
+                <th className='p-2 md:p-4 text-left'>UserName</th>
+                <th className='p-2 md:p-4 text-left'>FullName</th>
+                <th className='p-2 md:p-4 text-left hidden md:table-cell'>Email</th>
+                <th className='p-2 md:p-4 text-left hidden md:table-cell'>DateOfBirth</th>
+                <th className='p-2 md:p-4 text-left'>Role</th>
+                <th className='p-2 md:p-4 text-left hidden md:table-cell'>Phone</th>
+                <th className='p-2 md:p-4 text-left hidden md:table-cell'>Address</th>
+                <th className='p-2 md:p-4 text-left'>Active</th>
+                <th className='p-2 md:p-4 text-left'>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentUsers.map((user, index) => (
+                <tr key={user.userID} className='border-b hover:bg-purple-50'>
+                  <td className='p-2 md:p-4'>{indexOfFirstUser + index + 1}</td>
+                  <td className='p-2 md:p-4'>{user.userName}</td>
+                  <td className='p-2 md:p-4'>{user.fullName}</td>
+                  <td className='p-2 md:p-4 hidden md:table-cell'>{user.email}</td>
+                  <td className='p-2 md:p-4 hidden md:table-cell'>{formatDate(user.dateOfBirth)}</td>
+                  <td className='p-2 md:p-4'>{user.role}</td>
+                  <td className='p-2 md:p-4 hidden md:table-cell'>{user.phone}</td>
+                  <td className='p-2 md:p-4 hidden md:table-cell'>{user.address}</td>
+                  <td className='p-2 md:p-4'>
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}
+                    >
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className='p-2 md:p-4'>
+                    {user.role !== 'Admin' && (
+                      <div className='flex flex-col md:flex-row gap-1 md:gap-2'>
+                        <button
+                          onClick={() => toggleActiveStatus(user.userID, user.isActive)}
+                          className={`text-xs md:text-sm p-1 md:p-2 rounded-lg transition-colors duration-300 ${user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                            } text-white`}
+                        >
+                          {user.isActive ? 'Ban' : 'Unban'}
+                        </button>
+
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className='text-xs md:text-sm p-1 md:p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-300'
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteUser(user.userID)}
+                          className='text-xs md:text-sm p-1 md:p-2 rounded-lg bg-red-700 hover:bg-red-800 text-white transition-colors duration-300'
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Phân trang */}
+        <div className="flex justify-center items-center mt-6 flex-wrap">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`mx-1 px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+          >
+            &laquo;
+          </button>
+
+          {[...Array(totalPages)].map((_, index) => {
+            // Hiển thị giới hạn số nút phân trang
+            const pageNum = index + 1;
+
+            // Chỉ hiển thị các nút gần trang hiện tại và nút đầu/cuối
+            const showPageButton =
+              pageNum === 1 ||
+              pageNum === totalPages ||
+              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+
+            if (pageNum === currentPage - 2 && currentPage > 3) {
+              return <span key={`ellipsis-prev`} className="mx-1">...</span>;
+            }
+
+            if (pageNum === currentPage + 2 && currentPage < totalPages - 2) {
+              return <span key={`ellipsis-next`} className="mx-1">...</span>;
+            }
+
+            if (showPageButton) {
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => paginate(pageNum)}
+                  className={`mx-1 px-3 py-1 rounded ${currentPage === pageNum
+                    ? 'bg-purple-700 text-white'
+                    : 'bg-purple-200 hover:bg-purple-300'}`}
+                >
+                  {pageNum}
+                </button>
+              );
+            }
+
+            return null;
+          })}
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`mx-1 px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+          >
+            &raquo;
+          </button>
+
+          <select
+            value={usersPerPage}
+            onChange={(e) => {
+              setUsersPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="ml-4 border border-gray-300 rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value={5}>5 / trang</option>
+            <option value={10}>10 / trang</option>
+            <option value={15}>15 / trang</option>
+            <option value={20}>20 / trang</option>
+          </select>
+        </div>
       </div>
 
       {/* Modal thêm/sửa người dùng */}
       {isModalOpen && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'>
-          <div className='bg-white rounded-lg p-8 w-full max-w-xl mx-4 my-6'>
-            <h2 className='text-2xl font-bold mb-4 text-center'>{editingUser ? 'Edit User' : 'Add New User'}</h2>
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4'>
+          <div className='bg-white rounded-lg p-4 md:p-8 w-full max-w-md md:max-w-xl mx-auto my-4 md:my-6 max-h-[90vh] overflow-y-auto'>
+            <h2 className='text-xl md:text-2xl font-bold mb-4 text-center'>{editingUser ? 'Edit User' : 'Add New User'}</h2>
 
             <form onSubmit={handleSubmit}>
               <div className='space-y-3'>
                 {/* Thông tin cơ bản - luôn hiển thị */}
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                   <div>
                     <label className='block text-gray-700 text-sm font-semibold mb-1'>Username</label>
                     <input
@@ -442,7 +548,7 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                   <div>
                     <label className='block text-gray-700 text-sm font-semibold mb-1'>Email</label>
                     <input
@@ -470,7 +576,7 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                   <div>
                     <label className='block text-gray-700 text-sm font-semibold mb-1'>Date of Birth</label>
                     <input
@@ -491,6 +597,7 @@ const AdminPortal = () => {
                       onChange={handleFormChange}
                       className='w-full border border-gray-300 rounded-md p-2 text-sm bg-white'
                       required
+                    // Khóa trường Role khi đang edit
                     >
                       <option value='Student'>Student</option>
                       <option value='Tutor'>Tutor</option>
@@ -500,7 +607,7 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                   <div>
                     <label className='block text-gray-700 text-sm font-semibold mb-1'>Phone</label>
                     <input
@@ -560,8 +667,8 @@ const AdminPortal = () => {
                 </div>
 
                 {/* Các trường riêng cho Student */}
-                {!editingUser && formData.role === 'Student' && (
-                  <div className='grid grid-cols-2 gap-3 pt-2 border-t border-gray-200'>
+                {formData.role === 'Student' && !editingUser && (
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-gray-200'>
                     <div>
                       <label className='block text-gray-700 text-sm font-semibold mb-1'>Grade</label>
                       <input
@@ -587,22 +694,19 @@ const AdminPortal = () => {
                     </div>
                   </div>
                 )}
-
                 {/* Các trường riêng cho Tutor */}
-                {!editingUser && formData.role === 'Tutor' && (
+                {formData.role === 'Tutor' && !editingUser && (
                   <div className='pt-2 border-t border-gray-200 space-y-3'>
-                    <div className='grid grid-cols-2 gap-3'>
-                      <div>
-                        <label className='block text-gray-700 text-sm font-semibold mb-1'>Workplace</label>
-                        <input
-                          type='text'
-                          name='workplace'
-                          value={formData.workplace}
-                          onChange={handleFormChange}
-                          className='w-full border border-gray-300 rounded-md p-2 text-sm'
-                          required
-                        />
-                      </div>
+                    <div>
+                      <label className='block text-gray-700 text-sm font-semibold mb-1'>Workplace</label>
+                      <input
+                        type='text'
+                        name='workplace'
+                        value={formData.workplace}
+                        onChange={handleFormChange}
+                        className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                        required
+                      />
                     </div>
 
                     <div>
@@ -612,55 +716,104 @@ const AdminPortal = () => {
                         value={formData.description}
                         onChange={handleFormChange}
                         className='w-full border border-gray-300 rounded-md p-2 text-sm'
-                        rows={2}
+                        rows='3'
                         required
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label className='block text-gray-700 text-sm font-semibold mb-1'>Degrees</label>
+                      <input
+                        type='file'
+                        accept='.pdf,.doc,.docx,image/*'
+                        ref={degreesRef}
+                        className='w-full border border-gray-300 rounded-md p-2 text-sm'
                       />
                     </div>
 
-                    <div className='grid grid-cols-2 gap-3'>
-                      <div>
-                        <label className='block text-gray-700 text-sm font-semibold mb-1'>Degree/Certificate</label>
-                        <input
-                          type='file'
-                          accept='.pdf,.doc,.docx,image/*'
-                          ref={degreesRef}
-                          className='w-full border border-gray-300 rounded-md p-2 text-sm'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-gray-700 text-sm font-semibold mb-1'>Identity Card</label>
-                        <input
-                          type='file'
-                          accept='.pdf,.doc,.docx,image/*'
-                          ref={identityCardRef}
-                          className='w-full border border-gray-300 rounded-md p-2 text-sm'
-                        />
-                      </div>
+                    <div>
+                      <label className='block text-gray-700 text-sm font-semibold mb-1'>Identity Card</label>
+                      <input
+                        type='file'
+                        accept='.pdf,.doc,.docx,image/*'
+                        ref={identityCardRef}
+                        className='w-full border border-gray-300 rounded-md p-2 text-sm'
+                      />
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className='flex justify-end gap-3 mt-6'>
+              <div className='flex justify-end space-x-3 mt-6'>
                 <button
                   type='button'
                   onClick={closeModal}
-                  className='px-4 py-2 text-sm bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors'
+                  className='bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-colors duration-300 text-sm'
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type='submit'
-                  className='px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors'
+                  className='bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors duration-300 text-sm'
                 >
-                  {editingUser ? 'Update' : 'Create'}
+                  {editingUser ? 'Cập nhật' : 'Lưu'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Mobile Menu Button - Hiển thị trong responsive view */}
+      <div className="fixed bottom-4 right-4 md:hidden z-40">
+        <button
+          onClick={openAddModal}
+          className="bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Loading Indicator - Hiển thị khi đang tải dữ liệu */}
+      {users.length === 0 && (
+        <div className="flex justify-center items-center mt-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          <p className="ml-3 text-purple-500">Đang tải dữ liệu...</p>
+        </div>
+      )}
+
+      {/* Empty State - Hiển thị khi không có người dùng nào */}
+      {allUsers.length > 0 && users.length === 0 && (
+        <div className="bg-white p-8 rounded-lg shadow text-center mt-10">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-16 h-16 text-gray-400 mx-auto mb-4">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-xl font-medium text-gray-700 mb-2">Không tìm thấy người dùng</h3>
+          <p className="text-gray-500 mb-4">Không có người dùng nào phù hợp với tiêu chí tìm kiếm</p>
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setSelectedRole('User');
+              filterUsers('', 'User');
+            }}
+            className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors"
+          >
+            Xóa bộ lọc
+          </button>
+        </div>
+      )}
+
+      {/* Back to Top Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-4 left-4 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors opacity-70 hover:opacity-100"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+        </svg>
+      </button>
     </div>
   )
 }
