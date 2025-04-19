@@ -74,7 +74,7 @@ function NavList() {
       <NavLink to='/my-classes'>
         <ListItem className='flex items-center text-lg gap-2 py-2 pr-4 font-extrabold'>
           <NavLink to='/my-classes' className='flex items-center gap-2'>
-            Manage Class
+            My classes
           </NavLink>
         </ListItem>
       </NavLink>

@@ -3,16 +3,12 @@ const Blog = require('../models/Blog');
 
 exports.getAll = async (req, res) => {
     try {
-        if (req.user.role === "Tutor") {
-            return res.json({ message: "Tutor" });
-        }
-        if (req.user.role === "Student") {
-            if (!req.user.userID) {
-                return res.status(400).json({ message: "User ID is required" });
-            }
-            const blogs = await Blog.findByStudentId(req.user.userID, req.body.class_id || null);
-            return res.json({ message: "List Blogs", data: blogs });
-        }
+
+        // lấy tất cả bài viết của học sinh
+        // nếu có class_id thì chỉ lấy bài viết của lớp đó
+        const blogs = await Blog.findByClassId(req.query.class_id || null);
+        return res.json({ message: "List Blogs", data: blogs });
+
     } catch (error) {
         console.error('Error in getAll:', error);
         return res.status(500).json({ message: "Internal server error", error: error.message });
@@ -30,12 +26,6 @@ exports.getOne = async (req, res) => {
     if (!blog) {
         return res.status(404).json({ message: "Không tìm thấy" });
     }
-
-    if (req.user.role === 'Student' && blog.student_id !== req.user.userID) {
-        return res.status(403).json({ message: "Không có quyền này" });
-    }
-
-
 
     res.json({ message: "Chi tiết bài viết", data: blog });
 };

@@ -17,6 +17,12 @@ const Blog = {
         return rows;
     },
 
+    findByClassId: async (classId) => {
+        const db = await connectDB();
+        const [rows] = await db.execute('SELECT * FROM Blogs WHERE class_id = ?', [classId]);
+        return rows;
+    },
+
     findById: async (id) => {
         const db = await connectDB();
         const [rows] = await db.execute('SELECT * FROM Blogs WHERE blog_id = ?', [id]);

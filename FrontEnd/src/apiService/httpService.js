@@ -35,7 +35,7 @@ export const makeGet = async (url, params = {}) => {
   try {
     const response = await axios.get(`${API_URL}/${url}`, {
       headers: getHeaders(),
-      params
+      params: params
     })
     return response.data
   } catch (error) {
