@@ -4,7 +4,7 @@ import { Button } from '@material-tailwind/react'
 import { ChatBubbleLeftIcon, NewspaperIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
 import MegaMenuWithHover from '../../components/MegaMenuWithHover.jsx'
-import { makeDelete, makeGet, makePost, makePostFormData, makePut } from '../../apiService/httpService.js'
+import { makeGet } from '../../apiService/httpService.js'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
@@ -34,32 +34,49 @@ const MyClass = () => {
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchClasses()
   }, [])
 
-  // Tạo breadcrumbs với đường dẫn đúng
+  // Hàm format ngày tháng năm
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    
+    // Giả sử dateStr có định dạng là "2025-04-13T06:33:04.000Z" hoặc tương tự
+    // Nếu dateStr là định dạng khác, bạn có thể cần điều chỉnh
+    try {
+      const date = new Date(dateStr);
+      
+      // Tạo chuỗi ngày/tháng/năm, ví dụ: 13/04/2025
+      return new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateStr; // Trả về chuỗi gốc nếu có lỗi
+    }
+  };
+
+  // Breadcrumbs
   const breadcrumbs = [
     { name: 'Home', path: '/' },
-    { name: 'My Classes', path: '#' } // Trang hiện tại
+    { name: 'My Classes', path: '#' }
   ];
 
   return (
     <div className='flex flex-col min-h-screen bg-gray-50'>
-      {/* Header */}
       <header className='bg-orange-400 text-white shadow-md fixed top-0 w-full z-10'>
         <MegaMenuWithHover />
       </header>
 
-      {/* Content */}
-      <div className='flex-1 flex flex-col pt-24 px-4 md:px-6 lg:px-8'>
-        {/* Breadcrumb - Thêm vào đây */}
-        <div className='mb-4 ml-1'>
+      <div className='flex-1 flex flex-col pt-20 px-4 md:px-6 lg:px-8'>
+        <div className='mb-4 ml-1 mt-4'>
           <BreadcrumbsWithIcon pathnames={breadcrumbs} />
         </div>
-        
+
         <div className='flex flex-col lg:flex-row gap-6 h-full'>
-          {/* Sidebar */}
           <aside className='lg:w-64 bg-blue-900 text-white p-6 rounded-lg shadow-md lg:sticky lg:top-32 self-start'>
             <h2 className='text-xl font-semibold mb-6'>My Classes</h2>
             <div className='max-h-[calc(100vh-180px)] overflow-y-auto'>
@@ -83,8 +100,7 @@ const MyClass = () => {
               </ul>
             </div>
           </aside>
-          
-          {/* Main Content */}
+
           <main className='flex-1 bg-white p-6 md:p-8 rounded-lg shadow-md min-h-[calc(100vh-180px)]'>
             {loading ? (
               <div className='flex justify-center items-center h-full'>
@@ -101,34 +117,31 @@ const MyClass = () => {
               </div>
             ) : (
               <div className='space-y-6'>
-                {/* Class Information */}
-                <div className='space-y-4'>
-                  <h1 className='text-3xl font-bold text-gray-900'>{selectedClass.className}</h1>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
-                    <div className='bg-gray-50 p-4 rounded-lg'>
-                      <p className='text-gray-600'>
-                        Subject: <span className='font-medium text-gray-800'>{selectedClass.subject}</span>
-                      </p>
-                    </div>
-                    <div className='bg-gray-50 p-4 rounded-lg'>
-                      <p className='text-gray-600'>
-                        Tutor: <span className='font-medium text-gray-800'>{selectedClass.tutorFullName}</span>
-                      </p>
-                    </div>
-                    <div className='bg-gray-50 p-4 rounded-lg'>
-                      <p className='text-gray-600'>
-                        Enrolled Date: <span className='font-medium text-gray-800'>{selectedClass.enrolledAt}</span>
-                      </p>
-                    </div>
-                    <div className='bg-gray-50 p-4 rounded-lg'>
-                      <p className='text-gray-600'>
-                        Status: <span className='font-medium text-green-600'>Active</span>
-                      </p>
-                    </div>
+                <h1 className='text-3xl font-bold text-gray-900'>{selectedClass.className}</h1>
+                
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-4'>
+                  <div className='bg-gray-50 p-4 rounded-lg'>
+                    <p className='text-gray-600'>
+                      Subject: <span className='font-medium text-gray-800'>{selectedClass.subject}</span>
+                    </p>
+                  </div>
+                  <div className='bg-gray-50 p-4 rounded-lg'>
+                    <p className='text-gray-600'>
+                      Tutor: <span className='font-medium text-gray-800'>{selectedClass.tutorFullName}</span>
+                    </p>
+                  </div>
+                  <div className='bg-gray-50 p-4 rounded-lg'>
+                    <p className='text-gray-600'>
+                      Enrolled Date: <span className='font-medium text-gray-800'>{formatDate(selectedClass.enrolledAt)}</span>
+                    </p>
+                  </div>
+                  <div className='bg-gray-50 p-4 rounded-lg'>
+                    <p className='text-gray-600'>
+                      Status: <span className='font-medium text-green-600'>Active</span>
+                    </p>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col sm:flex-row gap-4 mt-8'>
                   <Button
                     color='blue'
@@ -150,7 +163,6 @@ const MyClass = () => {
                     variant='outlined'
                     color='blue'
                     className='flex items-center justify-center space-x-2 border-gray-300 text-gray-700 hover:bg-gray-50'
-                    onClick={() => alert('More features coming soon!')}
                   >
                     <EllipsisHorizontalIcon className='h-5 w-5' />
                     <span>More</span>
