@@ -78,7 +78,7 @@ const AdminPortalClass = () => {
       })
       .catch((error) => {
         console.error('Error fetching classes:', error)
-        toast.error('Không thể tải danh sách lớp học')
+        toast.error('Could not load class list')
       })
   }
 
@@ -92,8 +92,8 @@ const AdminPortalClass = () => {
         setTutors(tutorsList)
       })
       .catch((error) => {
-        console.error('Lỗi khi lấy danh sách gia sư:', error)
-        toast.error('Không thể tải danh sách gia sư')
+        console.error('Error fetching tutors list:', error)
+        toast.error('Could not load tutor list')
       })
   }
 
@@ -182,7 +182,7 @@ const AdminPortalClass = () => {
       if (editingClass) {
         // Cập nhật lớp học
         await makePostFormData(`tutors/updateClasses/${editingClass.classID}`, formData)
-        toast.success('Cập nhật lớp học thành công')
+        toast.success('Class updated successfully')
       } else {
         // Tạo FormData để xử lý file uploads
         const formDataToSend = new FormData()
@@ -199,27 +199,27 @@ const AdminPortalClass = () => {
 
         // Gọi API để tạo lớp học mới
         await makePostFormData('tutors/createClasses', formDataToSend)
-        toast.success('Tạo lớp học mới thành công')
+        toast.success('New class created successfully')
       }
 
       closeModal()
       fetchClasses() // Refresh danh sách lớp học
     } catch (error) {
-      console.error('Lỗi khi lưu dữ liệu:', error)
-      toast.error(error.message || 'Lỗi khi lưu dữ liệu')
+      console.error('Error saving data:', error)
+      toast.error(error.message || 'Error saving data')
     }
   }
 
   const deleteClass = (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa lớp học này?')) {
+    if (window.confirm('Are you sure you want to delete this class?')) {
       makeDelete(`admin/deleteClass/${id}`)
         .then((response) => {
-          toast.success('Xóa lớp học thành công')
-          fetchClasses() // Refresh danh sách
+          toast.success('Class deleted successfully')
+          fetchClasses() // Refresh list
         })
         .catch((error) => {
-          console.error('Lỗi khi xóa lớp học:', error)
-          toast.error('Không thể xóa lớp học')
+          console.error('Error deleting class:', error)
+          toast.error('Could not delete class')
         })
     }
   }
@@ -227,10 +227,10 @@ const AdminPortalClass = () => {
   const videoUrlField = (link) =>
     link && link.length > 0 ? (
       <a href={link} target='_blank' rel="noopener noreferrer" className="text-blue-500 hover:underline">
-        Xem video
+        View video
       </a>
     ) : (
-      <span className="text-gray-400">Không có video</span>
+      <span className="text-gray-400">No video</span>
     )
 
   // Tính toán số trang
@@ -298,7 +298,7 @@ const AdminPortalClass = () => {
                   <td className='p-2 md:p-4'>{videoUrlField(classItem.videoLink)}</td>
                   <td className='p-2 md:p-4'>{classItem.tutorFullName}</td>
                   <td className='p-2 md:p-4 hidden md:table-cell'>{classItem.subject}</td>
-                  <td className='p-2 md:p-4 hidden md:table-cell'>{classItem.length} phút</td>
+                  <td className='p-2 md:p-4 hidden md:table-cell'>{classItem.length} minutes</td>
                   <td className='p-2 md:p-4 hidden md:table-cell'>{classItem.type}</td>
                   <td className='p-2 md:p-4'>{formatVND(classItem.price)}</td>
                   <td className='p-2 md:p-4'>
@@ -390,10 +390,10 @@ const AdminPortalClass = () => {
             }}
             className="ml-4 border border-gray-300 rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value={5}>5 / trang</option>
-            <option value={10}>10 / trang</option>
-            <option value={15}>15 / trang</option>
-            <option value={20}>20 / trang</option>
+            <option value={5}>5 per page</option>
+            <option value={10}>10 per page</option>
+            <option value={15}>15 per page</option>
+            <option value={20}>20 per page</option>
           </select>
         </div>
       </div>
@@ -592,7 +592,7 @@ const AdminPortalClass = () => {
       {classes.length === 0 && allClasses.length === 0 && (
         <div className="flex justify-center items-center mt-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-          <p className="ml-3 text-purple-500">Đang tải dữ liệu...</p>
+          <p className="ml-3 text-purple-500">Loading data...</p>
         </div>
       )}
 
@@ -602,8 +602,8 @@ const AdminPortalClass = () => {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-16 h-16 text-gray-400 mx-auto mb-4">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h3 className="text-xl font-medium text-gray-700 mb-2">Không tìm thấy lớp học</h3>
-          <p className="text-gray-500 mb-4">Không có lớp học nào phù hợp với tiêu chí tìm kiếm</p>
+          <h3 className="text-xl font-medium text-gray-700 mb-2">No classes found</h3>
+          <p className="text-gray-500 mb-4">No classes match your search criteria</p>
           <button
             onClick={() => {
               setSearchTerm('');
@@ -611,7 +611,7 @@ const AdminPortalClass = () => {
             }}
             className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors"
           >
-            Xóa bộ lọc
+            Clear filters
           </button>
         </div>
       )}

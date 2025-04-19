@@ -1,27 +1,44 @@
 import React from 'react'
-import { Breadcrumbs } from '@material-tailwind/react'
 import { Link } from 'react-router-dom'
 
 const BreadcrumbsWithIcon = ({ pathnames }) => {
   return (
-    <Breadcrumbs className=' bg-orange-500 mt-5'>
-      <Link to='/' className='opacity-60'>
-        <svg xmlns='http://www.w3.org/2000/svg' className='h-4 w-4' viewBox='0 0 20 20' fill='currentColor'>
-          <path d='M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z' />
-        </svg>
-      </Link>
-      {pathnames.slice(1).map((value, index) => {
-        const to = `/${pathnames.slice(1, index + 2).join('/')}`
-
-        return index === pathnames.length - 2 ? (
-          <span key={to}>{value}</span>
-        ) : (
-          <Link key={to} to={to} className='opacity-60'>
-            {value}
-          </Link>
-        )
-      })}
-    </Breadcrumbs>
+    <nav className="flex" aria-label="Breadcrumb">
+      <ol className="inline-flex items-center space-x-1 md:space-x-3">
+        {pathnames.map((item, index) => {
+          // Xác định xem đây là object hay string
+          const isObject = typeof item === 'object';
+          const name = isObject ? item.name : item;
+          const path = isObject ? item.path : '#'; // Nếu là string, mặc định là #
+          
+          // Nếu là mục cuối cùng, không cho phép click
+          const isLast = index === pathnames.length - 1;
+          
+          return (
+            <li key={index} className="inline-flex items-center">
+              {index > 0 && (
+                <svg className="w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 9 4-4-4-4"/>
+                </svg>
+              )}
+              
+              {isLast ? (
+                <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">
+                  {name}
+                </span>
+              ) : (
+                <Link
+                  to={path}
+                  className="ml-1 text-sm font-medium text-blue-500 hover:text-blue-600 md:ml-2 dark:text-blue-400 dark:hover:text-white"
+                >
+                  {name}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   )
 }
 
