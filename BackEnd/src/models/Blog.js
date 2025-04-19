@@ -19,7 +19,13 @@ const Blog = {
 
     findByClassId: async (classId) => {
         const db = await connectDB();
-        const [rows] = await db.execute('SELECT * FROM Blogs WHERE class_id = ?', [classId]);
+        const [rows] = await db.execute(`
+            SELECT b.*, u.fullName, u.avatar
+            FROM Blogs b
+            JOIN Users u ON b.student_id = u.userID
+            WHERE b.class_id = ?
+        `, [classId]);
+
         return rows;
     },
 
@@ -33,9 +39,9 @@ const Blog = {
         const db = await connectDB();
         const now = new Date();
         const [result] = await db.execute(
-            `INSERT INTO Blogs (student_id, class_id, title, content, status)
-       VALUES (?, ?, ?, ?, ?)`,
-            [blog.student_id, blog.class_id, blog.title, blog.content, blog.status]
+            `INSERT INTO Blogs (student_id, class_id, title, content, description, status)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+            [blog.student_id, blog.class_id, blog.title, blog.content, blog.description, blog.status]
         );
         return result.insertId;
     },
@@ -51,7 +57,16 @@ const Blog = {
     remove: async (id) => {
         const db = await connectDB();
         await db.execute('DELETE FROM Blogs WHERE blog_id = ?', [id]);
-    }
+    },
+
+    addComment: async (params) => {
+        const db = await connectDB();
+        const [result] = await db.execute(
+            `INSERT INTO Blog_Comments (blog_id, user_id, content) VALUES (?, ?, ?)`,
+            [params.blog_id, params.user_id, params.content]
+        );
+        return result.insertId;
+    },
 };
 
 module.exports = Blog;
