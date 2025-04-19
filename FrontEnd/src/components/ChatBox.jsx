@@ -144,14 +144,14 @@ const ChatBox = forwardRef((props, ref) => {
         }
         const decodedToken = jwtDecode(token)
         const responseClass = await makeGet('admin/classList')
-        let userClasses = responseClass.data.data
-        let filteredUsers = response.data.data
+        let userClasses = responseClass.data
+        let filteredUsers = response.data
 
         if (user.role === 'Tutor') {
           filterRole = 'Student'
           id = decodedToken.user.tutorID
           const requestResponse = await makeGet(`tutors/viewRequest/${id}`)
-          const requests = requestResponse.data.data
+          const requests = requestResponse.data
           const studentIDsInClasses = userClasses
             .filter((cls) => cls.tutorID == id)
             .map((cls) => cls.studentID)

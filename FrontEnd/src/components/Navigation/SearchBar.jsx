@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Input, Button } from '@material-tailwind/react'
-import axios from 'axios'
+import { makeGet } from '../../apiService/httpService'
 
 const SearchBar = () => {
-  const token = localStorage.getItem("token") // hoặc nơi bạn lưu token
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
 
@@ -22,15 +16,16 @@ const SearchBar = () => {
 
   const fetchSuggestions = async (searchQuery) => {
     try {
-      const tutorResponse = await axios.get(`http://localhost:5000/api/students/searchTutorByTutorName/${searchQuery}`,config)
+      const tutorResponse = await makeGet(`public/students/searchTutorByTutorName/${searchQuery}`)
       // const classResponse = await axios.get(`http://localhost:5000/api/students/searchClassByTutorName/${searchQuery}`)
-      const classByName = await axios.get(`http://localhost:5000/api/students/searchClassByClassName/${searchQuery}`,config)
-      const classBySubject = await axios.get(`http://localhost:5000/api/students/searchClassBySubject/${searchQuery}`,config)
+      const classByName = await makeGet(`public/students/searchClassByClassName/${searchQuery}`)
+      const classBySubject = await makeGet(`public/students/searchClassBySubject/${searchQuery}`)
 
-      const tutorSuggestions = tutorResponse.data.data
-      const classSuggestions = [...classByName.data.data, ...classBySubject.data.classroom].filter(
-        (classItem) => classItem.isActive == 1
+      const tutorSuggestions = tutorResponse.data
+      const classSuggestions = [...classByName.data, ...(classBySubject?.data?.classroom || [])].filter(
+        (classItem) => classItem.isActive === 1
       ) //...classResponse.data.data
+      console.log(classSuggestions)
 
       setSuggestions([...classSuggestions, ...tutorSuggestions])
     } catch (error) {
@@ -43,7 +38,7 @@ const SearchBar = () => {
   }
 
   return (
-    <div className='relative flex flex-col w-full gap-2 md:w-max sm:w-auto mx-auto'>
+    <div className='relative flex flex-col w-full gap-2 md:w-max sm:w-auto mx-auto overflow-visible'>
       <div className='relative flex w-full gap-2'>
         <Input
           type='search'
@@ -68,7 +63,7 @@ const SearchBar = () => {
         </Button>
       </div>
       {suggestions.length > 0 && (
-        <ul className='absolute z-10 w-full mt-12 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto'>
+        <ul className='absolute z-100 w-full mt-12 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto'>
           {suggestions.map((suggestion, index) => (
             <li key={index} className='px-4 py-2 cursor-pointer hover:bg-gray-100 text-black'>
               {suggestion.className ? (

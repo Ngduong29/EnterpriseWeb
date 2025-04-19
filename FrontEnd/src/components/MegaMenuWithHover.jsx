@@ -11,20 +11,6 @@ export function MegaMenuWithHover() {
   const [openNav, setOpenNav] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true') // Retrieve login status from localStorage
 
-  // Function to handle login
-  const handleLogin = () => {
-    setIsLoggedIn(true) // Update login state to true
-    localStorage.setItem('isLoggedIn', 'true') // Store login status in localStorage
-  }
-
-  // Function to handle logout
-  const handleLogout = () => {
-    setIsLoggedIn(false) // Update login state to false
-    localStorage.removeItem('token')
-    localStorage.removeItem('isLoggedIn') // Remove login status from localStorage
-    window.location.reload()
-  }
-
   useEffect(() => {
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenNav(false))
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenSearch(false))
@@ -61,7 +47,7 @@ export function MegaMenuWithHover() {
           </IconButton>
         </div>
       </div>
-      <Collapse open={openSearch}>
+      <Collapse open={openSearch} className={openSearch ? 'overflow-visible' : ''}>
         <div className='text-center px-2 py-3'>
           <SearchBar />
         </div>

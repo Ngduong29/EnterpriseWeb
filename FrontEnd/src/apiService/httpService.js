@@ -17,9 +17,14 @@ const getHeaders = () => {
 const handleError = (error) => {
   console.error('API Error:', error)
   if (error.response) {
-    throw new Error(error.response.data.message || 'Something went wrong')
+    if (error.response.status === 401) {
+      localStorage.removeItem('token')
+      window.location.replace('/unauthorized')
+    } else {
+      throw new Error(error.response.data.message || 'Something went wrong')
+    }
   } else if (error.request) {
-    throw new Error('No response from server')
+    throw new Error('Error response from server')
   } else {
     throw new Error('Error setting up request')
   }
@@ -37,7 +42,9 @@ export const makeGet = async (url, params = {}) => {
       headers: getHeaders(),
       params: params
     })
-    return response.data
+    if (response && response.data) {
+      return response.data
+    } else throw new Error('Can not fetch data')
   } catch (error) {
     handleError(error)
   }
@@ -58,36 +65,36 @@ export const makePost = async (url, data = {}) => {
 // POST FormData
 export const makePostFormData = async (url, formData) => {
   try {
-    const token = getToken();
+    const token = getToken()
     const response = await axios.post(`${API_URL}/${url}`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
         // KHÔNG đặt Content-Type để browser tự xử lý FormData
       }
-    });
-    return response.data;
+    })
+    return response.data
   } catch (error) {
-    handleError(error);
+    handleError(error)
   }
-};
+}
 
 // PUT FormData
 export const makePutFormData = async (url, formData) => {
   try {
-    const token = getToken();
+    const token = getToken()
     const response = await axios.put(`${API_URL}/${url}`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
         // KHÔNG đặt Content-Type để browser tự xử lý FormData
       }
-    });
-    return response.data;
+    })
+    return response.data
   } catch (error) {
-    handleError(error);
+    handleError(error)
   }
-};
+}
 
 // PUT
 export const makePut = async (url, data = {}) => {

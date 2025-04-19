@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@material-tailwind/react'
 import { ChatBubbleLeftIcon, NewspaperIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
@@ -41,31 +41,31 @@ const MyClass = () => {
 
   // Hàm format ngày tháng năm
   const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    
+    if (!dateStr) return ''
+
     try {
-      const date = new Date(dateStr);
-      
+      const date = new Date(dateStr)
+
       return new Intl.DateTimeFormat('en-GB', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
-      }).format(date);
+      }).format(date)
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateStr;
+      console.error('Error formatting date:', error)
+      return dateStr
     }
-  };
+  }
 
   // Breadcrumbs
   const breadcrumbs = [
     { name: 'Home', path: '/' },
     { name: 'My Classes', path: '#' }
-  ];
+  ]
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+    setSidebarOpen(!sidebarOpen)
+  }
 
   return (
     <div className='flex flex-col min-h-screen bg-gray-50'>
@@ -77,14 +77,20 @@ const MyClass = () => {
         {/* Breadcrumb section - Responsive */}
         <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 border-b border-gray-200 mb-4 sm:mb-6 gap-2'>
           <BreadcrumbsWithIcon pathnames={breadcrumbs} />
-          
+
           {/* Toggle sidebar button on mobile */}
-          <button 
+          <button
             className='lg:hidden px-3 py-1 bg-blue-900 text-white rounded-md flex items-center'
             onClick={toggleSidebar}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5 mr-1">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              className='w-5 h-5 mr-1'
+            >
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16m-7 6h7' />
             </svg>
             {sidebarOpen ? 'Hide Classes' : 'Show Classes'}
           </button>
@@ -92,7 +98,11 @@ const MyClass = () => {
 
         <div className='flex flex-col lg:flex-row gap-4 sm:gap-6 h-full'>
           {/* Sidebar - Responsive */}
-          <aside className={`${sidebarOpen ? 'block' : 'hidden'} lg:block lg:w-64 bg-blue-900 text-white p-4 sm:p-6 rounded-lg shadow-md lg:sticky lg:top-32 self-start transition-all duration-300 z-10`}>
+          <aside
+            className={`${
+              sidebarOpen ? 'block' : 'hidden'
+            } lg:block lg:w-64 bg-blue-900 text-white p-4 sm:p-6 rounded-lg shadow-md lg:sticky lg:top-32 self-start transition-all duration-300 z-10`}
+          >
             <h2 className='text-xl font-semibold mb-4 sm:mb-6'>My Classes</h2>
             <div className='max-h-[60vh] lg:max-h-[calc(100vh-180px)] overflow-y-auto'>
               <ul className='space-y-2'>
@@ -103,8 +113,8 @@ const MyClass = () => {
                       selectedClass.classID === cls.classID ? 'bg-blue-700' : 'hover:bg-blue-700'
                     }`}
                     onClick={() => {
-                      setSelectedClass(cls);
-                      setSidebarOpen(false); // Close sidebar on mobile after selection
+                      setSelectedClass(cls)
+                      setSidebarOpen(false) // Close sidebar on mobile after selection
                     }}
                     role='button'
                     tabIndex={0}
@@ -127,8 +137,19 @@ const MyClass = () => {
               </div>
             ) : classes.length === 0 ? (
               <div className='flex flex-col items-center justify-center h-full text-gray-500 p-4'>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3 sm:mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 19 7.5 19s3.332-.477 4.5-1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 19 16.5 19c-1.746 0-3.332-.477-4.5-1.253" />
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3 sm:mb-4'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 19 7.5 19s3.332-.477 4.5-1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 19 16.5 19c-1.746 0-3.332-.477-4.5-1.253'
+                  />
                 </svg>
                 <p className='text-lg sm:text-xl font-medium text-center'>No classes found</p>
                 <p className='mt-2 text-gray-500 text-center'>You haven't enrolled in any classes yet.</p>
@@ -136,7 +157,7 @@ const MyClass = () => {
             ) : (
               <div className='space-y-4 sm:space-y-6'>
                 <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>{selectedClass.className}</h1>
-                
+
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4'>
                   <div className='bg-gray-50 p-3 sm:p-4 rounded-lg'>
                     <p className='text-gray-600 text-sm sm:text-base'>
@@ -150,7 +171,8 @@ const MyClass = () => {
                   </div>
                   <div className='bg-gray-50 p-3 sm:p-4 rounded-lg'>
                     <p className='text-gray-600 text-sm sm:text-base'>
-                      Enrolled Date: <span className='font-medium text-gray-800'>{formatDate(selectedClass.enrolledAt)}</span>
+                      Enrolled Date:{' '}
+                      <span className='font-medium text-gray-800'>{formatDate(selectedClass.enrolledAt)}</span>
                     </p>
                   </div>
                   <div className='bg-gray-50 p-3 sm:p-4 rounded-lg'>
@@ -172,7 +194,10 @@ const MyClass = () => {
                   </Button>
 
                   <Link to={`/my-classes/${selectedClass.classID}/blogs`}>
-                    <Button color='blue' className='flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'>
+                    <Button
+                      color='blue'
+                      className='flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
+                    >
                       <NewspaperIcon className='h-4 w-4 sm:h-5 sm:w-5' />
                       <span>Go to Blogs</span>
                     </Button>

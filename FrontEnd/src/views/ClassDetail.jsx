@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
 import { Button, Card, CardBody, Typography } from '@material-tailwind/react'
@@ -15,6 +15,8 @@ import ChatBox from '../components/ChatBox.jsx'
 import Loading from '../components/Loading.jsx'
 import { makeGet, makePost } from '../apiService/httpService.js'
 import altImageThumbnail from '../assets/hero.png'
+import { formatVND } from '../utils/format.js'
+import AuthContext from '../contexts/JWTAuthContext'
 
 const ClassDetail = () => {
   const { id } = useParams()
@@ -27,21 +29,31 @@ const ClassDetail = () => {
   const [enrollError, setEnrollError] = useState('')
   const [rating, setRating] = useState('0')
   const [isReportHovered, setIsReportHovered] = useState(false)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
+  const { user } = useContext(AuthContext)
   const chatBoxRef = useRef()
   useEffect(() => {
     if (id) {
+      fetchSearchData()
+    }
+  }, [id])
+  const fetchSearchData = async () => {
+    setLoading(true)
+    try {
       fetchClass()
       checkEnrollmentStatus()
       fetchFeedbacks()
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false)
     }
-  }, [id])
-
+  }
   const fetchClass = async () => {
     try {
       const response = await makeGet(`users/getClass/${id}`)
-      const classDetails = response.data // Assuming API response contains all required fields
+      const classDetails = response?.data // Assuming API response contains all required fields
       setClassData(classDetails)
     } catch (error) {
       console.log(error)
@@ -51,7 +63,7 @@ const ClassDetail = () => {
   const fetchFeedbacks = async () => {
     try {
       const response = await makeGet(`students/getFeedbackByClass/${id}`)
-      setFeedbacks(response.data)
+      setFeedbacks(response?.data || [])
     } catch (error) {
       console.error('Error fetching feedbacks:', error)
     }
@@ -59,17 +71,10 @@ const ClassDetail = () => {
 
   const checkEnrollmentStatus = async () => {
     try {
-      const response = await makeGet(`students/checkEnroll/${id}`)
-      const token = localStorage.getItem('token')
-      if (!token) {
-        console.log('User is not logged in')
-        return
-      }
-      const decodedToken = jwtDecode(token)
-      if (decodedToken.user.role == 'Student') {
-        const studentID = decodedToken.user.studentID
-        if (studentID == response.data.studentID) {
-          setIsEnrolled(response.data.status)
+      if (user && user.role === 'Student') {
+        const response = await makeGet(`students/checkEnroll/${id}`)
+        if (response && (response.status === 'true' || response.status === true)) {
+          setIsEnrolled(true)
         } else {
           setIsEnrolled(false)
         }
@@ -193,185 +198,189 @@ const ClassDetail = () => {
     return stars
   }
 
-  if (!id) {
+  if (!id || loading) {
     return <Loading />
   }
 
   return (
-    <div className='min-h-screen bg-gray-100 p-4'>
+    <div className='min-h-screen bg-gray-100 p-4 pt-12'>
       <header>
         <MegaMenuWithHover />
       </header>
-      <div className='container mx-auto pl-4 flex flex-col md:flex-row gap-8'>
-        <div className='w-full md:w-3/4 mb-4 flex flex-col pt-16'>
-          <BreadcrumbsWithIcon pathnames={['Home', 'ClassList', `Class ${classData.classID ?? ''}`]} />
-        </div>
-      </div>
-
-      <div className='container mx-auto p-4 flex flex-col md:flex-row gap-8'>
-        <div className='w-full md:w-3/4 mb-4 flex flex-col gap-4'>
-          <Card className='shadow-lg w-full relative'>
-            <div
-              className='absolute top-4 right-4 cursor-pointer hover:text-red-500'
-              onMouseEnter={() => setIsReportHovered(true)}
-              onMouseLeave={() => setIsReportHovered(false)}
-            >
-              <FontAwesomeIcon icon={faFlag} className='h-6 w-6 text-black-500' onClick={handleReportClick} />
-              {isReportHovered && (
-                <span className='absolute right-0 top-full mt-2 w-12 bg-gray-700 text-white text-center text-xs rounded-md py-1'>
-                  Report
-                </span>
-              )}
+      {classData && (
+        <>
+          <div className='container mx-auto pl-4 flex flex-col md:flex-row gap-8'>
+            <div className='w-full md:w-3/4 mb-4 flex flex-col pt-16'>
+              <BreadcrumbsWithIcon pathnames={['Home', 'ClassList', `${classData?.className ?? ''}`]} />
             </div>
-            <CardBody className='flex flex-col md:flex-row items-start md:items-center gap-5 p-6'>
-              <div className='w-full md:w-1/2'>
+          </div>
+
+          <div className='container mx-auto p-4 flex flex-col md:flex-row gap-8'>
+            <div className='w-full md:w-4/5 mb-4 flex flex-col gap-4'>
+              <Card className='shadow-lg w-full relative'>
                 <div
-                  className={`relative ${getYoutubeThumbnail(classData.videoLink) ? 'cursor-pointer' : ''}`}
-                  onClick={() => {
-                    if (!!getYoutubeThumbnail(classData.videoLink)) {
-                      setShowVideo(true)
-                    }
-                  }}
+                  className='absolute top-4 right-4 cursor-pointer hover:text-red-500'
+                  onMouseEnter={() => setIsReportHovered(true)}
+                  onMouseLeave={() => setIsReportHovered(false)}
                 >
-                  <img
-                    src={getYoutubeThumbnail(classData.videoLink) || altImageThumbnail}
-                    alt='Video Thumbnail'
-                    className='w-full h-auto rounded-lg'
-                  />
-                  <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
-                    <FontAwesomeIcon
-                      icon={faPlay}
-                      className='h-16 w-16 text-white opacity-75 cursor-pointer hover:opacity-100'
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className='w-full md:w-1/2'>
-                <Typography variant='h4' className='mb-4'>
-                  {classData.className}
-                </Typography>
-                <Typography tag='h3' className='mb-4' style={{ wordWrap: 'break-word' }}>
-                  {classData.description}
-                </Typography>
-                <Typography tag='h3' className='mb-2 blue'>
-                  <Link to={`/tutor-profile/${classData.userID}`} className='block'>
-                    <strong>Tutor:</strong>{' '}
-                    <span style={{ fontWeight: 'bold', color: 'black' }}> {classData.tutorFullName} </span>
-                  </Link>
-                </Typography>
-                <Typography tag='h3' className='mb-2'>
-                  <strong>Subject:</strong> {classData.subject}
-                </Typography>
-                <Typography tag='h3' className='mb-2'>
-                  <strong>Rating of tutor:</strong> {renderStars(classData.rating)}
-                </Typography>
-                <Typography tag='h3' className='mb-2'>
-                  <strong>Last for:</strong> {classData.length}
-                </Typography>
-                <Typography tag='h3' className='mb-2'>
-                  <strong>Available:</strong> {classData.available}
-                </Typography>
-                <Typography tag='h3' className='mb-2'>
-                  <strong>Type:</strong> {classData.type}
-                </Typography>
-                <Typography tag='h3' className='mb-2'>
-                  <strong>Price per hour:</strong> {classData.price} VND
-                </Typography>
-                <div className='flex gap-4'>
-                  <Button className='w-50' onClick={handleEnrollNow} disabled={isEnrolled || showFeedbackForm}>
-                    {isEnrolled ? 'Enrolled' : 'Enroll now'}
-                  </Button>
-                  {isEnrolled && (
-                    <Button className='w-50' onClick={showFeedbackForm ? handleCloseFeedbackForm : handleGiveFeedback}>
-                      {showFeedbackForm ? 'Close' : 'Give feedback'}
-                    </Button>
+                  <FontAwesomeIcon icon={faFlag} className='h-6 w-6 text-black-500' onClick={handleReportClick} />
+                  {isReportHovered && (
+                    <span className='absolute right-0 top-full mt-2 w-12 bg-gray-700 text-white text-center text-xs rounded-md py-1'>
+                      Report
+                    </span>
                   )}
                 </div>
-                {enrollError && (
-                  <Typography tag='h3' className='text-red-600 mt-2'>
-                    {enrollError}
-                  </Typography>
-                )}
-              </div>
-            </CardBody>
-          </Card>
-
-          {showFeedbackForm && (
-            <Card className='shadow-lg w-full mt-4'>
-              <CardBody>
-                <textarea
-                  className='border border-gray-300 rounded-md p-2 w-full mb-2'
-                  placeholder='Write your feedback...'
-                  value={feedbackMessage}
-                  onChange={(e) => setFeedbackMessage(e.target.value)}
-                />
-                Rating: <StarRating initialRating={rating} onRate={handleRatingChange} />
-                <Button onClick={handleSaveFeedback} className='ml-2'>
-                  Save
-                </Button>
-              </CardBody>
-            </Card>
-          )}
-
-          <Card className='shadow-lg w-full mt-4'>
-            <CardBody>
-              <Typography variant='h3' className='mb-2'>
-                All reviews
-              </Typography>
-              {feedbacks.map((feedback, index) => (
-                <Card key={index} className='p-3 mb-3'>
-                  <div className='flex items-center mb-2'>
-                    <CircularImg
-                      avatar={
-                        feedback.studentAvatar ||
-                        'https://cdn.iconscout.com/icon/free/png-256/free-incognito-6-902117.png?f=webp&w=256'
-                      }
-                    />
-                    <div className='ml-2'>
-                      <Typography variant='paragraph'>
-                        <span style={{ fontWeight: 'bold' }}>{feedback.studentName}</span>
-                      </Typography>
-                      <Typography tag='h3' className='text-gray-500'>
-                        {new Date(feedback.date).toLocaleDateString()}
-                      </Typography>
-                      <Typography tag='h3' className='text-gray-500'>
-                        {renderStars(feedback.rating)} {/* Render stars for feedback rating */}
-                      </Typography>
-                      <Typography variant='paragraph'>{feedback.message}</Typography>
+                <CardBody className='flex flex-col lg:flex-row sm:flex-col items-start md:items-center gap-5 p-6'>
+                  <div className='w-full md:w-full mt-4 lg:mt-0 lg:w-1/2'>
+                    <div
+                      className={`relative ${getYoutubeThumbnail(classData.videoLink) ? 'cursor-pointer' : ''}`}
+                      onClick={() => {
+                        if (!!getYoutubeThumbnail(classData.videoLink)) {
+                          setShowVideo(true)
+                        }
+                      }}
+                    >
+                      <img
+                        src={getYoutubeThumbnail(classData.videoLink) || altImageThumbnail}
+                        alt='Video Thumbnail'
+                        className='w-full h-auto rounded-lg'
+                      />
+                      <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'>
+                        <FontAwesomeIcon
+                          icon={faPlay}
+                          className='h-16 w-16 text-white opacity-75 cursor-pointer hover:opacity-100'
+                        />
+                      </div>
                     </div>
                   </div>
-                  {/* <Typography variant='paragraph'>{feedback.message}</Typography> */}
-                </Card>
-              ))}
-            </CardBody>
-          </Card>
-        </div>
-      </div>
+                  <div className='w-full md:w-full lg:w-1/2'>
+                    <Typography variant='h4' className='mb-4'>
+                      {classData.className}
+                    </Typography>
+                    <Typography tag='h3' className='mb-4' style={{ wordWrap: 'break-word' }}>
+                      {classData.description}
+                    </Typography>
+                    <Typography tag='h3' className='mb-2 blue'>
+                      <Link to={`/tutor-profile/${classData.userID}`} className='block'>
+                        <strong>Tutor:</strong>{' '}
+                        <span style={{ fontWeight: 'bold', color: 'black' }}> {classData.tutorFullName} </span>
+                      </Link>
+                    </Typography>
+                    <Typography tag='h3' className='mb-2'>
+                      <strong>Subject:</strong> {classData.subject}
+                    </Typography>
+                    <Typography tag='h3' className='mb-2'>
+                      <strong>Rating of tutor:</strong> {renderStars(classData.rating)}
+                    </Typography>
+                    <Typography tag='h3' className='mb-2'>
+                      <strong>Last for:</strong> {classData.length}
+                    </Typography>
+                    <Typography tag='h3' className='mb-2'>
+                      <strong>Available:</strong> {classData.available}
+                    </Typography>
+                    <Typography tag='h3' className='mb-2'>
+                      <strong>Price per hour:</strong> {formatVND(classData.price)} VND
+                    </Typography>
+                    <div className='flex gap-4'>
+                      <Button className='w-50' onClick={handleEnrollNow} disabled={isEnrolled || showFeedbackForm}>
+                        {isEnrolled ? 'Enrolled' : 'Enroll now'}
+                      </Button>
+                      {isEnrolled && (
+                        <Button
+                          className='w-50'
+                          onClick={showFeedbackForm ? handleCloseFeedbackForm : handleGiveFeedback}
+                        >
+                          {showFeedbackForm ? 'Close' : 'Give feedback'}
+                        </Button>
+                      )}
+                    </div>
+                    {enrollError && (
+                      <Typography tag='h3' className='text-red-600 mt-2'>
+                        {enrollError}
+                      </Typography>
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
 
-      {showVideo && (
-        <div
-          className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center'
-          onClick={handleCloseVideo}
-        >
-          <div className='relative w-full h-full max-w-screen-lg'>
-            <div className='absolute m-4 cursor-pointer text-white z-10' style={{ top: '15%', right: '10%' }}>
-              <FontAwesomeIcon icon={faTimes} className='h-8 w-8' onClick={handleCloseVideo} />
+              {showFeedbackForm && (
+                <Card className='shadow-lg w-full mt-4'>
+                  <CardBody>
+                    <textarea
+                      className='border border-gray-300 rounded-md p-2 w-full mb-2'
+                      placeholder='Write your feedback...'
+                      value={feedbackMessage}
+                      onChange={(e) => setFeedbackMessage(e.target.value)}
+                    />
+                    Rating: <StarRating initialRating={rating} onRate={handleRatingChange} />
+                    <Button onClick={handleSaveFeedback} className='ml-2'>
+                      Save
+                    </Button>
+                  </CardBody>
+                </Card>
+              )}
+
+              <Card className='shadow-lg w-full mt-4'>
+                <CardBody>
+                  <Typography variant='h3' className='mb-2'>
+                    All reviews
+                  </Typography>
+                  {feedbacks.map((feedback, index) => (
+                    <Card key={index} className='p-3 mb-3'>
+                      <div className='flex items-center mb-2'>
+                        <CircularImg
+                          avatar={
+                            feedback.studentAvatar ||
+                            'https://cdn.iconscout.com/icon/free/png-256/free-incognito-6-902117.png?f=webp&w=256'
+                          }
+                        />
+                        <div className='ml-2'>
+                          <Typography variant='paragraph'>
+                            <span style={{ fontWeight: 'bold' }}>{feedback.studentName}</span>
+                          </Typography>
+                          <Typography tag='h3' className='text-gray-500'>
+                            {new Date(feedback.date).toLocaleDateString()}
+                          </Typography>
+                          <Typography tag='h3' className='text-gray-500'>
+                            {renderStars(feedback.rating)} {/* Render stars for feedback rating */}
+                          </Typography>
+                          <Typography variant='paragraph'>{feedback.message}</Typography>
+                        </div>
+                      </div>
+                      {/* <Typography variant='paragraph'>{feedback.message}</Typography> */}
+                    </Card>
+                  ))}
+                </CardBody>
+              </Card>
             </div>
-            <iframe
-              className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-2 object-cover aspect-video'
-              width='100%'
-              src={`https://www.youtube.com/embed/${classData.videoLink.split('v=')[1]}`}
-              title='YouTube Video Player'
-              allowFullScreen
-            ></iframe>
           </div>
-        </div>
+
+          {showVideo && (
+            <div
+              className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center'
+              onClick={handleCloseVideo}
+            >
+              <div className='relative w-full h-full max-w-screen-lg'>
+                <div className='absolute m-4 cursor-pointer text-orange-200 z-10 lg:top-24 md:top-24 top-52 right-0 sm:top-34'>
+                  <FontAwesomeIcon icon={faTimes} className='h-8 w-8' onClick={handleCloseVideo} />
+                </div>
+                <iframe
+                  className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-2 object-cover aspect-video'
+                  width='100%'
+                  src={`https://www.youtube.com/embed/${classData.videoLink.split('v=')[1]}`}
+                  title='YouTube Video Player'
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+          )}
+          <div className='w-full md:w-1/4'>
+            <div className='sticky top-24'>
+              <ChatBox ref={chatBoxRef} />
+            </div>
+          </div>
+        </>
       )}
-      <div className='w-full md:w-1/4'>
-        <div className='sticky top-24'>
-          <ChatBox ref={chatBoxRef} />
-        </div>
-      </div>
       <ToastContainer />
     </div>
   )
