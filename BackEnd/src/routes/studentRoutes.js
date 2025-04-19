@@ -24,6 +24,8 @@ router.get('/blogs/', blogController.getAll);
 router.get('/blogs/:id', blogController.getOne);
 router.get("/viewRequest/:studentID", studentController.viewRequest);
 router.get("/assignment/getAll", postsAssignment.getAllPostsAssignment);
+router.get("/viewRequest/:studentID", studentController.viewRequest);
+router.get("/blogs/author/:authorId", blogController.getBlogsByAuthorId);
 
 // Post
 router.post("/enrollClass/:id", studentController.enrollClass);

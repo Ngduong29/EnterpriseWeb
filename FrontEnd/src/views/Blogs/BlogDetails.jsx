@@ -9,6 +9,9 @@ const BlogDetail = () => {
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const [authorBlogs, setAuthorBlogs] = useState([]);
+  const [authorBlogsLoading, setAuthorBlogsLoading] = useState(true);
+  const [authorInfo, setAuthorInfo] = useState(null);
 
   // Phân tích URL để lấy classID nếu không có trong params
   const getClassID = () => {
@@ -27,10 +30,17 @@ const BlogDetail = () => {
     try {
       const response = await makeGet(`students/blogs/${id}`)
       setBlog(response.data)
+      if (response.data?.student_id) {
+      // Filter out the current blog from the list
+      const authorResponse = await makeGet(`students/blogs/author/${response.data.student_id}`);
+      const filteredBlogs = authorResponse.data.filter(authorBlog => authorBlog.id !== parseInt(id));
+        setAuthorBlogs(filteredBlogs);
+      }
     } catch (error) {
       console.error('Error fetching blog detail:', error)
     } finally {
-      setLoading(false)
+      setLoading(false);
+      setAuthorBlogsLoading(false);
     }
   }
 
@@ -134,6 +144,41 @@ const BlogDetail = () => {
             </>
           )}
         </main>
+        <div className="mt-12 border-t pt-8">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        More from {authorInfo?.full_name || 'this author'}
+      </h2>
+      {authorBlogs.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {authorBlogs.slice(0, 4).map((authorBlog) => (
+            <Link 
+              to={`/Blog/${authorBlog.id}`}
+              key={authorBlog.id}
+              className="block bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300"
+            >
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+                  {authorBlog.title}
+                </h3>
+                <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <span>{formatDate(authorBlog.created_at)}</span>
+                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                    authorBlog.status === 1 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {authorBlog.status === 1 ? 'Published' : 'Draft'}
+                  </span>
+                </div>
+                <p className="text-gray-600 line-clamp-2">
+                  {authorBlog.content}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-500 italic">No other blogs from this author.</p>
+      )}
+    </div>
       </div>
     </div>
   )
