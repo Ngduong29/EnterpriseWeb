@@ -91,3 +91,15 @@ exports.addComment = async (req, res) => {
 };
 
 
+
+
+exports.getBlogsByAuthorId = async (req, res) => {
+    try {
+        const authorId = req.params.authorId;
+        const blogs = await Blog.findByStudentId(authorId, null); // Assuming classID is not needed for this query
+        return res.json({ message: "List Blogs by Author ID", data: blogs });
+    } catch (error) {
+        console.error('Error in getBlogsByAuthorId:', error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
