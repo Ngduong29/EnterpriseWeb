@@ -403,9 +403,8 @@ const AdminPortal = () => {
                   <td className='p-2 md:p-4 hidden md:table-cell'>{user.address}</td>
                   <td className='p-2 md:p-4'>
                     <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${
-                        user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}
+                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}
                     >
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -415,9 +414,8 @@ const AdminPortal = () => {
                       <div className='flex flex-col md:flex-row gap-1 md:gap-2'>
                         <button
                           onClick={() => toggleActiveStatus(user.userID, user.isActive)}
-                          className={`text-xs md:text-sm p-1 md:p-2 rounded-lg transition-colors duration-300 ${
-                            user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                          } text-white`}
+                          className={`text-xs md:text-sm p-1 md:p-2 rounded-lg transition-colors duration-300 ${user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                            } text-white`}
                         >
                           {user.isActive ? 'Ban' : 'Unban'}
                         </button>
@@ -449,9 +447,8 @@ const AdminPortal = () => {
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className={`mx-1 px-3 py-1 rounded ${
-              currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'
-            }`}
+            className={`mx-1 px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'
+              }`}
           >
             &laquo;
           </button>
@@ -485,9 +482,8 @@ const AdminPortal = () => {
                 <button
                   key={pageNum}
                   onClick={() => paginate(pageNum)}
-                  className={`mx-1 px-3 py-1 rounded ${
-                    currentPage === pageNum ? 'bg-purple-700 text-white' : 'bg-purple-200 hover:bg-purple-300'
-                  }`}
+                  className={`mx-1 px-3 py-1 rounded ${currentPage === pageNum ? 'bg-purple-700 text-white' : 'bg-purple-200 hover:bg-purple-300'
+                    }`}
                 >
                   {pageNum}
                 </button>
@@ -500,11 +496,10 @@ const AdminPortal = () => {
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={`mx-1 px-3 py-1 rounded ${
-              currentPage === totalPages
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-purple-500 text-white hover:bg-purple-600'
-            }`}
+            className={`mx-1 px-3 py-1 rounded ${currentPage === totalPages
+              ? 'bg-gray-300 cursor-not-allowed'
+              : 'bg-purple-500 text-white hover:bg-purple-600'
+              }`}
           >
             &raquo;
           </button>
@@ -517,10 +512,10 @@ const AdminPortal = () => {
             }}
             className='ml-4 border border-gray-300 rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-500'
           >
-            <option value={5}>5 / trang</option>
-            <option value={10}>10 / trang</option>
-            <option value={15}>15 / trang</option>
-            <option value={20}>20 / trang</option>
+            <option value={5}>5 per page</option>
+            <option value={10}>10 per page</option>
+            <option value={15}>15 per page</option>
+            <option value={20}>20 per page</option>
           </select>
         </div>
       </div>
@@ -611,7 +606,7 @@ const AdminPortal = () => {
                       onChange={handleFormChange}
                       className='w-full border border-gray-300 rounded-md p-2 text-sm bg-white'
                       required
-                      // Khóa trường Role khi đang edit
+                    // Khóa trường Role khi đang edit
                     >
                       <option value='Student'>Student</option>
                       <option value='Tutor'>Tutor</option>
@@ -764,13 +759,13 @@ const AdminPortal = () => {
                   onClick={closeModal}
                   className='bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-colors duration-300 text-sm'
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type='submit'
                   className='bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors duration-300 text-sm'
                 >
-                  {editingUser ? 'Cập nhật' : 'Lưu'}
+                  {editingUser ? 'Update' : 'Save'}
                 </button>
               </div>
             </form>
@@ -800,7 +795,7 @@ const AdminPortal = () => {
       {users.length === 0 && (
         <div className='flex justify-center items-center mt-10'>
           <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500'></div>
-          <p className='ml-3 text-purple-500'>Đang tải dữ liệu...</p>
+          <p className='ml-3 text-purple-500'>Loading data...</p>
         </div>
       )}
 
@@ -821,17 +816,17 @@ const AdminPortal = () => {
               d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
             />
           </svg>
-          <h3 className='text-xl font-medium text-gray-700 mb-2'>Không tìm thấy người dùng</h3>
-          <p className='text-gray-500 mb-4'>Không có người dùng nào phù hợp với tiêu chí tìm kiếm</p>
+          <h3 className='text-xl font-medium text-gray-700 mb-2'>No users found</h3>
+          <p className='text-gray-500 mb-4'>No users match your search criteria</p>
           <button
             onClick={() => {
-              setSearchTerm('')
-              setSelectedRole('User')
-              filterUsers('', 'User')
+              setSearchTerm('');
+              setSelectedRole('User');
+              filterUsers('', 'User');
             }}
             className='bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors'
           >
-            Xóa bộ lọc
+            Clear filters
           </button>
         </div>
       )}
