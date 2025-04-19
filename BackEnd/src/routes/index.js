@@ -9,12 +9,12 @@ const publicRouters = require("./publicRoutes");
 
 const router = express.Router();
 
+router.use("/public", publicRouters);
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
 router.use("/users", userRoutes);
 router.use("/students", studentRoutes);
 router.use("/tutors", tutorRoutes);
 router.use("/payments", paymentRoutes);
-router.use("/", publicRouters);
 
 module.exports = router;

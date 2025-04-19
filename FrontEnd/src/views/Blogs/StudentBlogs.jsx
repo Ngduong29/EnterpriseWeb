@@ -1,35 +1,55 @@
-import React from 'react'
-import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
+import React, { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { makeGet, makePost } from '../../apiService/httpService.js'
 import MegaMenuWithHover from '../../components/MegaMenuWithHover.jsx'
-import { Link } from 'react-router-dom'
-import { makeDelete, makeGet, makePost, makePostFormData, makePut } from '../../apiService/httpService.js'
-import { useEffect, useState } from 'react'
+import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
 
 const StudentBlogs = () => {
+  const { classID } = useParams()
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const response = await makeGet('students/blogs', { class_id: '2' })
-        setBlogs(response.data)
-      } catch (error) {
-        console.error('Error fetching blogs:', error)
-      } finally {
-        setLoading(false)
-      }
+  // Form state
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [content, setContent] = useState('')
+
+  const [status, setStatus] = useState('1')
+
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true)
+      const response = await makeGet('students/blogs', { class_id: classID })
+      setBlogs(response.data)
+    } catch (error) {
+      console.error('Error fetching blogs:', error)
+    } finally {
+      setLoading(false)
     }
-
-    fetchBlogs()
-  }, [])
-
-  if (loading) {
-    return <div className='text-center'>Loading...</div>
   }
 
-  if (!blogs || blogs.length === 0) {
-    return <div className='text-center'>No blogs available</div>
+  useEffect(() => {
+    fetchBlogs()
+  }, [classID])
+
+  const handleCreateBlog = async () => {
+    try {
+      await makePost('students/blogs', {
+        class_id: classID,
+        title,
+        description,
+        content,
+        status
+      })
+      setShowModal(false)
+      setTitle('')
+      setDescription('')
+      setStatus(1)
+      fetchBlogs()
+    } catch (error) {
+      console.error('Error creating blog:', error)
+    }
   }
 
   return (
@@ -37,15 +57,22 @@ const StudentBlogs = () => {
       <header>
         <MegaMenuWithHover />
       </header>
-      <div className='w-full p-4 flex justify-between'>
-        <div>
-          <BreadcrumbsWithIcon pathnames={['Home', 'Blog']} />
-        </div>
+      <div className='w-full p-4 flex justify-between mt-4'>
+        <BreadcrumbsWithIcon pathnames={['Home', 'Blog']} />
+        <button
+          onClick={() => setShowModal(true)}
+          className='inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700'
+        >
+          New Blog
+        </button>
       </div>
 
       <main className='space-y-6'>
+        {loading && <div className='text-center'>Loading...</div>}
+        {!loading && blogs.length === 0 && <div className='text-center'>No blogs available</div>}
+
         {blogs.map((blog) => (
-          <Link to={`/blogDetail/${blog.blog_id}`} key={blog.blog_id} state={blog}>
+          <Link to={`/my-classes/${classID}/blogs/blogDetail/${blog.blog_id}`} key={blog.blog_id} state={blog}>
             <div className='border rounded-lg p-4 flex items-center space-x-4 hover:shadow-lg transition duration-300'>
               <img
                 src='https://t.ex-cdn.com/danviet.vn/768w/files/news/2025/04/18/fb_img_1744977210928-1901.jpg'
@@ -66,10 +93,52 @@ const StudentBlogs = () => {
                 </div>
               </div>
             </div>
-            <div className='mt-4'></div>
           </Link>
         ))}
       </main>
+
+      {/* Modal */}
+      {showModal && (
+        <div className='fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50'>
+          <div className='bg-white rounded-lg p-6 w-full max-w-md shadow-lg'>
+            <h2 className='text-xl font-bold mb-4'>New Blog</h2>
+            <div className='space-y-10'>
+              <input
+                type='text'
+                placeholder='Title'
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className='w-full border border-gray-300 rounded p-2'
+              />
+              <textarea
+                placeholder='Description'
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className='w-full border border-gray-300 rounded p-2'
+                rows={2}
+              />
+              <textarea
+                placeholder='Content'
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className='w-full border border-gray-300 rounded p-2'
+                rows={10}
+              />
+              <div className='flex justify-end space-x-2'>
+                <button onClick={() => setShowModal(false)} className='px-4 py-2 rounded bg-gray-300 hover:bg-gray-400'>
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateBlog}
+                  className='px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700'
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

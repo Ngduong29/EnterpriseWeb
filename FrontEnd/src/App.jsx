@@ -61,9 +61,8 @@ const App = () => {
             <Route path='/admin-portal-tutor-request' element={<AdminTutorRequests />} />
             <Route path='/admin-portal-transaction' element={<AdminPortalTransaction />} />
 
-            <Route path='/student-blogs' element={<StudentBlogs />} />
-            <Route path='/blogDetail/:id' element={<BlogDetail />} />
-
+            <Route path='/my-classes/:classID/blogs' element={<StudentBlogs />} />
+            <Route path='/my-classes/:classID/blogs/blogDetail/:id' element={<BlogDetail />} />
             <Route path='/my-classes' element={<MyClass />} />
 
             {/* Protected routes */}
