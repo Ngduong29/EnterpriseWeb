@@ -2,19 +2,20 @@ import React, { useState } from 'react'
 import { Slider } from '@nextui-org/react'
 
 const PriceRangeSlider = ({ onChange }) => {
-  const min = 10000
-  const max = 50000
+  const min = 0
+  const max = 500000
   const [priceRange, setPriceRange] = useState([min, max])
 
   const handleChange = (value) => {
-    setPriceRange(value)
-    onChange(value)
+    const transformedValue = value.map((v) => v / 1000)
+    setPriceRange(transformedValue)
+    onChange(transformedValue)
   }
 
   return (
     <Slider
-      label='Price Range / per hour'
-      step={1000}
+      label='Price / hour'
+      step={50000}
       minValue={min}
       maxValue={max}
       defaultValue={[min, max]}

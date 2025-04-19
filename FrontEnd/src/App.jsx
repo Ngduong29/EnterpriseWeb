@@ -22,7 +22,7 @@ import AdminTutorRequests from './views/AdminTutorRequest'
 import AdminPortalTransaction from './views/AdminPortalTransaction'
 import AdminPortalComplaints from './views/AdminPortalComplaints'
 import StudentBlogs from './views/Blogs/StudentBlogs'
-import BlogDetail from './views/Blogs/blogDetail'
+import BlogDetail from './views/Blogs/BlogDetails'
 
 import Reset from './views/Reset'
 import OTPinput from './views/OTPInput'

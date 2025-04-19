@@ -7,9 +7,9 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { ChevronDownIcon } from 'lucide-react'
 
 function NavList() {
-  const { isAuthenticated } = useContext(AuthContext)
+  const { isAuthenticated, user } = useContext(AuthContext)
   const navigate = useNavigate() // Use useNavigate hook
-  const role = localStorage.getItem('role')
+  const role = user?.role ?? ''
   const adminPortalLinks = [
     {
       title: 'Manage User',
@@ -82,7 +82,7 @@ function NavList() {
   )
 
   return (
-    <List className='mt-4 mb-6 p-0 lg:mt-0 lg:mb-0 lg:flex-row lg:p-1 gap-2'>
+    <List className='mt-4 mb-6 p-0 lg:mt-0 lg:mb-0 lg:flex-row lg:p-1 gap-2 px-2'>
       <NavLink to='/'>
         <Typography as='div' variant='small' color='white' className='font-medium'>
           <ListItem className='flex items-center text-lg gap-2 py-2 pr-4 font-extrabold'>
