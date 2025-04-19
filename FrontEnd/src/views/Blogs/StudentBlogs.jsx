@@ -65,63 +65,63 @@ const StudentBlogs = () => {
   const breadcrumbs = [
     { name: 'Home', path: '/' },
     { name: 'My Classes', path: '/my-classes' },
-    { name: 'Blogs', path: '#' } // Trang hiện tại, không click được
+    { name: 'Blogs', path: '#' } // Trang hiện tại
   ];
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      <header className='bg-orange-400 text-white shadow-md fixed top-0 w-full z-10'>
+      <header className='bg-orange-400 text-white shadow-md fixed top-0 w-full z-20'>
         <MegaMenuWithHover />
       </header>
       
-      <div className='container mx-auto px-4 pt-24 pb-10'>
-        <div className='flex flex-col md:flex-row justify-between items-center mb-8'>
-          <div>
-            <h1 className='text-3xl font-bold text-orange-800'>Class Blog</h1>
-            <BreadcrumbsWithIcon pathnames={breadcrumbs} />
-          </div>
+      <div className='container mx-auto px-3 sm:px-4 md:px-6 pt-20'>
+        {/* Breadcrumb section - Responsive */}
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 border-b border-gray-200 mb-4 sm:mb-6 gap-2'>
+          <BreadcrumbsWithIcon pathnames={breadcrumbs} />
           <button
             onClick={() => setShowModal(true)}
-            className='mt-4 md:mt-0 px-6 py-3 bg-orange-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:bg-orange-600 transition duration-300 flex items-center'
+            className='px-4 py-2 sm:px-6 sm:py-3 bg-orange-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:shadow-lg hover:bg-orange-600 transition duration-300 flex items-center'
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
             New Blog
           </button>
         </div>
 
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <h1 className='text-2xl sm:text-3xl font-bold text-orange-800 mb-4 sm:mb-6'>Class Blog</h1>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 pb-8 sm:pb-10'>
           {loading && (
-            <div className='col-span-full flex justify-center items-center py-20'>
-              <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500'></div>
-              <p className='ml-3 text-orange-500'>Loading blogs...</p>
+            <div className='col-span-full flex justify-center items-center py-12 sm:py-20'>
+              <div className='animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-orange-500'></div>
+              <p className='ml-3 text-orange-500 text-sm sm:text-base'>Loading blogs...</p>
             </div>
           )}
           
           {!loading && blogs.length === 0 && (
-            <div className='col-span-full bg-white rounded-xl shadow-md p-12 text-center'>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className='col-span-full bg-white rounded-xl shadow-md p-6 sm:p-12 text-center'>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-gray-400 mb-3 sm:mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2h8z" />
               </svg>
-              <h3 className='text-xl font-medium text-gray-700 mb-2'>No blogs available</h3>
-              <p className='text-gray-500'>Be the first to create a blog for this class!</p>
+              <h3 className='text-lg sm:text-xl font-medium text-gray-700 mb-2'>No blogs available</h3>
+              <p className='text-gray-500 text-sm sm:text-base'>Be the first to create a blog for this class!</p>
             </div>
           )}
 
           {blogs.map((blog) => (
             <Link to={`/my-classes/${classID}/blogs/blogDetail/${blog.blog_id}`} key={blog.blog_id} state={blog}>
               <div className='bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 flex flex-col h-full transform hover:-translate-y-1'>
-                <div className='h-48 overflow-hidden'>
+                <div className='h-36 sm:h-48 overflow-hidden'>
                   <img
                     src='https://t.ex-cdn.com/danviet.vn/768w/files/news/2025/04/18/fb_img_1744977210928-1901.jpg'
                     alt={blog.title}
                     className='w-full h-full object-cover transition duration-300 hover:scale-105'
                   />
                 </div>
-                <div className='p-6 flex-grow'>
+                <div className='p-4 sm:p-6 flex-grow'>
                   <div className='flex items-center text-xs text-gray-500 mb-2'>
-                    <span className={`rounded-full px-3 py-1 ${
+                    <span className={`rounded-full px-2 py-0.5 sm:px-3 sm:py-1 text-xs ${
                       blog.status === '1' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                     }`}>
                       {blog.status === '1' ? 'Published' : 'Draft'}
@@ -129,13 +129,13 @@ const StudentBlogs = () => {
                     <span className='mx-2'>•</span>
                     <span>{formatDate(blog.created_at)}</span>
                   </div>
-                  <h2 className='text-xl font-bold text-gray-800 mb-2 line-clamp-2'>{blog.title}</h2>
-                  <p className='text-gray-600 mb-4 line-clamp-3'>{blog.description || 'No description provided'}</p>
+                  <h2 className='text-base sm:text-xl font-bold text-gray-800 mb-2 line-clamp-2'>{blog.title}</h2>
+                  <p className='text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3'>{blog.description || 'No description provided'}</p>
                   <div className='flex items-center mt-auto'>
-                    <div className='w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold'>
+                    <div className='w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-xs sm:text-sm'>
                       {blog.author ? blog.author.charAt(0).toUpperCase() : 'M'}
                     </div>
-                    <span className='ml-2 text-gray-700'>{blog.author ?? 'Me'}</span>
+                    <span className='ml-2 text-gray-700 text-sm sm:text-base'>{blog.author ?? 'Me'}</span>
                   </div>
                 </div>
               </div>
@@ -144,14 +144,14 @@ const StudentBlogs = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal - Responsive */}
       {showModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4'>
-          <div className='bg-white rounded-lg max-w-xl w-full shadow-2xl overflow-hidden'>
-            <div className='bg-orange-500 py-4 px-6'>
-              <h2 className='text-xl font-bold text-white'>Create New Blog</h2>
+        <div className='fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-3 sm:p-4'>
+          <div className='bg-white rounded-lg w-full max-w-md sm:max-w-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto'>
+            <div className='bg-orange-500 py-3 sm:py-4 px-4 sm:px-6 sticky top-0 z-10'>
+              <h2 className='text-lg sm:text-xl font-bold text-white'>Create New Blog</h2>
             </div>
-            <div className='p-6 space-y-4'>
+            <div className='p-4 sm:p-6 space-y-3 sm:space-y-4'>
               <div>
                 <label className='block text-sm font-medium text-gray-700 mb-1'>Title</label>
                 <input
@@ -159,7 +159,7 @@ const StudentBlogs = () => {
                   placeholder='Enter blog title'
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className='w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                  className='w-full border border-gray-300 rounded-lg p-2 sm:p-3 text-sm sm:text-base focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                 />
               </div>
               <div>
@@ -168,7 +168,7 @@ const StudentBlogs = () => {
                   placeholder='Brief description of your blog'
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className='w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                  className='w-full border border-gray-300 rounded-lg p-2 sm:p-3 text-sm sm:text-base focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                   rows={3}
                 />
               </div>
@@ -178,8 +178,8 @@ const StudentBlogs = () => {
                   placeholder='Write your blog content here...'
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className='w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                  rows={8}
+                  className='w-full border border-gray-300 rounded-lg p-2 sm:p-3 text-sm sm:text-base focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                  rows={6}
                 />
               </div>
               <div>
@@ -187,22 +187,22 @@ const StudentBlogs = () => {
                 <select 
                   value={status} 
                   onChange={(e) => setStatus(e.target.value)}
-                  className='w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                  className='w-full border border-gray-300 rounded-lg p-2 sm:p-3 text-sm sm:text-base focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                 >
                   <option value="1">Published</option>
                   <option value="0">Draft</option>
                 </select>
               </div>
-              <div className='flex justify-end space-x-3 pt-4 border-t'>
+              <div className='flex justify-end space-x-3 pt-3 sm:pt-4 border-t mt-3 sm:mt-4'>
                 <button 
                   onClick={() => setShowModal(false)} 
-                  className='px-5 py-2.5 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition duration-200'
+                  className='px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition duration-200 text-sm sm:text-base'
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateBlog}
-                  className='px-5 py-2.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg transition duration-200'
+                  className='px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg transition duration-200 text-sm sm:text-base'
                 >
                   Create Blog
                 </button>
