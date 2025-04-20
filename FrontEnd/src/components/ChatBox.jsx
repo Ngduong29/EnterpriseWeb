@@ -11,7 +11,7 @@ import { makeGet, makePost } from '../apiService/httpService'
 const socket = io('http://localhost:5000') // Ensure the URL matches your server
 
 const ChatBox = forwardRef((props, ref) => {
-  const { user } = useContext(AuthContext)
+  const { user, isAuthenticated } = useContext(AuthContext)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -56,21 +56,15 @@ const ChatBox = forwardRef((props, ref) => {
           let filterRole = ''
           let id = ''
 
-          const token = localStorage.getItem('token')
-          if (!token) {
-            console.log('User is not logged in')
-            return
-          }
-          const decodedToken = jwtDecode(token)
           const responseClass = await makeGet('admin/classList')
-          let userClasses = responseClass.data.data
-          let filteredUsers = response.data.data
+          let userClasses = responseClass.data
+          let filteredUsers = response.data
 
           if (user.role === 'Tutor') {
             filterRole = 'Student'
-            id = decodedToken.user.tutorID
+            id = user.tutorID
             const requestResponse = await makeGet(`tutors/viewRequest/${id}`)
-            const requests = requestResponse.data.data
+            const requests = requestResponse.data
             const studentIDsInClasses = userClasses
               .filter((cls) => cls.tutorID == id)
               .map((cls) => cls.studentID)
@@ -82,10 +76,10 @@ const ChatBox = forwardRef((props, ref) => {
             )
           } else if (user.role === 'Student') {
             filterRole = 'Tutor'
-            id = decodedToken.user.studentID
+            id = user.studentID
 
             const requestResponse = await makeGet(`students/viewRequest/${id}`)
-            const requests = requestResponse.data.data
+            const requests = requestResponse.data
             const tutorIDsInClasses = userClasses
               .filter((cls) => cls.studentID == id)
               .map((cls) => cls.tutorID)
@@ -132,24 +126,19 @@ const ChatBox = forwardRef((props, ref) => {
 
   useEffect(() => {
     // Fetch users (tutors or students) from the server
+    // if (user.role === 'Admin') {
     makeGet('admin/getUser')
       .then(async (response) => {
         let filterRole = ''
         let id = ''
 
-        const token = localStorage.getItem('token')
-        if (!token) {
-          console.log('User is not logged in')
-          return
-        }
-        const decodedToken = jwtDecode(token)
         const responseClass = await makeGet('admin/classList')
         let userClasses = responseClass.data
         let filteredUsers = response.data
 
         if (user.role === 'Tutor') {
           filterRole = 'Student'
-          id = decodedToken.user.tutorID
+          id = user.tutorID
           const requestResponse = await makeGet(`tutors/viewRequest/${id}`)
           const requests = requestResponse.data
           const studentIDsInClasses = userClasses
@@ -164,7 +153,7 @@ const ChatBox = forwardRef((props, ref) => {
           )
         } else if (user.role === 'Student') {
           filterRole = 'Tutor'
-          id = decodedToken.user.studentID
+          id = user.studentID
 
           const requestResponse = await makeGet(`students/viewRequest/${id}`)
           const requests = requestResponse.data.data
@@ -188,7 +177,8 @@ const ChatBox = forwardRef((props, ref) => {
       .catch((error) => {
         console.error('Error fetching users:', error)
       })
-  }, [user.role]) // Add user.role as a dependency to ensure the effect runs when user.role changes
+    // }
+  }, [user, isOpen]) // Add user.role as a dependency to ensure the effect runs when user.role changes
 
   useEffect(() => {
     if (selectedUser) {
@@ -258,7 +248,7 @@ const ChatBox = forwardRef((props, ref) => {
 
   return (
     <div
-      className={`fixed bottom-9 right-5 w-80 h-96 border border-gray-300 rounded-lg bg-white shadow-lg transition-transform transform ${
+      className={`fixed bottom-9 z-30 right-5 w-80 h-96 border border-gray-300 rounded-lg bg-white shadow-lg transition-transform transform ${
         isOpen ? 'translate-y-0' : 'translate-y-full'
       } flex flex-col`}
     >

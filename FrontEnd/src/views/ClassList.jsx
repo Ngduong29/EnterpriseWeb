@@ -93,11 +93,11 @@ const ClassList = () => {
     setCurrentPage(page)
   }
 
-   // Tạo breadcrumbs với đường dẫn đúng
+  // Tạo breadcrumbs với đường dẫn đúng
   const breadcrumbs = [
     { name: 'Home', path: '/' },
     { name: 'ClassList', path: '#' } // Trang hiện tại
-  ];
+  ]
 
   if (error) return <div>Error: {error}</div>
 
@@ -238,7 +238,7 @@ const ClassList = () => {
         </main>
       </div>
 
-      <ChatBox />
+      {/* <ChatBox /> */}
     </div>
   )
 }

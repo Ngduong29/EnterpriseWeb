@@ -207,7 +207,7 @@ const ClassDetail = () => {
     { name: 'Home', path: '/' },
     { name: 'ClassList', path: '/ClassList' },
     { name: classData?.className || 'Class Detail', path: '#' } // Trang hiện tại
-  ];
+  ]
 
   return (
     <div className='min-h-screen bg-gray-100 p-4 pt-12'>
@@ -381,11 +381,6 @@ const ClassDetail = () => {
               </div>
             </div>
           )}
-          <div className='w-full md:w-1/4'>
-            <div className='sticky top-24'>
-              <ChatBox ref={chatBoxRef} />
-            </div>
-          </div>
         </>
       )}
       <ToastContainer />
