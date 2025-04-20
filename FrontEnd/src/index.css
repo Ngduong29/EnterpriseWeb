@@ -12,7 +12,13 @@
     display: none;
   }
 }
-
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: #ff9800;
+}
 /* ChatBox.css */
 /* .chat-box {
   position: fixed;

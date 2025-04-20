@@ -317,12 +317,15 @@ const ClassManagement = () => {
         </button>
         <div className='grid grid-cols-1 gap-4'>
           {classes.map((cls) => (
-            <div key={cls.classID} className='flex justify-between items-center p-4 border rounded shadow'>
-              <div>
+            <div
+              key={cls.classID}
+              className='flex flex-col justify-between items-center p-4 border rounded shadow md:flex-row lg:flex-row'
+            >
+              <div className='mb-2 text-left w-full'>
                 <h2 className='text-lg font-bold'>{cls.className}</h2>
                 <p className='text-sm'>Subject: {cls.subject}</p>
               </div>
-              <div>
+              <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}
                 <button
                   onClick={() => handleOpenUpdateModal(cls)}

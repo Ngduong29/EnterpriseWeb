@@ -102,7 +102,7 @@ function NavList() {
         <NavLink to='/ClassList'>
           <ListItem className='flex items-center text-lg gap-2 py-2 pr-4 font-extrabold'>
             <NavLink to='/ClassList' className='flex items-center gap-2'>
-              Choose your classes
+              All Classes
             </NavLink>
           </ListItem>
         </NavLink>
