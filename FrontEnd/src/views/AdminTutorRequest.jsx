@@ -106,7 +106,7 @@ const AdminTutorRequests = () => {
                         className={`inline-block px-3 py-1 rounded-full text-sm ${
                           request.status === 'Pending'
                             ? 'bg-yellow-100 text-yellow-700'
-                            : request.status === 'Approved'
+                            : request.status === 'Accept'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
                         }`}
@@ -122,13 +122,13 @@ const AdminTutorRequests = () => {
                             onClick={() => handleAction(request.userID, 'Accept')}
                             className='mr-2 p-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors duration-300'
                           >
-                            Approve
+                            Accept
                           </button>
                           <button
                             onClick={() => handleAction(request.userID, 'Deny')}
                             className='p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors duration-300'
                           >
-                            Reject
+                            Deny
                           </button>
                         </>
                       )}

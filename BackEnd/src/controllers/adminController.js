@@ -113,12 +113,12 @@ class adminController {
       const { status } = req.body;
       console.log("Received status:", status);
 
-      if (status == "Approved") {
+      if (status == "Accept") {
         // Update TutorRequests status
-        const statusUpdated = await User.updateRequestStatus(userID, "Approved");
+        const statusUpdated = await User.updateRequestStatus(userID, "Accept");
         
         // Update Tutor status and unban user
-        const tutorStatusUpdated = await Tutor.updateTutorStatus(userID, "Approved");
+        const tutorStatusUpdated = await Tutor.updateTutorStatus(userID, "Accept");
         const userUnbanned = await User.unbanUser(userID);
         
         if (!statusUpdated || !tutorStatusUpdated || !userUnbanned) {
@@ -144,10 +144,10 @@ class adminController {
           message: "Tutor Confirmed",
           user: user
         });
-      } else if (status == "Rejected") {
+      } else if (status == "Deny") {
         // Update both TutorRequests and Tutor status
-        const statusUpdated = await User.updateRequestStatus(userID, "Rejected");
-        const tutorStatusUpdated = await Tutor.updateTutorStatus(userID, "Rejected");
+        const statusUpdated = await User.updateRequestStatus(userID, "Deny");
+        const tutorStatusUpdated = await Tutor.updateTutorStatus(userID, "Deny");
         
         if (!statusUpdated || !tutorStatusUpdated) {
           return res.status(500).json({

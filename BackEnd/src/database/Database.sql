@@ -296,7 +296,7 @@ CREATE TABLE IF NOT EXISTS `TutorRequests` (
   `requestID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
   `tutorID` varchar(50) NOT NULL,
-  `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
+  `status` enum('Pending','Accept','Deny') DEFAULT 'Pending',
   `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`requestID`),
@@ -308,8 +308,8 @@ CREATE TABLE IF NOT EXISTS `TutorRequests` (
 
 -- Dumping data for table tutordb.TutorRequests: ~7 rows (approximately)
 INSERT IGNORE INTO `TutorRequests` (`requestID`, `userID`, `tutorID`, `status`, `createdAt`, `updatedAt`) VALUES
-	(1, 10, 'T3', 'Approved', '2025-04-13 08:48:06', '2025-04-13 10:00:55'),
-	(2, 12, 'T4', 'Rejected', '2025-04-13 10:07:41', '2025-04-13 10:14:06'),
+	(1, 10, 'T3', 'Accept', '2025-04-13 08:48:06', '2025-04-13 10:00:55'),
+	(2, 12, 'T4', 'Deny', '2025-04-13 10:07:41', '2025-04-13 10:14:06'),
 	(3, 15, 'T5', 'Pending', '2025-04-15 15:15:19', '2025-04-15 15:15:19'),
 	(4, 35, 'T6', 'Pending', '2025-04-15 16:27:34', '2025-04-15 16:27:34'),
 	(5, 36, 'T7', 'Pending', '2025-04-15 16:28:42', '2025-04-15 16:28:42'),
@@ -389,4 +389,3 @@ INSERT IGNORE INTO `Users` (`userID`, `userName`, `fullName`, `email`, `password
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
-Users
