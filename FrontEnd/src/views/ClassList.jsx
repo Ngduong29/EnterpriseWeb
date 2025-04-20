@@ -93,6 +93,12 @@ const ClassList = () => {
     setCurrentPage(page)
   }
 
+   // Tạo breadcrumbs với đường dẫn đúng
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'ClassList', path: '#' } // Trang hiện tại
+  ];
+
   if (error) return <div>Error: {error}</div>
 
   return (
@@ -103,7 +109,7 @@ const ClassList = () => {
 
       <div className='w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 p-4'>
         <div>
-          <BreadcrumbsWithIcon pathnames={['Home', 'ClassList']} />
+          <BreadcrumbsWithIcon pathnames={breadcrumbs} />
           <Typography variant='h3' className='mt-2 hidden lg:visible'>
             Filters by
           </Typography>
