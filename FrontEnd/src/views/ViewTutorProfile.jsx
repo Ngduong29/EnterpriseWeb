@@ -171,7 +171,7 @@ const ViewTutorProfile = () => {
           </div>
         )}
       </div>
-      <ChatBox ref={chatBoxRef} /> {/* Add ref to ChatBox */}
+      {/* <ChatBox ref={chatBoxRef} /> */}
       <ToastContainer />
     </div>
   )

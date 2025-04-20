@@ -1,62 +1,60 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import { Textarea } from "@nextui-org/react";
-import 'react-toastify/dist/ReactToastify.css';
-import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx';
-import { FaUser } from 'react-icons/fa';
-import AuthContext from '../contexts/JWTAuthContext.jsx';
-import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
-import ChatBox from '../components/ChatBox.jsx';
-import { useNavigate } from 'react-router-dom';
-
+import React, { useState, useContext, useEffect } from 'react'
+import { toast, ToastContainer } from 'react-toastify'
+import { Textarea } from '@nextui-org/react'
+import 'react-toastify/dist/ReactToastify.css'
+import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
+import { FaUser } from 'react-icons/fa'
+import AuthContext from '../contexts/JWTAuthContext.jsx'
+import { jwtDecode } from 'jwt-decode'
+import axios from 'axios'
+import ChatBox from '../components/ChatBox.jsx'
+import { useNavigate } from 'react-router-dom'
 
 const Complaint = () => {
-  const token = localStorage.getItem('token');
-  const { user } = useContext(AuthContext);
-  const [userData, setUserData] = useState({});
-  const [complaintMessage, setComplaintMessage] = useState('');
+  const token = localStorage.getItem('token')
+  const { user } = useContext(AuthContext)
+  const [userData, setUserData] = useState({})
+  const [complaintMessage, setComplaintMessage] = useState('')
 
- 
   useEffect(() => {
     if (user) {
-      setUserData(user);
+      setUserData(user)
     } else if (token) {
-      const decodedToken = jwtDecode(token);
-      setUserData(decodedToken.user);
+      const decodedToken = jwtDecode(token)
+      setUserData(decodedToken.user)
     }
-  }, [user]);
+  }, [user])
 
   const handleComplaintChange = (e) => {
-    const message = e.target.value;
-    const wordCount = message.trim().split(/\s+/).length;
+    const message = e.target.value
+    const wordCount = message.trim().split(/\s+/).length
 
     if (wordCount <= 50) {
-      setComplaintMessage(message);
+      setComplaintMessage(message)
     } else {
-      toast.error('Complaint message cannot exceed 50 words.');
+      toast.error('Complaint message cannot exceed 50 words.')
     }
-  };
+  }
 
   const handleSendComplaint = async () => {
     if (complaintMessage.trim() === '') {
-      toast.error('Please enter a complaint message.');
-      return;
+      toast.error('Please enter a complaint message.')
+      return
     }
 
     try {
       const response = await axios.post('http://localhost:5000/api/users/complain', {
         userID: userData.userID, // Assuming user ID is stored in userData.id
-        message: complaintMessage,
-      });
+        message: complaintMessage
+      })
 
-      toast.success('Complaint sent successfully!');
-      setComplaintMessage('');
+      toast.success('Complaint sent successfully!')
+      setComplaintMessage('')
     } catch (error) {
-      toast.error('Failed to send complaint. Please try again.');
-      console.error('Error sending complaint:', error);
+      toast.error('Failed to send complaint. Please try again.')
+      console.error('Error sending complaint:', error)
     }
-  };
+  }
 
   return (
     <div>
@@ -73,7 +71,10 @@ const Complaint = () => {
           <div className='avatar-container w-24 h-24 flex-shrink-0 relative cursor-pointer'>
             <img
               className='avatar-image rounded-full w-full h-full object-cover'
-              src={userData.avatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRCdGAc11Bt-rpmGh5q0ESuFgEkDLBUhNOMA&s'} // Provide a default avatar if none is set
+              src={
+                userData.avatar ||
+                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRCdGAc11Bt-rpmGh5q0ESuFgEkDLBUhNOMA&s'
+              } // Provide a default avatar if none is set
               alt='User Avatar'
             />
           </div>
@@ -94,12 +95,12 @@ const Complaint = () => {
           </div>
         </div>
         <Textarea
-          variant="faded"
-          label="Description"
-          placeholder="Enter your complaint (max 50 words)"
+          variant='faded'
+          label='Description'
+          placeholder='Enter your complaint (max 50 words)'
           value={complaintMessage}
           onChange={handleComplaintChange}
-          className="w-full mt-1 rounded-md shadow-sm pb-2"
+          className='w-full mt-1 rounded-md shadow-sm pb-2'
         />
         <button
           onClick={handleSendComplaint}
@@ -108,10 +109,10 @@ const Complaint = () => {
           Send
         </button>
       </div>
-      <ChatBox />
+      {/* <ChatBox /> */}
       <ToastContainer />
     </div>
-  );
-};
+  )
+}
 
-export default Complaint;
+export default Complaint
