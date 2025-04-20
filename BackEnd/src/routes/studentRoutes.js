@@ -5,7 +5,6 @@ const Student = require("../models/Student");
 const studentController = require("../controllers/studentController");
 const blogController = require('../controllers/blogController');
 const classroomController = require("../controllers/classController");
-const postsAssignment = require("../controllers/postAssignment");
 
 const router = express.Router();
 
@@ -21,9 +20,8 @@ router.get("/searchClassByClassName/:search", studentController.findClassByClass
 router.get("/searchClassBySubject/:id", classroomController.findClassroomBySubject);
 router.get("/checkEnroll/:id", studentController.checkEnrollStatus);
 router.get('/blogs/', blogController.getAll);
+router.get("/blogs/getMostRecentBlogs", blogController.getMostRecentBlogs);
 router.get('/blogs/:id', blogController.getOne);
-router.get("/viewRequest/:studentID", studentController.viewRequest);
-router.get("/assignment/getAll", postsAssignment.getAllPostsAssignment);
 router.get("/viewRequest/:studentID", studentController.viewRequest);
 router.get("/blogs/author/:authorId", blogController.getBlogsByAuthorId);
 
@@ -34,7 +32,7 @@ router.post("/feedback/:classID", studentController.feedbackClass);
 router.post("/requestClass/:tutorID", studentController.requestClass);
 router.post('/blogs/', blogController.create);
 router.post('/comment/', blogController.addComment);
-router.post('/assignment/create', postsAssignment.createPostsAssignment);
+
 
 // Put
 router.put('/blogs/:id', blogController.update);

@@ -17,17 +17,24 @@ const Blog = {
         return rows;
     },
 
-    findByClassId: async (classId) => {
+    findByClassId: async (classId, limit = false) => {
         const db = await connectDB();
-        const [rows] = await db.execute(`
+
+        let query = `
             SELECT b.*, u.fullName, u.avatar
             FROM Blogs b
             JOIN Users u ON b.student_id = u.userID
             WHERE b.class_id = ?
-        `, [classId]);
+        `;
 
+        if (limit) {
+            query += ' LIMIT 10';
+        }
+
+        const [rows] = await db.execute(query, [classId]);
         return rows;
     },
+
 
     findById: async (id) => {
         const db = await connectDB();

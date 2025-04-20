@@ -1,4 +1,5 @@
 const Posts_Assignment = require("../models/Posts_Assignment");
+const Tutor = require("../models/Tutor");
 const User = require("../models/User");
 
 exports.getAllPostsAssignment = async (req, res) => {
@@ -17,12 +18,20 @@ exports.createPostsAssignment = async (req, res) => {
     const { title, description, class_id } = req.body;
     const file = req.file; // Assuming you're using multer for file uploads
     const user_id = req.user.userID; // Get the tutor ID from the request
-    const tutor_id = User.findUserByID(user_id).then((user) => user.tutorID); // Function to get tutor ID from class ID
+    const tutor_id = await Tutor.findTutorByTutorUserID(user_id).then((tutor) => {
+        if (!tutor) {
+            return res.status(404).json({ message: "Không tìm thấy giáo viên" });
+        }
+        return tutor.tutorID;
+    }
+    ).catch((err) => {
+        console.error("Error finding tutor:", err);
+        return res.status(500).json({ message: "Internal server error" });
+    });
 
     if (!title || !description) {
         return res.status(400).json({ message: "All fields are required" });
     }
-
 
     // Handle file upload logic here
     // For example, save the file to a specific directory and store the path in the database
