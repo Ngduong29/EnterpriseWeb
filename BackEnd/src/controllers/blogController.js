@@ -90,9 +90,6 @@ exports.addComment = async (req, res) => {
     }
 };
 
-
-
-
 exports.getBlogsByAuthorId = async (req, res) => {
     try {
         const authorId = req.params.authorId;
@@ -103,3 +100,15 @@ exports.getBlogsByAuthorId = async (req, res) => {
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
+
+exports.getMostRecentBlogs = async (req, res) => {
+    try {
+
+        const blogs = await Blog.findByClassId(req.query.class_id || null, limit = true);
+        return res.status(200).json({ message: "List Most Recent Blogs", data: blogs });
+
+    } catch (error) {
+        console.error('Error in getListBlogsByTime:', error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+}

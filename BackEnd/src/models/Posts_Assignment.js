@@ -13,8 +13,9 @@ const Posts_Assignment = {
     }
     ,
     create: async (post) => {
+        console.log('post', post);
+
         const db = await connectDB();
-        const now = new Date();
         const [result] = await db.execute(
             `INSERT INTO Posts_Assignment (tutorID, class_id, title, description)
         VALUES (?, ?, ?, ?)`,
