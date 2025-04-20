@@ -202,6 +202,13 @@ const ClassDetail = () => {
     return <Loading />
   }
 
+  // Tạo breadcrumbs với đường dẫn đúng
+  const breadcrumbs = [
+    { name: 'Home', path: '/' },
+    { name: 'ClassList', path: '/ClassList' },
+    { name: classData?.className || 'Class Detail', path: '#' } // Trang hiện tại
+  ];
+
   return (
     <div className='min-h-screen bg-gray-100 p-4 pt-12'>
       <header>
@@ -211,7 +218,7 @@ const ClassDetail = () => {
         <>
           <div className='container mx-auto pl-4 flex flex-col md:flex-row gap-8'>
             <div className='w-full md:w-3/4 mb-4 flex flex-col pt-16'>
-              <BreadcrumbsWithIcon pathnames={['Home', 'ClassList', `${classData?.className ?? ''}`]} />
+              <BreadcrumbsWithIcon pathnames={breadcrumbs} />
             </div>
           </div>
 
