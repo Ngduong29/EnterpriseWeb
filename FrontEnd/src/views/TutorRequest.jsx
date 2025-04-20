@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 import MegaMenuWithHover from '../components/MegaMenuWithHover'
+import AuthContext from '../contexts/JWTAuthContext' // Import AuthContext
 import ChatBox from '../components/ChatBox'
+import { makeGet, makePost, makePostFormData } from '../apiService/httpService'
 
 const TutorRequest = () => {
   const [requests, setRequests] = useState([])
   const [selectedRequest, setSelectedRequest] = useState(null)
+  const { isAuthenticated, user } = useContext(AuthContext)
   const [classroom, setClassroom] = useState({
     subjectID: '',
     studentID: '',
@@ -23,35 +26,27 @@ const TutorRequest = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const decodedToken = jwtDecode(token)
-    const tutorID = decodedToken.user.tutorID
-    const role = decodedToken.user.role
+    const role = user?.role || ''
 
     if (role !== 'Tutor' && role !== 'Admin') {
       navigate('/')
       return
     }
-
-    axios
-      .get(`http://localhost:5000/api/tutors/viewRequest/${tutorID}`)
-      .then((response) => {
-        if (response.data && response.data.data) {
-          setRequests(response.data.data)
-        }
-      })
-      .catch((error) => {
-        console.error('There was an error fetching the requests!', error)
-      })
+    if (user && user.tutorID) {
+      makeGet(`tutors/viewRequest/${user.tutorID}`)
+        .then((response) => {
+          if (response && response.data) {
+            setRequests(response.data)
+          }
+        })
+        .catch((error) => {
+          console.error('There was an error fetching the requests!', error)
+        })
+    }
   }, [navigate])
 
   const handleAccept = (event) => {
     event.preventDefault()
-
-    const token = localStorage.getItem('token')
-    const decodedToken = jwtDecode(token)
-    const tutorID = decodedToken.user.tutorID
-
     const data = {
       requestID: selectedRequest.requestID,
       confirm: true,
@@ -62,14 +57,13 @@ const TutorRequest = () => {
       }
     }
 
-    axios
-      .post('http://localhost:5000/api/tutors/confirmRequest', data)
+    makePostFormData('tutors/confirmRequest', data)
       .then((response) => {
         alert('Request accepted successfully')
         // Refresh the requests list
-        axios.get(`http://localhost:5000/api/tutors/viewRequest/${tutorID}`).then((response) => {
-          if (response.data && response.data.data) {
-            setRequests(response.data.data)
+        makeGet(`tutors/viewRequest/${tutorID}`).then((response) => {
+          if (response && response.data) {
+            setRequests(response.data)
           }
         })
       })
@@ -79,11 +73,10 @@ const TutorRequest = () => {
   }
 
   const handleDeny = (requestID) => {
-    axios
-      .post('http://localhost:5000/api/tutors/confirmRequest', {
-        requestID: requestID,
-        confirm: false
-      })
+    makePostFormData('tutors/confirmRequest', {
+      requestID: requestID,
+      confirm: false
+    })
       .then((response) => {
         alert('Request denied successfully')
         // Refresh the requests list
@@ -91,9 +84,9 @@ const TutorRequest = () => {
         const decodedToken = jwtDecode(token)
         const tutorID = decodedToken.user.tutorID
 
-        axios.get(`http://localhost:5000/api/tutors/viewRequest/${tutorID}`).then((response) => {
-          if (response.data && response.data.data) {
-            setRequests(response.data.data)
+        makeGet(`tutors/viewRequest/${tutorID}`).then((response) => {
+          if (response && response.data) {
+            setRequests(response.data)
           }
         })
       })
@@ -107,7 +100,7 @@ const TutorRequest = () => {
       <header>
         <MegaMenuWithHover />
       </header>
-      <div className='main-content'>
+      <div className='main-content mt-20 py-4 mx-auto w-8/12'>
         <h2>Requests</h2>
         <ul className='request-list'>
           {requests.map((request) => (

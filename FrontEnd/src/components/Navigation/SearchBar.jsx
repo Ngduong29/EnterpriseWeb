@@ -25,7 +25,6 @@ const SearchBar = () => {
       const classSuggestions = [...classByName.data, ...(classBySubject?.data?.classroom || [])].filter(
         (classItem) => classItem.isActive === 1
       ) //...classResponse.data.data
-      console.log(classSuggestions)
 
       setSuggestions([...classSuggestions, ...tutorSuggestions])
     } catch (error) {
@@ -38,7 +37,7 @@ const SearchBar = () => {
   }
 
   return (
-    <div className='relative flex flex-col w-full gap-2 md:w-max sm:w-auto mx-auto overflow-visible'>
+    <div className='relative flex flex-col w-full gap-2 md:w-auto sm:w-auto mx-auto overflow-visible'>
       <div className='relative flex w-full gap-2'>
         <Input
           type='search'
@@ -46,9 +45,9 @@ const SearchBar = () => {
           labelProps={{
             className: 'before:content-none after:content-none'
           }}
-          className='pr-20 border-white blue-gray bg-white focus:!border-transparent'
+          className='pr-12 border-white blue-gray bg-white focus:!border-transparent'
           containerProps={{
-            className: 'sm:min-w-[300px] md:min-w-[500px] border-white'
+            className: 'sm:min-w-[100px] lg:min-w-[350px] md:min-w-[150px] border-white'
           }}
           value={query}
           onChange={handleInputChange}
@@ -59,7 +58,7 @@ const SearchBar = () => {
           color='blue'
           className='align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-2 px-3 bg-gradient-to-r from-orange-500 to-orange-800 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none !absolute right-1 top-1 rounded '
         >
-          Search
+          <i className='fa-solid fa-magnifying-glass'></i>
         </Button>
       </div>
       {suggestions.length > 0 && (
