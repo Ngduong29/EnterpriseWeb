@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
+import { Link, useNavigate } from 'react-router-dom'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -327,6 +328,12 @@ const ClassManagement = () => {
               </div>
               <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}
+                <Link
+                  to={`/my-classes/${cls.classID}/stream`}
+                  className='bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2'
+                >
+                  View Stream
+                </Link>
                 <button
                   onClick={() => handleOpenUpdateModal(cls)}
                   className='bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700 mr-2'
