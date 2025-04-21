@@ -45,5 +45,8 @@ router.delete("/deleteUser/:id", adminController.deleteUser);
 router.delete("/deleteStudent/:id", adminController.deleteStudent);
 router.delete('/deleteComplains/:id', adminController.deleteComplain);
 
+router.get('/enrollmentRequests', adminController.getEnrollmentRequests);
+router.post('/handleEnrollment/:requestID', adminController.handleEnrollmentRequest);
+
 
 module.exports = router;

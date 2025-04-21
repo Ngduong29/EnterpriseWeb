@@ -1,6 +1,7 @@
 const Classroom = require("../models/Class");
 const Student = require("../models/Student");
 const Tutor = require("../models/Tutor");
+const connectDB = require("../config/db");
 
 class studentController {
   static requestClass = async (req, res) => {
@@ -197,7 +198,7 @@ class studentController {
   static enrollClass = async (req, res) => {
     try {
       const classID = req.params.id;
-      const { studentID } = req.body;
+      const { studentID, message } = req.body;
 
       const student = await Student.findStudentByID(studentID);
       if (!student) {
@@ -207,31 +208,37 @@ class studentController {
       }
 
       const classroom = await Student.findClassByID(classID);
-      if (classroom.studentID) {
-        return res.status(409).json({
-          message: "Cannot enroll because there's still a student in the class",
+      if (!classroom) {
+        return res.status(404).json({
+          message: "Cannot found class",
         });
       }
+
       if (!classroom.isActive) {
         return res.status(409).json({
           message: "Cannot enroll because the class is deleted",
         });
       }
 
-      let data = await Student.enrollClasses(classID, studentID);
-      if (!data) {
-        return res.status(404).json({
-          message: "Cannot enroll!",
+      // Kiểm tra xem sinh viên đã có yêu cầu đang chờ xử lý cho lớp học này chưa
+      const existingRequest = await Student.checkExistingEnrollRequest(classID, studentID);
+      if (existingRequest) {
+        return res.status(409).json({
+          message: "You already have a pending enrollment request for this class",
         });
       }
+
+      // Gửi yêu cầu đăng ký thay vì đăng ký trực tiếp
+      const data = await Student.createEnrollmentRequest(classID, studentID, message || "");
+
       res.status(200).json({
-        message: "Enroll class success",
+        message: "Enrollment request sent successfully, awaiting admin approval",
         data,
       });
     } catch (error) {
       console.log(error);
       res.status(500).json({
-        message: "error in enroll classes",
+        message: "Error in enrollment request",
         error,
       });
     }
@@ -281,6 +288,126 @@ class studentController {
     }
   };
 
+  // Trong studentController.js
+  static checkActiveEnrollment = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      const studentID = req.params.studentID;
+
+      if (!classID || !studentID) {
+        return res.status(400).json({
+          message: "Class ID and Student ID are required"
+        });
+      }
+
+      const isActive = await Classroom.isStudentEnrolled(classID, studentID);
+
+      return res.status(200).json({
+        isActive: isActive
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Cannot check active enrollment status",
+        error
+      });
+    }
+  };
+
+  // Kiểm tra feedback đã tồn tại
+  static checkExistingFeedback = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      const studentID = req.params.studentID;
+
+      if (!classID || !studentID) {
+        return res.status(400).json({
+          message: "Class ID and Student ID are required"
+        });
+      }
+
+      const connection = await connectDB();
+      const [rows] = await connection.execute(
+        `SELECT * FROM Feedbacks WHERE classID = ? AND studentID = ?`,
+        [classID, studentID]
+      );
+
+      return res.status(200).json({
+        exists: rows.length > 0,
+        data: rows.length > 0 ? rows[0] : null
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error checking feedback existence",
+        error
+      });
+    }
+  };
+
+  // Cập nhật feedback hiện có
+  static updateFeedback = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      const { studentID, message, rating } = req.body;
+      const date = new Date().toISOString();
+
+      const classroom = await Student.findClassByID(classID);
+
+      // Cập nhật feedback
+      const data = await Student.updateExistingFeedback(
+        classroom.tutorID,
+        studentID,
+        classID,
+        message,
+        rating,
+        date
+      );
+
+      if (!data) {
+        return res.status(404).json({
+          message: "Cannot update feedback!",
+        });
+      }
+
+      res.status(200).json({
+        message: "Feedback updated!",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error updating feedback",
+        error,
+      });
+    }
+  };
+
+  static getFeedbackByClass = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+
+      if (!classID) {
+        return res.status(400).json({
+          message: "Class ID is required"
+        });
+      }
+
+      const feedbacks = await Student.getFeedbackByClass(classID);
+
+      return res.status(200).json({
+        message: "Feedbacks retrieved successfully",
+        data: feedbacks
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error retrieving feedbacks",
+        error
+      });
+    }
+  };
+
   static feedbackClass = async (req, res) => {
     try {
       const classID = req.params.classID;
@@ -288,18 +415,25 @@ class studentController {
       let { date } = req.body;
 
       if (!date) {
-        date = new Date(now());
+        date = new Date().toISOString();
       }
 
       const classroom = await Student.findClassByID(classID);
-      if (classroom.studentID != studentID) {
-        return res.status(409).json({
-          message:
-            "Cannot send feedback because you are not the student in that class",
+      if (!classroom) {
+        return res.status(404).json({
+          message: "Class not found",
         });
       }
 
-      let data = await Student.sendFeedback(classroom, message, rating, date);
+      // Kiểm tra xem học sinh có đăng ký lớp này không (đã tách sang model)
+      const isEnrolled = await Student.checkStudentEnrolled(classID, studentID);
+      if (!isEnrolled) {
+        return res.status(403).json({
+          message: "You must be enrolled in this class to provide feedback",
+        });
+      }
+
+      let data = await Student.sendFeedback(classroom, studentID, message, rating);
       if (!data) {
         return res.status(404).json({
           message: "Cannot send feedback!",
@@ -372,7 +506,7 @@ class studentController {
       res.status(500).json({
         message: "Error getting student classes",
         error: error.message
-      }); 
+      });
     }
   };
 }

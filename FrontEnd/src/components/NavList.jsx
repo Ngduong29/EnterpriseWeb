@@ -20,6 +20,10 @@ function NavList() {
       path: '/admin-portal-class'
     },
     {
+      title: 'Manage Student',
+      path: '/admin-portal-student'
+    },
+    {
       title: 'Manage Request',
       path: '/admin-portal-tutor-request'
     },

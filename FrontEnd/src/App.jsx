@@ -24,6 +24,7 @@ import AdminPortalComplaints from './views/AdminPortalComplaints'
 import StudentBlogs from './views/Blogs/StudentBlogs'
 import BlogDetail from './views/Blogs/BlogDetails'
 import ClassroomStream from './views/Streams/ClassroomStream';
+import AdminStudentRequests from './views/AdminStudentRequest'
 
 import Reset from './views/Reset'
 import OTPinput from './views/OTPInput'
@@ -54,6 +55,7 @@ const App = () => {
             <Route path='/admin-portal' element={<AdminPortal />} />
             <Route path='/admin-portal-class' element={<AdminPortalClass />} />
             <Route path='/admin-portal-complaints' element={<AdminPortalComplaints />} />
+            <Route path='/admin-portal-student' element={<AdminStudentRequests />} />
             <Route path='/admin-feedback' element={<FeedbackManagement />} />
 
             <Route path='/tutor-profile/:id' element={<ViewTutorProfile />} />

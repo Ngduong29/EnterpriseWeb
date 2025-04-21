@@ -24,14 +24,18 @@ router.get("/blogs/getMostRecentBlogs", blogController.getMostRecentBlogs);
 router.get('/blogs/:id', blogController.getOne);
 router.get("/viewRequest/:studentID", studentController.viewRequest);
 router.get("/blogs/author/:authorId", blogController.getBlogsByAuthorId);
+router.get("/checkFeedback/:classID/:studentID", studentController.checkExistingFeedback);
+router.get("/getFeedbackByClass/:classID", studentController.getFeedbackByClass);
 
 // Post
 router.post("/enrollClass/:id", studentController.enrollClass);
 router.post("/unEnrollClass/:id", studentController.unEnrollClass);
+router.get("/checkActiveEnrollment/:classID/:studentID", studentController.checkActiveEnrollment);
 router.post("/feedback/:classID", studentController.feedbackClass);
 router.post("/requestClass/:tutorID", studentController.requestClass);
 router.post('/blogs/', blogController.create);
 router.post('/comment/', blogController.addComment);
+router.post("/updateFeedback/:classID", studentController.updateFeedback);
 
 
 // Put
