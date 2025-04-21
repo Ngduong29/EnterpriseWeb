@@ -21,6 +21,11 @@ const AdminPortalClass = () => {
   const [classesPerPage, setClassesPerPage] = useState(10)
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
 
+  const [students, setStudents] = useState([])
+  const [selectedStudents, setSelectedStudents] = useState([])
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false)
+  const [currentClassForStudents, setCurrentClassForStudents] = useState(null)
+
   // Form data cho class
   const [formData, setFormData] = useState({
     className: '',
@@ -46,6 +51,17 @@ const AdminPortalClass = () => {
   }
 
   useEffect(() => {
+    const mockStudents = [
+      { id: 1, fullName: 'Nguyễn Văn A', email: 'nguyenvana@example.com' },
+      { id: 2, fullName: 'Trần Thị B', email: 'tranthib@example.com' },
+      { id: 3, fullName: 'Lê Văn C', email: 'levanc@example.com' },
+      { id: 4, fullName: 'Phạm Thị D', email: 'phamthid@example.com' },
+      { id: 5, fullName: 'Hoàng Văn E', email: 'hoangvane@example.com' },
+      { id: 6, fullName: 'Ngô Thị F', email: 'ngothif@example.com' },
+      { id: 7, fullName: 'Đỗ Văn G', email: 'dovang@example.com' },
+      { id: 8, fullName: 'Vũ Thị H', email: 'vuthih@example.com' },
+    ]
+    setStudents(mockStudents)
     fetchClasses()
     fetchTutors()
 
@@ -173,6 +189,39 @@ const AdminPortalClass = () => {
   const closeModal = () => {
     setIsModalOpen(false)
     setEditingClass(null)
+  }
+
+  const openStudentModal = (classItem) => {
+    setCurrentClassForStudents(classItem)
+    setSelectedStudents([])
+    setIsStudentModalOpen(true)
+  }
+
+  const closeStudentModal = () => {
+    setIsStudentModalOpen(false)
+    setCurrentClassForStudents(null)
+  }
+
+  const handleSelectStudent = (student) => {
+    const isAlreadySelected = selectedStudents.some(s => s.id === student.id)
+    
+    if (isAlreadySelected) {
+      setSelectedStudents(selectedStudents.filter(s => s.id !== student.id))
+    } else {
+      setSelectedStudents([...selectedStudents, student])
+    }
+  }
+
+  const removeSelectedStudent = (studentId) => {
+    setSelectedStudents(selectedStudents.filter(student => student.id !== studentId))
+  }
+
+  const handleSubmitStudents = (e) => {
+    e.preventDefault()
+    // Ở đây sẽ là logic gửi API
+    console.log(`Thêm các học sinh sau vào lớp ${currentClassForStudents?.className}:`, selectedStudents)
+    toast.success(`Đã thêm ${selectedStudents.length} học sinh vào lớp thành công`)
+    closeStudentModal()
   }
 
   const handleSubmit = async (e) => {

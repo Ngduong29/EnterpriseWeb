@@ -27,6 +27,54 @@ class adminController {
       });
     }
   };
+  
+  static getEnrollmentRequests = async (req, res) => {
+    try {
+      const requests = await Student.getAllEnrollmentRequests();
+      res.status(200).json({
+        message: "Enrollment requests retrieved successfully",
+        data: requests
+      });
+    } catch (error) {
+      console.error("Error getting enrollment requests:", error);
+      res.status(500).json({
+        message: "Error retrieving enrollment requests",
+        error: error.message
+      });
+    }
+  };
+
+  static handleEnrollmentRequest = async (req, res) => {
+    try {
+      const { requestID } = req.params;
+      const { status, adminComment } = req.body;
+
+      if (!requestID || !status) {
+        return res.status(400).json({
+          message: "Request ID and status are required"
+        });
+      }
+
+      if (status !== 'Accept' && status !== 'Deny') {
+        return res.status(400).json({
+          message: "Status must be either 'Accept' or 'Deny'"
+        });
+      }
+
+      const result = await Student.handleEnrollmentRequest(requestID, status, adminComment);
+
+      res.status(200).json({
+        message: `Enrollment request ${status === 'Accept' ? 'approved' : 'denied'} successfully`,
+        data: result
+      });
+    } catch (error) {
+      console.error("Error handling enrollment request:", error);
+      res.status(500).json({
+        message: "Error handling enrollment request",
+        error: error.message
+      });
+    }
+  };
 
   static getActiveUserByMonthAndYear = async (req, res) => {
     try {
@@ -116,11 +164,11 @@ class adminController {
       if (status == "Accept") {
         // Update TutorRequests status
         const statusUpdated = await User.updateRequestStatus(userID, "Accept");
-        
+
         // Update Tutor status and unban user
         const tutorStatusUpdated = await Tutor.updateTutorStatus(userID, "Accept");
         const userUnbanned = await User.unbanUser(userID);
-        
+
         if (!statusUpdated || !tutorStatusUpdated || !userUnbanned) {
           return res.status(500).json({
             message: "Error in confirming tutor",
@@ -130,7 +178,7 @@ class adminController {
         // Send approval email
         const user = await User.findUserByID(userID);
         console.log("User data for email:", user);
-      
+
         if (user && user.email) {
           try {
             await sendApprovalEmail(user.email);
@@ -148,7 +196,7 @@ class adminController {
         // Update both TutorRequests and Tutor status
         const statusUpdated = await User.updateRequestStatus(userID, "Deny");
         const tutorStatusUpdated = await Tutor.updateTutorStatus(userID, "Deny");
-        
+
         if (!statusUpdated || !tutorStatusUpdated) {
           return res.status(500).json({
             message: "Error in rejecting tutor",
@@ -156,7 +204,7 @@ class adminController {
         }
 
         const user = await User.findUserByID(userID);
-        
+
         if (user && user.email) {
           try {
             await sendDenialEmail(user.email);
@@ -165,7 +213,7 @@ class adminController {
             console.error("Error sending email:", emailError);
           }
         }
-        
+
         return res.status(200).json({
           message: "Tutor Rejected",
           user: user
@@ -459,7 +507,6 @@ class adminController {
       });
     }
   };
-
 }
 
 module.exports = adminController;

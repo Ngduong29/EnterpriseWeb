@@ -23,6 +23,7 @@ const ClassDetail = () => {
   const [showVideo, setShowVideo] = useState(false)
   const [classData, setClassData] = useState({})
   const [isEnrolled, setIsEnrolled] = useState(false)
+  const [isActiveStudent, setIsActiveStudent] = useState(false)
   const [showFeedbackForm, setShowFeedbackForm] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [feedbacks, setFeedbacks] = useState([])
@@ -33,11 +34,13 @@ const ClassDetail = () => {
   const navigate = useNavigate()
   const { user } = useContext(AuthContext)
   const chatBoxRef = useRef()
+
   useEffect(() => {
     if (id) {
       fetchSearchData()
     }
   }, [id])
+
   const fetchSearchData = async () => {
     setLoading(true)
     try {
@@ -50,6 +53,7 @@ const ClassDetail = () => {
       setLoading(false)
     }
   }
+
   const fetchClass = async () => {
     try {
       const response = await makeGet(`users/getClass/${id}`)
@@ -63,17 +67,34 @@ const ClassDetail = () => {
   const fetchFeedbacks = async () => {
     try {
       const response = await makeGet(`students/getFeedbackByClass/${id}`)
-      setFeedbacks(response?.data || [])
+      if (response && response.data) {
+        setFeedbacks(response.data || [])
+      } else {
+        setFeedbacks([])
+      }
     } catch (error) {
       console.error('Error fetching feedbacks:', error)
+      setFeedbacks([])
     }
   }
 
   const checkEnrollmentStatus = async () => {
     try {
       if (user && user.role === 'Student') {
-        const response = await makeGet(`students/checkEnroll/${id}`)
-        if (response && (response.status === 'true' || response.status === true)) {
+        // Check if student is enrolled in the class
+        const studentID = user.studentID
+
+        // Check enrollment status through Class_Students table
+        try {
+          const response = await makeGet(`students/checkActiveEnrollment/${id}/${studentID}`)
+          setIsActiveStudent(response?.isActive || false)
+        } catch (err) {
+          setIsActiveStudent(false)
+        }
+
+        // Keep old check
+        const enrollResponse = await makeGet(`students/checkEnroll/${id}`)
+        if (enrollResponse && (enrollResponse.status === 'true' || enrollResponse.status === true)) {
           setIsEnrolled(true)
         } else {
           setIsEnrolled(false)
@@ -99,11 +120,13 @@ const ClassDetail = () => {
       const decodedToken = jwtDecode(token)
       if (decodedToken.user.role == 'Student') {
         const studentID = decodedToken.user.studentID
+        // Change API function call
         await makePost(`students/enrollClass/${classData.classID}`, {
-          studentID
+          studentID,
+          message: "I would like to join this class" // Optional message
         })
-        setIsEnrolled(true)
-        toast.success('Successfully enrolled in the class')
+        // Change notification
+        toast.success('Enrollment request sent. Please wait for admin approval.')
         if (chatBoxRef.current) {
           chatBoxRef.current.refreshUsers()
         }
@@ -119,7 +142,7 @@ const ClassDetail = () => {
       }
     } catch (error) {
       console.error('Error enrolling in class:', error)
-      toast.error(error.response.data.message || 'Failed to enroll in class. Please try again.')
+      toast.error(error.response?.data?.message || 'Failed to enroll in class. Please try again.')
     }
   }
 
@@ -131,25 +154,30 @@ const ClassDetail = () => {
     try {
       const token = localStorage.getItem('token')
       if (!token) {
-        console.log('User is not logged in')
+        toast.error('You need to log in to provide feedback')
         return
       }
+
       const decodedToken = jwtDecode(token)
       const studentID = decodedToken.user.studentID
+
       const response = await makePost(`students/feedback/${id}`, {
         studentID,
         message: feedbackMessage,
         rating,
-        date: new Date().toISOString(),
-        isEnrolled: true // Automatically set isEnrolled to true for enrolled students
+        date: new Date().toISOString()
       })
-      setFeedbacks([...feedbacks, response.data])
-      setFeedbackMessage('')
-      fetchFeedbacks()
-      setShowFeedbackForm(false)
-      fetchClass()
+
+      if (response.data) {
+        toast.success('Feedback submitted successfully')
+        setFeedbackMessage('')
+        setShowFeedbackForm(false)
+        fetchFeedbacks()
+        fetchClass()
+      }
     } catch (error) {
       console.error('Error saving feedback:', error)
+      toast.error(error.response?.data?.message || 'Failed to save feedback. Please try again.')
     }
   }
 
@@ -202,12 +230,15 @@ const ClassDetail = () => {
     return <Loading />
   }
 
-  // Tạo breadcrumbs với đường dẫn đúng
+  // Create breadcrumbs with the correct path
   const breadcrumbs = [
     { name: 'Home', path: '/' },
     { name: 'ClassList', path: '/ClassList' },
-    { name: classData?.className || 'Class Detail', path: '#' } // Trang hiện tại
+    { name: classData?.className || 'Class Detail', path: '#' } // Current page
   ]
+
+  // Determine whether to display the Enroll button
+  const showEnrollButton = !isActiveStudent;
 
   return (
     <div className='min-h-screen bg-gray-100 p-4 pt-12'>
@@ -289,10 +320,20 @@ const ClassDetail = () => {
                       <strong>Price per hour:</strong> {formatVND(classData.price)} VND
                     </Typography>
                     <div className='flex gap-4'>
-                      <Button className='w-50' onClick={handleEnrollNow} disabled={isEnrolled || showFeedbackForm}>
-                        {isEnrolled ? 'Enrolled' : 'Enroll now'}
-                      </Button>
-                      {isEnrolled && (
+                      {showEnrollButton && (
+                        <Button className='w-50' onClick={handleEnrollNow} disabled={isEnrolled || showFeedbackForm}>
+                          {isEnrolled ? 'Enrolled' : 'Enroll now'}
+                        </Button>
+                      )}
+                      {isActiveStudent && (
+                        <Button
+                          className='w-50 bg-green-500'
+                          disabled={true}
+                        >
+                          Already Enrolled
+                        </Button>
+                      )}
+                      {isActiveStudent && (
                         <Button
                           className='w-50'
                           onClick={showFeedbackForm ? handleCloseFeedbackForm : handleGiveFeedback}
@@ -332,31 +373,38 @@ const ClassDetail = () => {
                   <Typography variant='h3' className='mb-2'>
                     All reviews
                   </Typography>
-                  {feedbacks.map((feedback, index) => (
-                    <Card key={index} className='p-3 mb-3'>
-                      <div className='flex items-center mb-2'>
-                        <CircularImg
-                          avatar={
-                            feedback.studentAvatar ||
-                            'https://cdn.iconscout.com/icon/free/png-256/free-incognito-6-902117.png?f=webp&w=256'
-                          }
-                        />
-                        <div className='ml-2'>
-                          <Typography variant='paragraph'>
-                            <span style={{ fontWeight: 'bold' }}>{feedback.studentName}</span>
-                          </Typography>
-                          <Typography tag='h3' className='text-gray-500'>
-                            {new Date(feedback.date).toLocaleDateString()}
-                          </Typography>
-                          <Typography tag='h3' className='text-gray-500'>
-                            {renderStars(feedback.rating)} {/* Render stars for feedback rating */}
-                          </Typography>
-                          <Typography variant='paragraph'>{feedback.message}</Typography>
+                  {feedbacks && feedbacks.length > 0 ? (
+                    feedbacks.map((feedback, index) => (
+                      <Card key={index} className='p-3 mb-3'>
+                        <div className='flex items-center mb-2'>
+                          <CircularImg
+                            avatar={
+                              feedback.studentAvatar ||
+                              'https://cdn.iconscout.com/icon/free/png-256/free-incognito-6-902117.png?f=webp&w=256'
+                            }
+                          />
+                          <div className='ml-2'>
+                            <Typography variant='paragraph'>
+                              <span style={{ fontWeight: 'bold' }}>{feedback.studentName}</span>
+                            </Typography>
+                            <Typography tag='h3' className='text-gray-500'>
+                              {new Date(feedback.feedbackDate).toLocaleDateString()}
+                            </Typography>
+                            <Typography tag='h3' className='text-gray-500'>
+                              {renderStars(feedback.rating)}
+                            </Typography>
+                            <Typography variant='paragraph'>{feedback.message}</Typography>
+                          </div>
                         </div>
-                      </div>
-                      {/* <Typography variant='paragraph'>{feedback.message}</Typography> */}
-                    </Card>
-                  ))}
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center p-4">
+                      <Typography variant="paragraph" className="text-gray-500">
+                        No reviews yet. Be the first to leave a review!
+                      </Typography>
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             </div>

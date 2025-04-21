@@ -14,6 +14,89 @@ class Student {
     this.school = school;
   }
 
+  // Kiểm tra yêu cầu đăng ký tồn tại
+  static async checkExistingEnrollRequest(classID, studentID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM StudentEnrollmentRequests 
+     WHERE classID = ? AND studentID = ? AND status = 'Pending'`,
+      [classID, studentID]
+    );
+    return rows.length > 0;
+  }
+
+  // Tạo yêu cầu đăng ký mới
+  static async createEnrollmentRequest(classID, studentID, message) {
+    const connection = await connectDB();
+    await connection.execute(
+      `INSERT INTO StudentEnrollmentRequests (classID, studentID, message, status) 
+     VALUES (?, ?, ?, 'Pending')`,
+      [classID, studentID, message]
+    );
+
+    // Lấy thông tin chi tiết về yêu cầu đăng ký vừa tạo
+    const [rows] = await connection.execute(
+      `SELECT r.*, c.className, u.fullName as studentName, 
+            t.tutorID, tu.fullName as tutorName
+     FROM StudentEnrollmentRequests r
+     JOIN Classes c ON r.classID = c.classID
+     JOIN Students s ON r.studentID = s.studentID
+     JOIN Users u ON s.userID = u.userID
+     JOIN Tutors t ON c.tutorID = t.tutorID
+     JOIN Users tu ON t.userID = tu.userID
+     WHERE r.classID = ? AND r.studentID = ? 
+     ORDER BY r.requestDate DESC LIMIT 1`,
+      [classID, studentID]
+    );
+
+    return rows[0];
+  }
+
+  // Lấy danh sách tất cả các yêu cầu đăng ký
+  static async getAllEnrollmentRequests() {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT r.*, c.className, u.fullName as studentName, 
+            t.tutorID, tu.fullName as tutorName
+     FROM StudentEnrollmentRequests r
+     JOIN Classes c ON r.classID = c.classID
+     JOIN Students s ON r.studentID = s.studentID
+     JOIN Users u ON s.userID = u.userID
+     JOIN Tutors t ON c.tutorID = t.tutorID
+     JOIN Users tu ON t.userID = tu.userID
+     ORDER BY r.requestDate DESC`
+    );
+    return rows;
+  }
+
+  // Xử lý yêu cầu đăng ký
+  static async handleEnrollmentRequest(requestID, status, adminComment) {
+    const connection = await connectDB();
+
+    // Cập nhật trạng thái yêu cầu
+    await connection.execute(
+      `UPDATE StudentEnrollmentRequests 
+     SET status = ?, adminComment = ? 
+     WHERE requestID = ?`,
+      [status, adminComment || null, requestID]
+    );
+
+    // Nếu được chấp nhận, thực hiện đăng ký cho học sinh
+    if (status === 'Accept') {
+      const [requestData] = await connection.execute(
+        `SELECT classID, studentID FROM StudentEnrollmentRequests WHERE requestID = ?`,
+        [requestID]
+      );
+
+      if (requestData.length > 0) {
+        const { classID, studentID } = requestData[0];
+        await this.enrollClasses(classID, studentID);
+      }
+    }
+
+    return { requestID, status };
+  }
+
   static async createStudentID() {
     const connection = await connectDB();
     const [rows] = await connection.execute(
@@ -149,33 +232,163 @@ class Student {
 
   static async enrollClasses(classID, studentID) {
     const connection = await connectDB();
+
+    try {
+      // Kiểm tra xem bản ghi đã tồn tại chưa
+      const [existingRows] = await connection.execute(
+        `SELECT * FROM Class_Students WHERE classID = ? AND studentID = ?`,
+        [classID, studentID]
+      );
+
+      if (existingRows.length > 0) {
+        // Nếu bản ghi đã tồn tại, cập nhật trạng thái thành 'Active'
+        await connection.execute(
+          `UPDATE Class_Students SET status = 'Active' WHERE classID = ? AND studentID = ?`,
+          [classID, studentID]
+        );
+      } else {
+        // Nếu bản ghi chưa tồn tại, thêm mới
+        await connection.execute(
+          `INSERT INTO Class_Students (classID, studentID, status) VALUES (?, ?, 'Active')`,
+          [classID, studentID]
+        );
+      }
+
+      return await this.findClassByID(classID);
+    } catch (error) {
+      console.error("Error in enrollClasses:", error);
+      throw error;
+    }
+  }
+
+  static async unEnrollClasses(classID, studentID) {
+    const connection = await connectDB();
     await connection.execute(
-      `UPDATE Classes SET studentID = ? WHERE classID = ?`,
-      [studentID, classID]
+      `UPDATE Class_Students SET status = 'Dropped' WHERE classID = ? AND studentID = ?`,
+      [classID, studentID]
     );
     return await this.findClassByID(classID);
   }
 
-  static async unEnrollClasses(classID) {
+  // Kiểm tra xem học sinh có đăng ký vào lớp học không
+  static async checkStudentEnrolled(classID, studentID) {
     const connection = await connectDB();
-    await connection.execute(
-      `UPDATE Classes SET studentID = NULL WHERE classID = ?`,
+    const [rows] = await connection.execute(
+      `SELECT * FROM Class_Students WHERE classID = ? AND studentID = ? AND status = 'Active'`,
+      [classID, studentID]
+    );
+    return rows.length > 0;
+  }
+
+  static async getFeedbackByClass(classID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT f.*, u.fullName as studentName, u.avatar as studentAvatar
+       FROM Feedbacks f
+       JOIN Students s ON f.studentID = s.studentID
+       JOIN Users u ON s.userID = u.userID
+       WHERE f.classID = ?
+       ORDER BY f.feedbackDate DESC`,
       [classID]
     );
-    return await this.findClassByID(classID);
+    return rows;
   }
 
-  static async sendFeedback(classroom, message, rating, date) {
+  static async updateExistingFeedback(tutorID, studentID, classID, message, rating, date) {
     const connection = await connectDB();
+
+    // Cập nhật feedback hiện có
     await connection.execute(
-      `INSERT INTO Feedbacks (tutorID, studentID, classID, message, rating, feedbackDate) VALUES (?, ?, ?, ?, ?, ?)`,
+      `UPDATE Feedbacks 
+       SET message = ?, rating = ?, feedbackDate = ? 
+       WHERE tutorID = ? AND studentID = ? AND classID = ?`,
+      [message, rating, date, tutorID, studentID, classID]
+    );
+
+    // Cập nhật rating trung bình của tutor
+    const [avgRows] = await connection.execute(
+      `SELECT ROUND(AVG(rating), 1) AS avg_rating FROM Feedbacks WHERE tutorID = ?`,
+      [tutorID]
+    );
+
+    const avgRating = avgRows[0]?.avg_rating?.toString() || "0.0";
+    await connection.execute(`UPDATE Tutors SET rating = ? WHERE tutorID = ?`, [
+      avgRating,
+      tutorID,
+    ]);
+
+    return { tutorID, studentID, classID, message, rating, date };
+  }
+
+
+  // Kiểm tra xem học sinh đã gửi feedback cho lớp học chưa
+  static async checkExistingFeedback(classID, studentID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM Feedbacks WHERE classID = ? AND studentID = ?`,
+      [classID, studentID]
+    );
+    return {
+      exists: rows.length > 0,
+      data: rows.length > 0 ? rows[0] : null
+    };
+  }
+
+  static async updateFeedback(tutorID, studentID, classID, message, rating) {
+    const connection = await connectDB();
+
+    await connection.execute(
+      `UPDATE Feedbacks 
+       SET message = ?, rating = ?
+       WHERE classID = ? AND studentID = ?`,
+      [message, rating, classID, studentID]
+    );
+
+    // Cập nhật rating trung bình của tutor
+    await this.updateTutorRating(tutorID);
+
+    return { tutorID, studentID, classID, message, rating };
+  }
+
+  // Cập nhật rating của tutor
+  static async updateTutorRating(tutorID) {
+    const connection = await connectDB();
+    const [avgRows] = await connection.execute(
+      `SELECT ROUND(AVG(rating), 1) AS avg_rating FROM Feedbacks WHERE tutorID = ?`,
+      [tutorID]
+    );
+    const avgRating = avgRows[0]?.avg_rating?.toString() || "0.0";
+    await connection.execute(
+      `UPDATE Tutors SET rating = ? WHERE tutorID = ?`,
+      [avgRating, tutorID]
+    );
+    return avgRating;
+  }
+
+  static async sendFeedback(classroom, studentID, message, rating) {
+    const connection = await connectDB();
+    // Kiểm tra feedback đã tồn tại chưa
+    const feedbackCheck = await this.checkExistingFeedback(classroom.classID, studentID);
+
+    if (feedbackCheck.exists) {
+      // Nếu đã tồn tại, cập nhật feedback
+      return await this.updateFeedback(
+        classroom.tutorID,
+        studentID,
+        classroom.classID,
+        message,
+        rating
+      );
+    }
+
+    await connection.execute(
+      `INSERT INTO Feedbacks (tutorID, studentID, classID, message, rating) VALUES (?, ?, ?, ?, ?)`,
       [
         classroom.tutorID,
-        classroom.studentID,
+        studentID,
         classroom.classID,
         message,
         rating,
-        date,
       ]
     );
     const [avgRows] = await connection.execute(
@@ -187,7 +400,7 @@ class Student {
       avgRating,
       classroom.tutorID,
     ]);
-    return { classroom, message, rating, date };
+    return { classroom, studentID, message, rating };
   }
 
   // Delete a student and all associated data
@@ -278,5 +491,7 @@ class Student {
     }
   }
 }
+
+
 
 module.exports = Student;
