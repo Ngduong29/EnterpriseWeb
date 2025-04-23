@@ -15,6 +15,11 @@ router.get("/viewFeedback/:classID", classController.getFeedbackByClass);
 router.get("/check-status/:id", tutorController.checkTutorStatus);
 router.get('/blogs/', blogController.getAll);
 router.get('/blogs/:id', blogController.getOne);
+router.get("/getDocuments/:classID", classController.getDocumentsByClassID);
+router.get("/insertDocument/:classID", classController.insertDocument);
+
+router.get("/updateDocument/:documentID", classController.updateDocument);
+router.get("/getDocument/:documentID", classController.getDocumentByID);
 
 // Post
 router.post("/createClasses", tutorController.createClasses);
@@ -27,5 +32,6 @@ router.put("/activeClasses/:id", tutorController.activeClasses);
 // Delete
 router.delete("/deleteClasses/:id", tutorController.deleteClasses);
 router.delete("/confirmRequest", tutorController.confirmRequest);
+router.delete("/deleteDocument/:documentID", classController.deleteDocument);
 
 module.exports = router;

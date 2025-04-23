@@ -25,6 +25,50 @@ class Classroom {
     return rows;
   }
 
+  static async getDocumentsByClassID(classID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM Class_Documents WHERE classID = ?`,
+      [classID]
+    );
+    return rows;
+  }
+  
+  static async insertDocument(classID, documentTitle, documentLink) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `INSERT INTO Class_Documents (classID, documentTitle, documentLink) VALUES (?, ?, ?)`,
+      [classID, documentTitle, documentLink]
+    );
+    return rows;
+  }
+  
+  static async deleteDocument(documentID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `DELETE FROM Class_Documents WHERE documentID = ?`,
+      [documentID]
+    );
+  } 
+
+  static async updateDocument(documentID, documentTitle, documentLink) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `UPDATE Class_Documents SET documentTitle = ?, documentLink = ? WHERE documentID = ?`,
+      [documentTitle, documentLink, documentID]
+    );
+    return rows;
+  } 
+
+  static async getDocumentByID(documentID) {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM Class_Documents WHERE documentID = ?`,
+      [documentID]
+    );
+  }
+
+  
   // Get all active classes with tutor information
   static async getAllClass() {
     const connection = await connectDB();
