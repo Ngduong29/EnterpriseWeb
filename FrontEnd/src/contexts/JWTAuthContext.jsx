@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useReducer } from 'react'
 import { loginUser, registerStudent, registerTutor, fetchUserProfile } from '../apiService/api'
 import Loading from '../components/Loading'
+import supabase from '../apiService/supabase'
 
 const initialState = {
   user: null,
@@ -21,8 +22,13 @@ const reducer = (state, action) => {
       return { ...state, isAuthenticated: true, user }
     }
     case 'LOGOUT': {
-      localStorage.removeItem('token') // Remove token from localStorage on logout
-      localStorage.removeItem('role')
+      const { error } = supabase.auth.signOut()
+      if (error) {
+        console.log('There was an error logging out', error)
+      } else {
+        localStorage.removeItem('token') // Remove token from localStorage on logout
+        localStorage.removeItem('role')
+      }
       return { ...state, isAuthenticated: false, user: null }
     }
 

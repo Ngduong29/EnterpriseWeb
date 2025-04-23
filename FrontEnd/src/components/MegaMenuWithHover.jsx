@@ -12,6 +12,7 @@ export function MegaMenuWithHover() {
   const [openSearch, setOpenSearch] = useState(false)
   const [openNav, setOpenNav] = useState(false)
   const { user, isAuthenticated } = useContext(AuthContext)
+
   useEffect(() => {
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenNav(false))
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenSearch(false))
@@ -64,11 +65,6 @@ export function MegaMenuWithHover() {
           <NavList isAuthenticated={isAuthenticated} />
         </Collapse>
       </div>
-      {isAuthenticated && (
-        <div>
-          <ChatBox ref={chatRef} />
-        </div>
-      )}
     </>
   )
 }

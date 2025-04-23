@@ -326,7 +326,14 @@ const ClassManagement = () => {
             >
               <div className='mb-2 text-left w-full'>
                 <h2 className='text-lg font-bold'>{cls.className}</h2>
-                <p className='text-sm'>Subject: {cls.subject}</p>
+                <p className='text-sm mb-2'>Subject: {cls.subject}</p>
+                <Link
+                  to={`/class-documents/${cls.classID}`}
+                  className='hover:text-orange-600 pr-2 py-1 rounded text-blue-500 text-sm'
+                >
+                  <i className='fa-solid fa-folder-open mr-1'></i>
+                  <span>Documents</span>
+                </Link>
               </div>
               <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}
@@ -334,13 +341,13 @@ const ClassManagement = () => {
                   to={`/my-classes/${cls.classID}/blogs`}
                   className='bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2'
                 >
-                  <span>Go to Blogs</span>
+                  <span>Blogs</span>
                 </Link>
                 <Link
                   to={`/my-classes/${cls.classID}/stream`}
                   className='bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2'
                 >
-                  View Stream
+                  Stream
                 </Link>
                 <button
                   onClick={() => handleOpenUpdateModal(cls)}
