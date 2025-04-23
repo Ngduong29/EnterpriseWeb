@@ -87,6 +87,21 @@ CREATE TABLE `Assignment_Files` (
 --
 -- Dumping data for table `Assignment_Files`
 --
+-- Table structure for table `Class_Documents`
+DROP TABLE IF EXISTS `Class_Documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Class_Documents` (
+  `documentID` int NOT NULL AUTO_INCREMENT,
+  `classID` int NOT NULL,
+  `documentTitle` varchar(255) NOT NULL,
+  `documentLink` text,
+  `uploadedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`documentID`),
+  KEY `classID` (`classID`),
+  CONSTRAINT `Class_Documents_ibfk_1` FOREIGN KEY (`classID`) REFERENCES `Classes` (`classID`) ON DELETE CASCADE,
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `Assignment_Files` WRITE;
 /*!40000 ALTER TABLE `Assignment_Files` DISABLE KEYS */;

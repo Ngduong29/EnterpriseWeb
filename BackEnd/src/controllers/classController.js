@@ -82,6 +82,151 @@ class classController {
     }
   };
 
+  static getDocumentsByClassID = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      if (!classID) {
+        return res.status(404).json({     
+          message: "Please provide class id",
+        });
+      }
+
+      const data = await Classroom.getDocumentsByClassID(classID);
+      if (!data) {  
+        return res.status(404).json({
+          message: "Cannot find documents",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Found documents",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in get documents by class id in Server",
+        error,
+      });
+    }
+  };
+
+  static insertDocument = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      if (!classID) {
+        return res.status(404).json({
+          message: "Please provide class id",
+        });
+      }
+
+      const data = await Classroom.insertDocument(classID);
+      if (!data) {  
+        return res.status(404).json({
+          message: "Cannot insert document",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Document inserted",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in insert document in Server",
+        error,
+      });
+    }
+  };  
+
+  static deleteDocument = async (req, res) => {
+    try {
+      const documentID = req.params.documentID;
+      if (!documentID) {
+        return res.status(404).json({
+          message: "Please provide document id",
+        });
+      }
+
+      const data = await Classroom.deleteDocument(documentID);
+      if (!data) {
+        return res.status(404).json({
+          message: "Cannot delete document",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Document deleted",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in delete document in Server",
+        error,
+      });
+    }
+  };
+
+  static updateDocument = async (req, res) => {
+    try {
+      const documentID = req.params.documentID;
+      if (!documentID) {
+        return res.status(404).json({
+          message: "Please provide document id",
+        });
+      }
+
+      const data = await Classroom.updateDocument(documentID, documentTitle, documentLink);
+      if (!data) {
+        return res.status(404).json({
+          message: "Cannot update document",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Document updated",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in update document in Server",
+        error,
+      });
+    }
+  };  
+
+  static getDocumentByID = async (req, res) => {
+    try {
+      const documentID = req.params.documentID;
+      if (!documentID) {
+        return res.status(404).json({ 
+          message: "Please provide document id",
+        });
+      }
+
+      const data = await Classroom.getDocumentByID(documentID);
+      if (!data) {    
+        return res.status(404).json({
+          message: "Cannot find document",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Found document",    
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in get document by id in Server",
+        error,
+      });
+    }
+  };
+
   static getClass = async (req, res) => {
     try {
       const id = req.params.id;
