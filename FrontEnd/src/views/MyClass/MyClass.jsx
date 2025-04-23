@@ -99,8 +99,9 @@ const MyClass = () => {
         <div className='flex flex-col lg:flex-row gap-4 sm:gap-6 h-full'>
           {/* Sidebar - Responsive */}
           <aside
-            className={`${sidebarOpen ? 'block' : 'hidden'
-              } lg:block lg:w-64 bg-blue-900 text-white p-4 sm:p-6 rounded-lg shadow-md lg:sticky lg:top-32 self-start transition-all duration-300 z-10`}
+            className={`${
+              sidebarOpen ? 'block' : 'hidden'
+            } lg:block lg:w-64 bg-blue-900 text-white p-4 sm:p-6 rounded-lg shadow-md lg:sticky lg:top-32 self-start transition-all duration-300 z-10`}
           >
             <h2 className='text-xl font-semibold mb-4 sm:mb-6'>My Classes</h2>
             <div className='max-h-[60vh] lg:max-h-[calc(100vh-180px)] overflow-y-auto'>
@@ -108,8 +109,9 @@ const MyClass = () => {
                 {classes.map((cls) => (
                   <li
                     key={cls.classID}
-                    className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors duration-200 ${selectedClass.classID === cls.classID ? 'bg-blue-700' : 'hover:bg-blue-700'
-                      }`}
+                    className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
+                      selectedClass.classID === cls.classID ? 'bg-blue-700' : 'hover:bg-blue-700'
+                    }`}
                     onClick={() => {
                       setSelectedClass(cls)
                       setSidebarOpen(false) // Close sidebar on mobile after selection
@@ -205,8 +207,19 @@ const MyClass = () => {
                       color='blue'
                       className='flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        className='h-4 w-4 sm:h-5 sm:w-5'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
+                        />
                       </svg>
                       <span>Stream</span>
                     </Button>

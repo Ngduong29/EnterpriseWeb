@@ -10,6 +10,7 @@ const StudentBlogs = () => {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const navigate = useNavigate()
+  const role = localStorage.getItem('role') // Lấy role từ localStorage
 
   // Form state
   const [title, setTitle] = useState('')
@@ -20,7 +21,7 @@ const StudentBlogs = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true)
-      const response = await makeGet('students/blogs', { class_id: classID })
+      const response = await makeGet('blogs', { class_id: classID })
       setBlogs(response.data)
     } catch (error) {
       console.error('Error fetching blogs:', error)
@@ -35,7 +36,7 @@ const StudentBlogs = () => {
 
   const handleCreateBlog = async () => {
     try {
-      await makePost('students/blogs', {
+      await makePost('blogs', {
         class_id: classID,
         title,
         description,
@@ -78,25 +79,29 @@ const StudentBlogs = () => {
         {/* Breadcrumb section - Responsive */}
         <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 border-b border-gray-200 mb-4 sm:mb-6 gap-2'>
           <BreadcrumbsWithIcon pathnames={breadcrumbs} />
-          <button
-            onClick={() => setShowModal(true)}
-            className='px-4 py-2 sm:px-6 sm:py-3 bg-orange-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:shadow-lg hover:bg-orange-600 transition duration-300 flex items-center'
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              className='h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2'
-              viewBox='0 0 20 20'
-              fill='currentColor'
+
+          {role == 'Student' && (
+            <button
+              onClick={() => setShowModal(true)}
+              className='px-4 py-2 sm:px-6 sm:py-3 bg-orange-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:shadow-lg hover:bg-orange-600 transition duration-300 flex items-center'
             >
-              <path
-                fillRule='evenodd'
-                d='M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z'
-                clipRule='evenodd'
-              />
-            </svg>
-            New Blog
-          </button>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2'
+                viewBox='0 0 20 20'
+                fill='currentColor'
+              >
+                <path
+                  fillRule='evenodd'
+                  d='M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z'
+                  clipRule='evenodd'
+                />
+              </svg>
+              New Blog
+            </button>
+          )}
         </div>
+
         {/* <div className='w-full flex justify-between mt-4 items-end mb-4'>
         <BreadcrumbsWithIcon pathnames={['Home', 'Blog']} />
         <button
