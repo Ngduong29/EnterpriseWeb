@@ -93,7 +93,7 @@ exports.addComment = async (req, res) => {
 exports.getBlogsByAuthorId = async (req, res) => {
     try {
         const authorId = req.params.authorId;
-        const blogs = await Blog.findByStudentId(authorId, null); // Assuming classID is not needed for this query
+        const blogs = await Blog.findByStudentId(authorId, req.query.class_id || null); // Assuming classID is not needed for this query
         return res.json({ message: "List Blogs by Author ID", data: blogs });
     } catch (error) {
         console.error('Error in getBlogsByAuthorId:', error);

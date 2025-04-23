@@ -6,6 +6,8 @@ import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
+import { Button } from '@material-tailwind/react'
+import { ChatBubbleLeftIcon, NewspaperIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 
 const apiBaseUrl = 'http://localhost:5000/api/tutors'
 
@@ -328,6 +330,12 @@ const ClassManagement = () => {
               </div>
               <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}
+                <Link
+                  to={`/my-classes/${cls.classID}/blogs`}
+                  className='bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2'
+                >
+                  <span>Go to Blogs</span>
+                </Link>
                 <Link
                   to={`/my-classes/${cls.classID}/stream`}
                   className='bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2'

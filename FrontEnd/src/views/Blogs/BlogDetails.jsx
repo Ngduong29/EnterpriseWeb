@@ -32,7 +32,7 @@ const BlogDetail = () => {
         setBlog(blogFromState);
         
         if (blogFromState?.student_id) {
-          const authorResponse = await makeGet(`students/blogs/author/${blogFromState.student_id}`);
+          const authorResponse = await makeGet(`blogs/author/${blogFromState.student_id}`);
            // Lọc các bài viết: loại bỏ bài hiện tại và chỉ lấy các bài Published
         const filteredBlogs = authorResponse.data.filter(authorBlog => 
           authorBlog.id !== parseInt(id) && authorBlog.status === 1

@@ -258,31 +258,31 @@ class classController {
   static getClassByUserID = async (req, res) => {
     try {
       const userID = req.user.userID;
-      
+
       console.log(req.user);
-      
+
       if (!userID) {
         return res.status(404).json({
-          message: "Please provide userID", 
+          message: "Please provide userID",
         });
       }
-    
+
       const data = await Classroom.getClassByUserID(userID);
       if (!data) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           message: "Cannot find class",
         });
       }
 
       return res.status(200).json({
-        message: "Found classroom",  
+        message: "Found classroom",
         data: data,
       });
     } catch (error) {
       console.log(error);
       res.status(500).json({
         message: "Error in get class by user id in Server",
-        error, 
+        error,
       });
     }
   };
@@ -413,7 +413,7 @@ class classController {
       });
     } catch (error) {
       console.log(error);
-      
+
       // Handle specific error for unapproved tutor
       if (error.message === 'Tutor account is not approved for creating classes') {
         return res.status(403).json({
@@ -421,10 +421,40 @@ class classController {
           error: error.message
         });
       }
-      
+
       res.status(500).json({
         message: "Error in create class in Server",
         error: error.message,
+      });
+    }
+  };
+
+  static getClassByTutorID = async (req, res) => {
+    try {
+      // console.log("getClassByTutorID", req.user);
+
+      const tutorID = req.user.tutorID;
+
+      if (!tutorID) {
+        return res.status(404).json({
+          message: "Please provide tutor ID",
+        });
+      }
+      const classes = await Tutor.getClassesByTutorID(tutorID);
+      if (!classes) {
+        return res.status(404).json({
+          message: "No classes found for this tutor",
+        });
+      }
+      res.status(200).json({
+        message: "Tutor classes retrieved successfully",
+        data: classes
+      });
+    } catch (error) {
+      console.error("Error getting tutor classes:", error);
+      res.status(500).json({
+        message: "Error getting tutor classes",
+        error: error.message
       });
     }
   };
