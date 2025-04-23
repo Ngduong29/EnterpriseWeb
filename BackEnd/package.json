@@ -39,7 +39,9 @@
     "odbc": "^2.4.8",
     "querystring": "^0.2.1",
     "sequelize": "^6.37.3",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "livekit-server-sdk": "^1.2.6",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

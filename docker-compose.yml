@@ -3,18 +3,37 @@ version: '3.8'
 services:
 
   mysql:
-      image: mysql:8.0
-      container_name: mysql
-      ports:
-        - "3307:3306"
-      environment:
-        - MYSQL_ROOT_PASSWORD=Password123!
-        - MYSQL_DATABASE=tutordb
-      volumes:
-        - mysql_data:/var/lib/mysql
-      networks:
-        - tutor-network
-      restart: unless-stopped
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=Password123!
+      - MYSQL_DATABASE=tutordb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tutor-network
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit-server
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    volumes:
+      - ./livekit.yaml:/livekit.yaml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+    - .env
+    command: --config /livekit.yaml
+    restart: unless-stopped
+    networks:
+      - tutor-network
+    privileged: true
 
   backend:
     build:
@@ -34,9 +53,15 @@ services:
       - DB_USER=root
       - DB_PASSWORD=Password123!
       - DB_DATABASE=tutordb
+      - LIVEKIT_API_KEY=apikeytutor123456789
+      - LIVEKIT_API_SECRET=apikeysecrettutor123456789123456789123456789
+      - LIVEKIT_URL=wss://localhost:7880
     networks:
       - tutor-network
     restart: unless-stopped
+    depends_on:
+      - mysql
+      - livekit
 
   frontend:
     build:
@@ -49,12 +74,15 @@ services:
       - ./FrontEnd:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://backend:5000
+      - VITE_API_URL=http://localhost:5000
+      - VITE_LIVEKIT_URL=wss://localhost:7880  # Đổi từ wss sang ws
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     networks:
       - tutor-network
     restart: unless-stopped
+    depends_on:
+      - backend
 
 networks:
   tutor-network:

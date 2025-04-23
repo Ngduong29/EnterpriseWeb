@@ -5,7 +5,6 @@ const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 const sendEmail = require("./email/EmailOtp");
 const corsMiddleware = require("./middleware/cors");
-
 const app = express();
 const server = http.createServer(app);
 

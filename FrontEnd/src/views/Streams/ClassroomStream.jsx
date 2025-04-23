@@ -3,12 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import { makeGet, makePost } from '../../apiService/httpService.js'
 import MegaMenuWithHover from '../../components/MegaMenuWithHover.jsx'
 import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
+import RoomDialog from '../../components/VideoCall/RoomDialog.jsx'
 
 const ClassroomStream = () => {
   const { classID } = useParams()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showRoomDialog, setShowRoomDialog] = useState(false);
   const [classDetails, setClassDetails] = useState(null)
   const [userRole, setUserRole] = useState(localStorage.getItem('role') || 'Student')
   const [comments, setComments] = useState({})
@@ -158,24 +160,24 @@ const ClassroomStream = () => {
   // Sửa hàm handleAddComment
   const handleAddComment = async (postId) => {
     if (!newComment.trim()) return
-  
+
     try {
       console.log(`Adding comment to post ${postId}: ${newComment}`)
-      
+
       // Sử dụng endpoint đúng cho comments
       const response = await makePost(`assignment/${postId}/comments`, {
         content: newComment
         // Không cần gửi user_role nữa vì backend sẽ lấy từ token JWT
       })
-      
+
       console.log(`Comment added to post ${postId}:`, response.data)
-  
+
       // Update comments state với dữ liệu từ server
       setComments(prev => ({
         ...prev,
         [postId]: [...(prev[postId] || []), response.data]
       }))
-  
+
       // Reset form
       setNewComment('')
       setCommentingOnPost(null)
@@ -212,11 +214,11 @@ const ClassroomStream = () => {
         <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 border-b border-gray-200 mb-4 gap-2'>
           <BreadcrumbsWithIcon pathnames={breadcrumbs} />
 
-          {/* Show add post button only when user is Tutor */}
-          {userRole === 'Tutor' && (
+          <div className='flex flex-wrap gap-2'>
+            {/* Nút phòng học trực tuyến */}
             <button
-              onClick={() => setShowModal(true)}
-              className='px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:bg-blue-600 transition duration-300 flex items-center'
+              onClick={() => setShowRoomDialog(true)}
+              className='px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 flex items-center'
             >
               <svg
                 xmlns='http://www.w3.org/2000/svg'
@@ -224,15 +226,33 @@ const ClassroomStream = () => {
                 viewBox='0 0 20 20'
                 fill='currentColor'
               >
-                <path
-                  fillRule='evenodd'
-                  d='M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z'
-                  clipRule='evenodd'
-                />
+                <path d='M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z' />
               </svg>
-              Add Post
+              {userRole === 'Tutor' ? 'Tạo phòng học trực tuyến' : 'Tham gia phòng học'}
             </button>
-          )}
+
+            {/* Show add post button only when user is Tutor */}
+            {userRole === 'Tutor' && (
+              <button
+                onClick={() => setShowModal(true)}
+                className='px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:bg-blue-600 transition duration-300 flex items-center'
+              >
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2'
+                  viewBox='0 0 20 20'
+                  fill='currentColor'
+                >
+                  <path
+                    fillRule='evenodd'
+                    d='M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z'
+                    clipRule='evenodd'
+                  />
+                </svg>
+                Add Post
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Class stream */}
@@ -736,6 +756,12 @@ const ClassroomStream = () => {
           </div>
         </div>
       )}
+      {/* Dialog phòng học trực tuyến */}
+      <RoomDialog 
+          isOpen={showRoomDialog}
+          onClose={() => setShowRoomDialog(false)}
+          classId={classID}
+        />
     </div>
   )
 }

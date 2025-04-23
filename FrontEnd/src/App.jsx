@@ -25,6 +25,7 @@ import StudentBlogs from './views/Blogs/StudentBlogs'
 import BlogDetail from './views/Blogs/BlogDetails'
 import ClassroomStream from './views/Streams/ClassroomStream';
 import AdminStudentRequests from './views/AdminStudentRequest'
+import VideoCallRoom from './views/VideoCall/VideoCallRoom'
 
 import Reset from './views/Reset'
 import OTPinput from './views/OTPInput'
@@ -69,6 +70,7 @@ const App = () => {
             <Route path='/my-classes' element={<MyClass />} />
             <Route path="/my-classes/:classID/stream" element={<ClassroomStream />} />
 
+            <Route path="/video-call/:roomId" element={<VideoCallRoom />} />
             {/* Protected routes */}
 
             <Route
