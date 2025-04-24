@@ -115,6 +115,7 @@ class classController {
     try {
       const classID = req.params.classID;
       
+      
       if (!classID) {
         return res.status(404).json({
           message: "Please provide class id",
@@ -207,7 +208,7 @@ class classController {
         });
       }
 
-      const data = await Classroom.updateDocument(documentID, req.body.documentTitle, req.body.documentLink);
+      const data = await Classroom.updateDocument(documentID, req.body.documentTitle, req.body.documentLink, req.body.description);
       if (!data) {
         return res.status(404).json({
           message: "Cannot update document",
