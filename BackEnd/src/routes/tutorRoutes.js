@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/auth');
 const blogController = require('../controllers/blogController');
 
 const router = express.Router();
-// router.use(authenticateToken('Tutor'));
+router.use(authenticateToken('Tutor'));
 
 // Get
 router.get("/viewStudent/:classID", classController.viewStudentInClass);
@@ -21,13 +21,15 @@ router.get("/getDocument/:documentID", classController.getDocumentByID);
 
 router.post("/insertDocument/:classID", classController.insertDocument);
 
-router.post("/updateDocument/:documentID", classController.updateDocument);
+router.get("/getStudent/:classID", classController.getStudentByClassID);
+// Post
+router.put("/updateDocument/:documentID", classController.updateDocument);
 // Post
 router.post("/createClasses", tutorController.createClasses);
 router.post("/updateClasses/:id", tutorController.updateClasses);
 router.post("/findClasses/:search", classController.findClassroomByTutorID);
 
-// Put
+// Put      
 router.put("/activeClasses/:id", tutorController.activeClasses);
 
 // Delete

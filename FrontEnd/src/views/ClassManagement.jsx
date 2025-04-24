@@ -8,8 +8,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
 import { Button } from '@material-tailwind/react'
 import { ChatBubbleLeftIcon, NewspaperIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+import { makeDelete, makePost } from '../apiService/httpService.js'
 
-const apiBaseUrl = 'http://localhost:5000/api/tutors'
 
 const ClassManagement = () => {
   const token = localStorage.getItem('token')
@@ -59,9 +59,10 @@ const ClassManagement = () => {
       }
       const decodedToken = jwtDecode(token)
       const tutorID = decodedToken.user.tutorID
-      const response = await axios.post(`${apiBaseUrl}/findClasses/${tutorID}`)
-      const activeClasses = response.data.classroom.filter((classroom) => classroom.isActive)
-      const inactiveClasses = response.data.classroom.filter((classroom) => classroom.isActive == 0)
+      const response = await makePost(`tutors/findClasses/${tutorID}`)
+      console.log(response)
+      const activeClasses = response.classroom.filter((classroom) => classroom.isActive)
+      const inactiveClasses = response.classroom.filter((classroom) => classroom.isActive == 0)
       setClasses(activeClasses)
       setInactiveClasses(inactiveClasses)
     } catch (error) {
@@ -71,7 +72,7 @@ const ClassManagement = () => {
 
   const handleDeactivateClass = async (classID) => {
     try {
-      await axios.delete(`${apiBaseUrl}/deleteClasses/${classID}`)
+      await makeDelete(`tutors/deleteClasses/${classID}`)
       toast('Class deactivate successfully!')
       fetchClasses()
     } catch (error) {
@@ -82,7 +83,7 @@ const ClassManagement = () => {
 
   const handleActivateClass = async (classID) => {
     try {
-      await axios.put(`${apiBaseUrl}/activeClasses/${classID}`)
+      await makePut(`tutors/activeClasses/${classID}`)
       toast('Class activate successfully!')
       fetchClasses()
     } catch (error) {
@@ -214,7 +215,7 @@ const ClassManagement = () => {
       })
 
       if (paymentVerificationResponse.data.success) {
-        const response = await axios.post(`${apiBaseUrl}/createClasses`, pendingClassData)
+        const response = await makePost(`tutors/createClasses`, pendingClassData)
         setClasses([...classes, response.data])
 
         setFormData({
@@ -269,7 +270,7 @@ const ClassManagement = () => {
         return
       }
 
-      const response = await axios.post(`${apiBaseUrl}/updateClasses/${currentClassId}`, updateFormData)
+      const response = await makePut(`tutors/updateClasses/${currentClassId}`, updateFormData)
       setClasses(classes.map((cls) => (cls.id === currentClassId ? response.data : cls)))
       setIsUpdateModalOpen(false)
       toast.info('Class updated successfully!')

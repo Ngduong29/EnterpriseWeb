@@ -96,10 +96,11 @@ CREATE TABLE `Class_Documents` (
   `classID` int NOT NULL,
   `documentTitle` varchar(255) NOT NULL,
   `documentLink` text,
+  `description` text,
   `uploadedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`documentID`),
   KEY `classID` (`classID`),
-  CONSTRAINT `Class_Documents_ibfk_1` FOREIGN KEY (`classID`) REFERENCES `Classes` (`classID`) ON DELETE CASCADE,
+  CONSTRAINT `Class_Documents_ibfk_1` FOREIGN KEY (`classID`) REFERENCES `Classes` (`classID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
