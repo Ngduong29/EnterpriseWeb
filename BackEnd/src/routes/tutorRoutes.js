@@ -16,11 +16,12 @@ router.get("/check-status/:id", tutorController.checkTutorStatus);
 router.get('/blogs/', blogController.getAll);
 router.get('/blogs/:id', blogController.getOne);
 router.get("/getDocuments/:classID", classController.getDocumentsByClassID);
-router.get("/insertDocument/:classID", classController.insertDocument);
-
 router.get("/updateDocument/:documentID", classController.updateDocument);
 router.get("/getDocument/:documentID", classController.getDocumentByID);
 
+router.post("/insertDocument/:classID", classController.insertDocument);
+
+router.post("/updateDocument/:documentID", classController.updateDocument);
 // Post
 router.post("/createClasses", tutorController.createClasses);
 router.post("/updateClasses/:id", tutorController.updateClasses);

@@ -1,6 +1,7 @@
 // apiService/api.js
 
 import axios from 'axios'
+import supabase from './supabase'
 
 const API_URL = 'http://localhost:5000/api'
 // const API_URL = 'https://e59e-171-233-29-47.ngrok-free.app/api' //
@@ -8,7 +9,17 @@ const API_URL = 'http://localhost:5000/api'
 export const loginUser = async (email, password) => {
   try {
     const response = await axios.post(`${API_URL}/auth/login`, { email, password })
-    return response.data
+    const { data, error } = await supabase.auth.signInWithPassword({
+      password: password,
+      email: email
+    })
+    if (error) {
+      console.log(error)
+      return { success: false, error: error }
+    }
+    if (response.data && data) {
+      return { ...response.data, user: { ...data.user, ...response.data.user, session: data.session } }
+    }
   } catch (error) {
     throw new Error(error.response ? error.response.data.message : 'Login failed')
   }
@@ -59,7 +70,15 @@ export const registerStudent = async (
         'Content-Type': 'multipart/form-data'
       }
     })
-    return response.data
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    })
+    if (error) {
+      throw new Error('sign up supabase failed', error)
+    }
+
+    return { ...response.data, user: { ...data.user, ...response.data.user, session: data.session } }
   } catch (error) {
     console.error('Error in registerStudent:', error.response || error.message || error)
 
@@ -102,7 +121,15 @@ export const registerTutor = async (
         'Content-Type': 'multipart/form-data'
       }
     })
-    return response.data
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    })
+    if (error) {
+      throw new Error('sign up supabase failed', error)
+    }
+
+    return { ...response.data, user: { ...data.user, ...response.data.user, session: data.session } }
   } catch (error) {
     throw new Error(error.response ? error.response.data.message : 'Registration failed')
   }
@@ -120,3 +147,5 @@ export const fetchUserProfile = async (token) => {
     throw new Error(error.response ? error.response.data.message : 'Failed to fetch user profile')
   }
 }
+
+export const uploadFileToSupabase = async (file) => {}

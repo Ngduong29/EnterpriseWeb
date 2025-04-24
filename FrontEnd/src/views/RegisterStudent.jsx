@@ -62,15 +62,15 @@ const Register = () => {
     e.preventDefault()
 
     try {
-      const usersResponse = await axios.get('http://localhost:5000/api/admin/getUser')
-      const users = usersResponse.data.data
+      // const usersResponse = await axios.get('http://localhost:5000/api/admin/getUser')
+      // const users = usersResponse.data.data
 
-      // Check if the email exists
-      const emailExists = users.some((user) => user.email === formData.email)
-      if (emailExists) {
-        toast.error('Email is already registered')
-        return // Exit the function if the email exists
-      }
+      // // Check if the email exists
+      // const emailExists = users.some((user) => user.email === formData.email)
+      // if (emailExists) {
+      //   toast.error('Email is already registered')
+      //   return // Exit the function if the email exists
+      // }
 
       // Age validation
       const today = new Date()

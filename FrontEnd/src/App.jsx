@@ -23,12 +23,13 @@ import AdminPortalTransaction from './views/AdminPortalTransaction'
 import AdminPortalComplaints from './views/AdminPortalComplaints'
 import StudentBlogs from './views/Blogs/StudentBlogs'
 import BlogDetail from './views/Blogs/BlogDetails'
-import ClassroomStream from './views/Streams/ClassroomStream';
+import ClassroomStream from './views/Streams/ClassroomStream'
 import AdminStudentRequests from './views/AdminStudentRequest'
 
 import Reset from './views/Reset'
 import OTPinput from './views/OTPInput'
 import MyClass from './views/MyClass/MyClass'
+import ClassDocument from './views/ClassDocument'
 export const RecoveryContext = createContext()
 const App = () => {
   const [email, setEmail] = useState()
@@ -67,8 +68,8 @@ const App = () => {
             <Route path='/my-classes/:classID/blogs' element={<StudentBlogs />} />
             <Route path='/my-classes/:classID/blogs/blogDetail/:id' element={<BlogDetail />} />
             <Route path='/my-classes' element={<MyClass />} />
-            <Route path="/my-classes/:classID/stream" element={<ClassroomStream />} />
-
+            <Route path='/my-classes/:classID/stream' element={<ClassroomStream />} />
+            <Route path='/class-documents/:classId' element={<ClassDocument />} />
             {/* Protected routes */}
 
             <Route

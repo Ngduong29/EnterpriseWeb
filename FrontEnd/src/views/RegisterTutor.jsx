@@ -11,7 +11,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 } from 'uuid'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import axios from 'axios'
 
 const RegisterTutor = () => {
   const navigate = useNavigate()

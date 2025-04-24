@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@material-tailwind/react'
 import { ChatBubbleLeftIcon, NewspaperIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
@@ -6,7 +6,8 @@ import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
 import MegaMenuWithHover from '../../components/MegaMenuWithHover.jsx'
 import { makeGet } from '../../apiService/httpService.js'
 import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import AuthContext from '../../contexts/JWTAuthContext.jsx'
+import ClassDocumentList from '../../components/ClassDocumentList.jsx'
 
 const MyClass = () => {
   const [classes, setClasses] = useState([])
@@ -14,7 +15,8 @@ const MyClass = () => {
   const [error, setError] = useState(null)
   const [selectedClass, setSelectedClass] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
+  const { user } = useContext(AuthContext)
+  const [showDocuments, setShowDocuments] = useState(false)
   const fetchClasses = async () => {
     try {
       setLoading(true)
@@ -114,6 +116,7 @@ const MyClass = () => {
                     }`}
                     onClick={() => {
                       setSelectedClass(cls)
+                      setShowDocuments(false)
                       setSidebarOpen(false) // Close sidebar on mobile after selection
                     }}
                     role='button'
@@ -224,6 +227,7 @@ const MyClass = () => {
                       <span>Stream</span>
                     </Button>
                   </Link>
+
                   <Button
                     variant='outlined'
                     color='blue'
@@ -232,6 +236,30 @@ const MyClass = () => {
                     <EllipsisHorizontalIcon className='h-4 w-4 sm:h-5 sm:w-5' />
                     <span>More</span>
                   </Button>
+                </div>
+                <div>
+                  <Button
+                    variant='outlined'
+                    color='blue'
+                    className='flex items-center justify-center space-x-2 bg-purple-300 border-gray-300 text-white hover:bg-purple-400 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
+                    onClick={() => {
+                      setShowDocuments((prev) => !prev)
+                    }}
+                  >
+                    <i className='fa-solid fa-folder-open mr-2'></i>
+                    Documents
+                  </Button>
+                  {showDocuments && (
+                    <div>
+                      {user && user.role && (
+                        <ClassDocumentList
+                          role={user.role}
+                          classId={selectedClass.classID}
+                          key={selectedClass.classID}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
