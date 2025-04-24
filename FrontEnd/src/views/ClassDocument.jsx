@@ -109,7 +109,7 @@ const ClassDocument = () => {
               onClick={() => setShowUploadForm(true)}
               className='bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600'
             >
-              Add Document
+              <i className='mr-2 fa-solid fa-plus'></i>Document
             </button>
           </div>
         ) : (
