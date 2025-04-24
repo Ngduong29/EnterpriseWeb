@@ -27,11 +27,11 @@ export default function ClassDocumentList({ role, classId }) {
       ) : documents.length === 0 ? (
         <p className='text-center text-gray-600'>No documents available.</p>
       ) : (
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 gap-4'>
           {documents.map((doc) => (
-            <div key={doc.documentID} className='bg-white p-4 rounded shadow'>
-              <div className='font-bold text-lg mb-2 flex justify-between'>
-                <h3>{doc.documentTitle}</h3>
+            <div key={doc.documentID} className='bg-gray-100 p-4 rounded shadow-lg'>
+              <div className='text-md mb-2 flex justify-between'>
+                <h5>{doc.documentTitle}</h5>
                 <a
                   href={doc.documentLink}
                   target='_blank'
@@ -43,7 +43,10 @@ export default function ClassDocumentList({ role, classId }) {
                   </span>
                 </a>
               </div>
-              <p className='text-sm text-gray-600 mb-2'>Uploaded at: {new Date(doc.uploadedAt).toLocaleString()}</p>
+              <p className='text-xs text-gray-600'>
+                <i className='fa-solid fa-clock mr-2'></i>
+                {new Date(doc.uploadedAt).toLocaleString()}
+              </p>
             </div>
           ))}
         </div>

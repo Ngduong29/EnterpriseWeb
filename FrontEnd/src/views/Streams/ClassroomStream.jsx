@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { makeGet, makePost } from '../../apiService/httpService.js'
 import MegaMenuWithHover from '../../components/MegaMenuWithHover.jsx'
 import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
-
+import ClassDocument from '../../components/ClassDocument.jsx'
 const ClassroomStream = () => {
   const { classID } = useParams()
   const [posts, setPosts] = useState([])
@@ -42,17 +42,19 @@ const ClassroomStream = () => {
       const commentState = {}
 
       // Lấy comments cho mỗi bài đăng (nếu có)
-      await Promise.all(response.data.map(async (post) => {
-        try {
-          // Endpoint đúng cho comments
-          const commentResponse = await makeGet(`assignment/${post.post_id}/comments`)
-          commentState[post.post_id] = commentResponse.data || []
-          console.log(`Comments for post ${post.post_id}:`, commentResponse.data)
-        } catch (error) {
-          console.error(`Error fetching comments for post ${post.post_id}:`, error)
-          commentState[post.post_id] = []
-        }
-      }))
+      await Promise.all(
+        response.data.map(async (post) => {
+          try {
+            // Endpoint đúng cho comments
+            const commentResponse = await makeGet(`assignment/${post.post_id}/comments`)
+            commentState[post.post_id] = commentResponse.data || []
+            console.log(`Comments for post ${post.post_id}:`, commentResponse.data)
+          } catch (error) {
+            console.error(`Error fetching comments for post ${post.post_id}:`, error)
+            commentState[post.post_id] = []
+          }
+        })
+      )
 
       setComments(commentState)
     } catch (error) {
@@ -65,23 +67,21 @@ const ClassroomStream = () => {
   // Thêm hàm fetchClassDetails để lấy thông tin lớp học
   const fetchClassDetails = async () => {
     try {
-      const response = await makeGet(`tutors/class/${classID}`);
-      setClassDetails(response.data);
+      const response = await makeGet(`tutors/class/${classID}`)
+      setClassDetails(response.data)
     } catch (error) {
-      console.error('Error fetching class details:', error);
+      console.error('Error fetching class details:', error)
     }
-  };
-
+  }
 
   useEffect(() => {
     const loadData = async () => {
-      await fetchClassDetails();
-      await fetchPosts();
-    };
+      await fetchClassDetails()
+      await fetchPosts()
+    }
 
-    loadData();
-  }, [classID]); // Thêm classID vào dependency array để load lại khi ID thay đổi
-
+    loadData()
+  }, [classID]) // Thêm classID vào dependency array để load lại khi ID thay đổi
 
   // Thay đổi trong hàm handleCreatePost
   const handleCreatePost = async () => {
@@ -98,7 +98,7 @@ const ClassroomStream = () => {
         }
       } else {
         // Thêm nhiều file cho announcements
-        announcementFiles.forEach(file => {
+        announcementFiles.forEach((file) => {
           formData.append('files', file)
         })
       }
@@ -158,24 +158,24 @@ const ClassroomStream = () => {
   // Sửa hàm handleAddComment
   const handleAddComment = async (postId) => {
     if (!newComment.trim()) return
-  
+
     try {
       console.log(`Adding comment to post ${postId}: ${newComment}`)
-      
+
       // Sử dụng endpoint đúng cho comments
       const response = await makePost(`assignment/${postId}/comments`, {
         content: newComment
         // Không cần gửi user_role nữa vì backend sẽ lấy từ token JWT
       })
-      
+
       console.log(`Comment added to post ${postId}:`, response.data)
-  
+
       // Update comments state với dữ liệu từ server
-      setComments(prev => ({
+      setComments((prev) => ({
         ...prev,
         [postId]: [...(prev[postId] || []), response.data]
       }))
-  
+
       // Reset form
       setNewComment('')
       setCommentingOnPost(null)
@@ -218,25 +218,13 @@ const ClassroomStream = () => {
               onClick={() => setShowModal(true)}
               className='px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:bg-blue-600 transition duration-300 flex items-center'
             >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2'
-                viewBox='0 0 20 20'
-                fill='currentColor'
-              >
-                <path
-                  fillRule='evenodd'
-                  d='M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z'
-                  clipRule='evenodd'
-                />
-              </svg>
-              Add Post
+              <i className='mr-2 fa-solid fa-plus'></i> Post
             </button>
           )}
         </div>
 
         {/* Class stream */}
-        <div className='flex gap-4 mb-6'>
+        <div className='flex gap-4 mb-6 flex-col md:flex-row'>
           <div className='w-full md:w-3/4'>
             {/* Class information */}
             <div className='bg-white rounded-lg shadow-md p-4 mb-6'>
@@ -259,8 +247,19 @@ const ClassroomStream = () => {
                   onClick={() => setShowAnnouncementForm(true)}
                 >
                   <div className='w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-4 w-4'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z'
+                      />
                     </svg>
                   </div>
                   <p className='text-gray-500'>Announce something to your class</p>
@@ -291,24 +290,51 @@ const ClassroomStream = () => {
                         onClick={() => announcementFileRef.current.click()}
                         className='p-2 text-gray-500 hover:text-blue-600 rounded hover:bg-gray-100'
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13'
+                          />
                         </svg>
                       </button>
-                      <button
-                        type='button'
-                        className='p-2 text-gray-500 hover:text-blue-600 rounded hover:bg-gray-100'
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <button type='button' className='p-2 text-gray-500 hover:text-blue-600 rounded hover:bg-gray-100'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
+                          />
                         </svg>
                       </button>
-                      <button
-                        type='button'
-                        className='p-2 text-gray-500 hover:text-blue-600 rounded hover:bg-gray-100'
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      <button type='button' className='p-2 text-gray-500 hover:text-blue-600 rounded hover:bg-gray-100'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1'
+                          />
                         </svg>
                       </button>
                     </div>
@@ -327,7 +353,9 @@ const ClassroomStream = () => {
                       <button
                         type='submit'
                         disabled={!announcementText.trim()}
-                        className={`px-4 py-2 rounded-lg text-white text-sm ${announcementText.trim() ? 'bg-blue-500 hover:bg-blue-600' : 'bg-blue-300 cursor-not-allowed'}`}
+                        className={`px-4 py-2 rounded-lg text-white text-sm ${
+                          announcementText.trim() ? 'bg-blue-500 hover:bg-blue-600' : 'bg-blue-300 cursor-not-allowed'
+                        }`}
                       >
                         Post
                       </button>
@@ -365,21 +393,48 @@ const ClassroomStream = () => {
             ) : (
               <div className='space-y-4'>
                 {posts.map((post) => (
-                  <div
-                    key={post.id}
-                    className='bg-white rounded-lg shadow-md overflow-hidden'
-                  >
-                    <div className={`px-4 py-3 ${post.type === 'assignment' ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-white'}`}>
+                  <div key={post.id} className='bg-white rounded-lg shadow-md overflow-hidden'>
+                    <div
+                      className={`px-4 py-3 ${
+                        post.type === 'assignment' ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-white'
+                      }`}
+                    >
                       <div className='flex items-start'>
                         {/* Icon for post type */}
-                        <div className={`rounded-full p-2 mr-3 ${post.type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
+                        <div
+                          className={`rounded-full p-2 mr-3 ${
+                            post.type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
                           {post.type === 'assignment' ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              stroke='currentColor'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
+                              />
                             </svg>
                           ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              stroke='currentColor'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z'
+                              />
                             </svg>
                           )}
                         </div>
@@ -389,7 +444,9 @@ const ClassroomStream = () => {
                             <div>
                               <p className='font-medium'>
                                 {post.tutorName || 'Tutor'}
-                                {post.type === 'assignment' && <span className='ml-2 text-sm text-blue-600 font-bold'>• Assignment</span>}
+                                {post.type === 'assignment' && (
+                                  <span className='ml-2 text-sm text-blue-600 font-bold'>• Assignment</span>
+                                )}
                               </p>
                               <p className='text-xs text-gray-500'>{formatDate(post.created_at)}</p>
                             </div>
@@ -411,21 +468,43 @@ const ClassroomStream = () => {
                           <div className='space-y-2'>
                             {post.files.map((file, index) => (
                               <div key={index} className='p-2 border border-gray-200 rounded flex items-center'>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <svg
+                                  xmlns='http://www.w3.org/2000/svg'
+                                  className='h-5 w-5 text-gray-500 mr-2'
+                                  fill='none'
+                                  viewBox='0 0 24 24'
+                                  stroke='currentColor'
+                                >
+                                  <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                  />
                                 </svg>
                                 <a
                                   href={file.url}
                                   download={file.name}
                                   className='text-blue-500 hover:underline text-sm flex-1'
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                  target='_blank'
+                                  rel='noopener noreferrer'
                                 >
                                   {file.name || 'Attachment'}
                                 </a>
                                 <button className='ml-2 text-gray-500 hover:text-blue-500'>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  <svg
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    className='h-5 w-5'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                    stroke='currentColor'
+                                  >
+                                    <path
+                                      strokeLinecap='round'
+                                      strokeLinejoin='round'
+                                      strokeWidth={2}
+                                      d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'
+                                    />
                                   </svg>
                                 </button>
                               </div>
@@ -438,7 +517,9 @@ const ClassroomStream = () => {
                         <div className='mt-4 p-3 bg-gray-50 rounded-lg'>
                           <div className='flex justify-between items-center'>
                             <div>
-                              <p className='text-sm text-gray-600'>Due date: <span className='font-medium'>{formatDate(post.dueDate)}</span></p>
+                              <p className='text-sm text-gray-600'>
+                                Due date: <span className='font-medium'>{formatDate(post.dueDate)}</span>
+                              </p>
                             </div>
                             <div>
                               <Link
@@ -452,10 +533,26 @@ const ClassroomStream = () => {
 
                           {post.fileUrl && (
                             <div className='mt-2 p-2 border border-gray-200 rounded flex items-center'>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              <svg
+                                xmlns='http://www.w3.org/2000/svg'
+                                className='h-5 w-5 text-gray-500 mr-2'
+                                fill='none'
+                                viewBox='0 0 24 24'
+                                stroke='currentColor'
+                              >
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                />
                               </svg>
-                              <a href={post.fileUrl} className='text-blue-500 hover:underline text-sm' target="_blank" rel="noopener noreferrer">
+                              <a
+                                href={post.fileUrl}
+                                className='text-blue-500 hover:underline text-sm'
+                                target='_blank'
+                                rel='noopener noreferrer'
+                              >
                                 {post.fileName || 'Attached document'}
                               </a>
                             </div>
@@ -525,8 +622,19 @@ const ClassroomStream = () => {
                           className='flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm'
                           onClick={() => setCommentingOnPost(post.post_id)}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            className='h-4 w-4 mr-1'
+                            fill='none'
+                            viewBox='0 0 24 24'
+                            stroke='currentColor'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z'
+                            />
                           </svg>
                           Add class comment
                         </button>
@@ -538,8 +646,19 @@ const ClassroomStream = () => {
                             to={`/classes/${classID}/assignment/${post.id}/submit`}
                             className='flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm'
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-4 w-4 mr-1'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              stroke='currentColor'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'
+                              />
                             </svg>
                             Submit work
                           </Link>
@@ -553,29 +672,63 @@ const ClassroomStream = () => {
           </div>
 
           {/* Class info sidebar */}
-          <div className='hidden md:block w-1/4'>
+          <div className='md:w-1/4 w-full'>
+            <div className='bg-white rounded-lg shadow-md p-4 mb-6 max-h-42 overflow-auto'>
+              <ClassDocument classId={classID} />
+            </div>
             <div className='bg-white rounded-lg shadow-md p-4 mb-4'>
               <h3 className='text-lg font-medium mb-3'>Class Details</h3>
-              <p className='mb-2'><span className='font-medium'>Duration:</span> {classDetails?.length} minutes</p>
-              <p className='mb-2'><span className='font-medium'>Mode:</span> {classDetails?.type}</p>
-              <p className='mb-2'><span className='font-medium'>Status:</span> {classDetails?.isActive === 1 ? 'Active' : 'Inactive'}</p>
+              <p className='mb-2'>
+                <span className='font-medium'>Duration:</span> {classDetails?.length} minutes
+              </p>
+              <p className='mb-2'>
+                <span className='font-medium'>Mode:</span> {classDetails?.type}
+              </p>
+              <p className='mb-2'>
+                <span className='font-medium'>Status:</span> {classDetails?.isActive === 1 ? 'Active' : 'Inactive'}
+              </p>
             </div>
 
             <div className='bg-white rounded-lg shadow-md p-4'>
               <h3 className='text-lg font-medium mb-3'>Quick Links</h3>
               <ul className='space-y-2'>
                 <li>
-                  <Link to={`/my-classes/${classID}/blogs`} className='flex items-center text-blue-600 hover:text-blue-800'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2h8z" />
+                  <Link
+                    to={`/my-classes/${classID}/blogs`}
+                    className='flex items-center text-blue-600 hover:text-blue-800'
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-4 w-4 mr-2'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2h8z'
+                      />
                     </svg>
                     Blogs
                   </Link>
                 </li>
                 <li>
                   <Link to={`/class/${classID}/chat`} className='flex items-center text-blue-600 hover:text-blue-800'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-4 w-4 mr-2'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z'
+                      />
                     </svg>
                     Chat
                   </Link>
@@ -656,8 +809,8 @@ const ClassroomStream = () => {
                     type='file'
                     multiple
                     onChange={(e) => {
-                      const files = Array.from(e.target.files);
-                      setAnnouncementFiles(files);
+                      const files = Array.from(e.target.files)
+                      setAnnouncementFiles(files)
                     }}
                     className='w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                   />
@@ -666,7 +819,9 @@ const ClassroomStream = () => {
                       <p className='text-sm text-gray-500'>{announcementFiles.length} file(s) selected</p>
                       <ul className='mt-1 text-xs text-gray-500'>
                         {announcementFiles.map((file, index) => (
-                          <li key={index} className='truncate'>{file.name}</li>
+                          <li key={index} className='truncate'>
+                            {file.name}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -696,7 +851,11 @@ const ClassroomStream = () => {
 
       {/* Assignment submission modal */}
       {userRole === 'Student' && (
-        <div className={`fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 ${false ? 'block' : 'hidden'}`}>
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 ${
+            false ? 'block' : 'hidden'
+          }`}
+        >
           <div className='bg-white rounded-lg w-full max-w-md shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto'>
             <div className='bg-blue-500 py-3 px-4 sticky top-0 z-10'>
               <h2 className='text-lg font-bold text-white'>Submit Assignment</h2>
@@ -721,14 +880,10 @@ const ClassroomStream = () => {
               </div>
 
               <div className='flex justify-end space-x-3 pt-4 border-t mt-4'>
-                <button
-                  className='px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition duration-200 text-sm'
-                >
+                <button className='px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition duration-200 text-sm'>
                   Cancel
                 </button>
-                <button
-                  className='px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 hover:shadow-lg transition duration-200 text-sm'
-                >
+                <button className='px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 hover:shadow-lg transition duration-200 text-sm'>
                   Turn in
                 </button>
               </div>
