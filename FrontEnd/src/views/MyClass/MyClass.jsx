@@ -250,7 +250,7 @@ const MyClass = () => {
                     Documents
                   </Button>
                   {showDocuments && (
-                    <div>
+                    <div className='mt-4'>
                       {user && user.role && (
                         <ClassDocumentList
                           role={user.role}

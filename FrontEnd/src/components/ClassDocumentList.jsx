@@ -30,11 +30,20 @@ export default function ClassDocumentList({ role, classId }) {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {documents.map((doc) => (
             <div key={doc.documentID} className='bg-white p-4 rounded shadow'>
-              <h3 className='font-bold text-lg mb-2'>{doc.documentTitle}</h3>
-              <p className='text-sm text-gray-600 mb-2'>Uploaded at: {new Date(doc.uploadAt).toLocaleString()}</p>
-              <a href={doc.documentLink} target='_blank' rel='noopener noreferrer' className='text-blue-500 underline'>
-                View / Download
-              </a>
+              <div className='font-bold text-lg mb-2 flex justify-between'>
+                <h3>{doc.documentTitle}</h3>
+                <a
+                  href={doc.documentLink}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='mx-2 text-orange-700 hover:text-blue-700'
+                >
+                  <span>
+                    <i className='fa-solid fa-download'></i>
+                  </span>
+                </a>
+              </div>
+              <p className='text-sm text-gray-600 mb-2'>Uploaded at: {new Date(doc.uploadedAt).toLocaleString()}</p>
             </div>
           ))}
         </div>
