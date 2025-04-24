@@ -114,13 +114,13 @@ class classController {
   static insertDocument = async (req, res) => {
     try {
       const classID = req.params.classID;
+      
       if (!classID) {
         return res.status(404).json({
           message: "Please provide class id",
         });
       }
-
-      const data = await Classroom.insertDocument(classID);
+      const data = await Classroom.insertDocument(classID, req.body.documentTitle, req.body.documentLink, req.body.description);
       if (!data) {  
         return res.status(404).json({
           message: "Cannot insert document",
@@ -139,6 +139,35 @@ class classController {
       });
     }
   };  
+
+  static getStudentByClassID = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      if (!classID) {
+        return res.status(404).json({
+          message: "Please provide class id",
+        });
+      } 
+
+      const data = await Classroom.getStudentByClassID(classID);
+      if (!data) {
+        return res.status(404).json({
+          message: "Cannot find student",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Found student",
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in get student by class id in Server",
+        error,
+      });
+    }
+  };
 
   static deleteDocument = async (req, res) => {
     try {
@@ -178,7 +207,7 @@ class classController {
         });
       }
 
-      const data = await Classroom.updateDocument(documentID, documentTitle, documentLink);
+      const data = await Classroom.updateDocument(documentID, req.body.documentTitle, req.body.documentLink);
       if (!data) {
         return res.status(404).json({
           message: "Cannot update document",

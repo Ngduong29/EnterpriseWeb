@@ -32,7 +32,7 @@ router.get("/checkFeedback/:classID/:studentID", studentController.checkExisting
 router.get("/getFeedbackByClass/:classID", studentController.getFeedbackByClass);
 router.post("/feedback/:classID", studentController.feedbackClass);
 router.post("/updateFeedback/:classID", studentController.updateFeedback);
-
+router.get("/getDocuments/:classID", classroomController.getDocumentsByClassID);
 // Blog functions
 // router.get('/blogs/', blogController.getAll);
 // router.get("/blogs/getMostRecentBlogs", blogController.getMostRecentBlogs);
