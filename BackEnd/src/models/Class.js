@@ -48,7 +48,8 @@ class Classroom {
     const [rows] = await connection.execute(
       `DELETE FROM Class_Documents WHERE documentID = ?`,
       [documentID]
-    );
+    );  
+    return rows;
   } 
 
   static async updateDocument(documentID, documentTitle, documentLink) {
@@ -66,9 +67,33 @@ class Classroom {
       `SELECT * FROM Class_Documents WHERE documentID = ?`,
       [documentID]
     );
+    return rows[0];
   }
 
   
+  static async getStudentByClassID(classID) { 
+    const connection = await connectDB();
+    const [studentRows] = await connection.execute(
+      `SELECT studentID FROM Class_Students WHERE classID = ?`,
+      [classID]
+    );
+    
+    if (studentRows.length === 0) {
+      return []; // Return empty array if no students found
+    }
+    
+    const studentIDs = studentRows.map((row) => row.studentID);
+    
+    // Use parameterized query to avoid SQL injection and syntax errors
+    const placeholders = studentIDs.map(() => '?').join(',');
+    const [rows] = await connection.execute(
+      `SELECT * FROM Students WHERE studentID IN (${placeholders})`,
+      [...studentIDs]
+    );
+    
+    return rows;
+  } 
+
   // Get all active classes with tutor information
   static async getAllClass() {
     const connection = await connectDB();
