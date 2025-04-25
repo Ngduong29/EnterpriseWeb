@@ -108,11 +108,11 @@ class User {
   // Find user by userID
   static async findUserByID(userID) {
     const connection = await connectDB();
+
     const [rows] = await connection.execute(
       "SELECT * FROM Users WHERE userID = ?",
       [userID]
     );
-    console.log("Found user:", rows[0]); // Debug log
     return rows[0];
   }
 

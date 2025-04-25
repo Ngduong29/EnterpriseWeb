@@ -3,7 +3,6 @@ const connectDB = require('../config/db');
 const Blog = {
     findByStudentId: async (studentId, classID) => {
         const db = await connectDB();
-        console.log('Student ID:', studentId, 'Class ID:', classID);
 
         let query = 'SELECT blog_id, title, status, created_at FROM Blogs WHERE student_id = ?';
         const params = [studentId];

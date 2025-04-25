@@ -13,7 +13,28 @@ class Student {
     this.grade = grade;
     this.school = school;
   }
+  static async getListStudentByIds(StudentIDs) {
+    const connection = await connectDB();
+    const placeholders = StudentIDs.map(() => "?").join(",");
+    const [rows] = await connection.execute(
+      `SELECT s.*, u.fullName, u.email, u.avatar, u.phone, u.address 
+       FROM Students s
+       JOIN Users u ON s.userID = u.userID 
+       WHERE s.studentID IN (${placeholders})`,
+      StudentIDs
+    );
+    return rows;
+  }
 
+  static async getAllStudents() {
+    const connection = await connectDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM Students s
+       JOIN Users u ON s.userID = u.userID
+       ORDER BY s.studentID ASC`
+    );
+    return rows;
+  }
   // Kiểm tra yêu cầu đăng ký tồn tại
   static async checkExistingEnrollRequest(classID, studentID) {
     const connection = await connectDB();

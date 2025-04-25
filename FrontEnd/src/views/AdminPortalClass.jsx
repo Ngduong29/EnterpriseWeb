@@ -16,7 +16,7 @@ const AdminPortalClass = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingClass, setEditingClass] = useState(null)
 
-  // Thêm state cho phân trang
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [classesPerPage, setClassesPerPage] = useState(10)
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
@@ -26,7 +26,7 @@ const AdminPortalClass = () => {
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false)
   const [currentClassForStudents, setCurrentClassForStudents] = useState(null)
 
-  // Form data cho class
+  // Form data for class
   const [formData, setFormData] = useState({
     className: '',
     videoLink: '',
@@ -40,7 +40,7 @@ const AdminPortalClass = () => {
     isActive: 1
   })
 
-  // Refs cho file uploads
+  // Refs for file uploads
   const videoRef = useRef(null)
 
   const token = localStorage.getItem('token')
@@ -51,24 +51,14 @@ const AdminPortalClass = () => {
   }
 
   useEffect(() => {
-    const mockStudents = [
-      { id: 1, fullName: 'Nguyễn Văn A', email: 'nguyenvana@example.com' },
-      { id: 2, fullName: 'Trần Thị B', email: 'tranthib@example.com' },
-      { id: 3, fullName: 'Lê Văn C', email: 'levanc@example.com' },
-      { id: 4, fullName: 'Phạm Thị D', email: 'phamthid@example.com' },
-      { id: 5, fullName: 'Hoàng Văn E', email: 'hoangvane@example.com' },
-      { id: 6, fullName: 'Ngô Thị F', email: 'ngothif@example.com' },
-      { id: 7, fullName: 'Đỗ Văn G', email: 'dovang@example.com' },
-      { id: 8, fullName: 'Vũ Thị H', email: 'vuthih@example.com' },
-    ]
-    setStudents(mockStudents)
     fetchClasses()
     fetchTutors()
+    fetchStudent()
 
-    // Thêm event listener để theo dõi kích thước màn hình
+    // Add event listener to track screen size
     const handleResize = () => {
       setWindowWidth(window.innerWidth)
-      // Điều chỉnh số lượng classes hiển thị theo kích thước màn hình
+      // Adjust number of classes displayed based on screen size
       if (window.innerWidth < 640) {
         setClassesPerPage(5)
       } else if (window.innerWidth < 1024) {
@@ -79,7 +69,7 @@ const AdminPortalClass = () => {
     }
 
     window.addEventListener('resize', handleResize)
-    handleResize() // Gọi ngay khi component mount
+    handleResize() // Call on component mount
 
     return () => {
       window.removeEventListener('resize', handleResize)
@@ -101,15 +91,24 @@ const AdminPortalClass = () => {
   const fetchTutors = async () => {
     makeGet('admin/getUser')
       .then((response) => {
-        // Lọc chỉ lấy người dùng có role là Tutor và đang active
-        const tutorsList = response.data.filter(user =>
-          user.role === 'Tutor' && user.isActive === 1
-        )
+        // Filter only users with Tutor role and active status
+        const tutorsList = response.data.filter((user) => user.role === 'Tutor' && user.isActive === 1)
         setTutors(tutorsList)
       })
       .catch((error) => {
         console.error('Error fetching tutors list:', error)
         toast.error('Could not load tutor list')
+      })
+  }
+
+  const fetchStudent = async () => {
+    makeGet('students/getAllStudents')
+      .then((response) => {
+        setStudents(response.data)
+      })
+      .catch((error) => {
+        console.error('Error fetching student list:', error)
+        toast.error('Could not load student list')
       })
   }
 
@@ -125,13 +124,13 @@ const AdminPortalClass = () => {
       // Reset classes list if search term is empty
       setClasses(allClasses)
     }
-    setCurrentPage(1) // Reset về trang đầu tiên khi lọc
+    setCurrentPage(1) // Reset to first page when filtering
   }
 
   const handleFormChange = (e) => {
     const { name, value } = e.target
 
-    // Xử lý đặc biệt cho các trường số
+    // Handle numeric fields specially
     if (name === 'price' || name === 'length') {
       setFormData({
         ...formData,
@@ -203,24 +202,37 @@ const AdminPortalClass = () => {
   }
 
   const handleSelectStudent = (student) => {
-    const isAlreadySelected = selectedStudents.some(s => s.id === student.id)
-    
+    const isAlreadySelected = selectedStudents.some((s) => s.userID === student.userID)
+
     if (isAlreadySelected) {
-      setSelectedStudents(selectedStudents.filter(s => s.id !== student.id))
+      setSelectedStudents(selectedStudents.filter((s) => s.userID !== student.userID))
     } else {
       setSelectedStudents([...selectedStudents, student])
     }
   }
 
   const removeSelectedStudent = (studentId) => {
-    setSelectedStudents(selectedStudents.filter(student => student.id !== studentId))
+    setSelectedStudents(selectedStudents.filter((student) => student.userID !== studentId))
   }
 
   const handleSubmitStudents = (e) => {
     e.preventDefault()
-    // Ở đây sẽ là logic gửi API
-    console.log(`Thêm các học sinh sau vào lớp ${currentClassForStudents?.className}:`, selectedStudents)
-    toast.success(`Đã thêm ${selectedStudents.length} học sinh vào lớp thành công`)
+    if (selectedStudents.length === 0) {
+      toast.error('Please select at least one student')
+      return
+    }
+
+    makePost(`admin/assignStudents/${currentClassForStudents.classID}`, {
+      studentIDs: selectedStudents.map((student) => student.studentID)
+    })
+
+    makePost(`admin/handleAssignStudent`, {
+      classID: currentClassForStudents.classID,
+      studentIDs: selectedStudents.map((student) => student.studentID)
+    })
+
+    console.log(`Adding the following students to class ${currentClassForStudents?.className}:`, selectedStudents)
+    toast.success(`Successfully added ${selectedStudents.length} students to the class`)
     closeStudentModal()
   }
 
@@ -229,30 +241,30 @@ const AdminPortalClass = () => {
 
     try {
       if (editingClass) {
-        // Cập nhật lớp học
+        // Update class
         await makePostFormData(`tutors/updateClasses/${editingClass.classID}`, formData)
         toast.success('Class updated successfully')
       } else {
-        // Tạo FormData để xử lý file uploads
+        // Create FormData for file uploads
         const formDataToSend = new FormData()
 
-        // Thêm các trường cơ bản
+        // Add basic fields
         for (const key in formData) {
           formDataToSend.append(key, formData[key])
         }
 
-        // Thêm video nếu có
+        // Add video if present
         if (videoRef.current && videoRef.current.files[0]) {
           formDataToSend.append('video', videoRef.current.files[0])
         }
 
-        // Gọi API để tạo lớp học mới
+        // Call API to create new class
         await makePostFormData('tutors/createClasses', formDataToSend)
         toast.success('New class created successfully')
       }
 
       closeModal()
-      fetchClasses() // Refresh danh sách lớp học
+      fetchClasses() // Refresh class list
     } catch (error) {
       console.error('Error saving data:', error)
       toast.error(error.message || 'Error saving data')
@@ -275,22 +287,22 @@ const AdminPortalClass = () => {
 
   const videoUrlField = (link) =>
     link && link.length > 0 ? (
-      <a href={link} target='_blank' rel="noopener noreferrer" className="text-blue-500 hover:underline">
+      <a href={link} target='_blank' rel='noopener noreferrer' className='text-blue-500 hover:underline'>
         View video
       </a>
     ) : (
-      <span className="text-gray-400">No video</span>
+      <span className='text-gray-400'>No video</span>
     )
 
-  // Tính toán số trang
+  // Calculate pagination
   const totalPages = Math.ceil(classes.length / classesPerPage)
 
-  // Lấy classes hiện tại
+  // Get current classes
   const indexOfLastClass = currentPage * classesPerPage
   const indexOfFirstClass = indexOfLastClass - classesPerPage
   const currentClasses = classes.slice(indexOfFirstClass, indexOfLastClass)
 
-  // Thay đổi trang
+  // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber)
 
   return (
@@ -300,9 +312,7 @@ const AdminPortalClass = () => {
         <MegaMenuWithHover />
       </header>
       <div className='pt-16 md:pt-20'>
-        <h1 className='text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-center text-black'>
-          Admin Portal - Classes
-        </h1>
+        <h1 className='text-2xl md:text-4xl font-bold mb-4 md:mb-6 text-center text-black'>Admin Portal - Classes</h1>
 
         <div className='flex flex-col md:flex-row justify-between mb-4 md:mb-6 space-y-3 md:space-y-0'>
           <div className='flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto'>
@@ -352,14 +362,21 @@ const AdminPortalClass = () => {
                   <td className='p-2 md:p-4'>{formatVND(classItem.price)}</td>
                   <td className='p-2 md:p-4'>
                     <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${classItem.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}
+                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${
+                        classItem.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}
                     >
                       {classItem.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className='p-2 md:p-4'>
                     <div className='flex flex-col md:flex-row gap-1 md:gap-2'>
+                      <button
+                        onClick={() => openStudentModal(classItem)}
+                        className='text-xs md:text-sm p-1 md:p-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors duration-300'
+                      >
+                        Assigned student
+                      </button>
                       <button
                         onClick={() => openEditModal(classItem)}
                         className='text-xs md:text-sm p-1 md:p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-300'
@@ -381,29 +398,37 @@ const AdminPortalClass = () => {
           </table>
         </div>
 
-        {/* Phân trang */}
-        <div className="flex justify-center items-center mt-6 flex-wrap">
+        {/* Pagination */}
+        <div className='flex justify-center items-center mt-6 flex-wrap'>
           <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className={`mx-1 px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+            className={`mx-1 px-3 py-1 rounded ${
+              currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'
+            }`}
           >
-            &laquo;
+            «
           </button>
 
           {[...Array(totalPages)].map((_, index) => {
-            const pageNum = index + 1;
+            const pageNum = index + 1
             const showPageButton =
-              pageNum === 1 ||
-              pageNum === totalPages ||
-              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+              pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
 
             if (pageNum === currentPage - 2 && currentPage > 3) {
-              return <span key={`ellipsis-prev`} className="mx-1">...</span>;
+              return (
+                <span key={`ellipsis-prev`} className='mx-1'>
+                  ...
+                </span>
+              )
             }
 
             if (pageNum === currentPage + 2 && currentPage < totalPages - 2) {
-              return <span key={`ellipsis-next`} className="mx-1">...</span>;
+              return (
+                <span key={`ellipsis-next`} className='mx-1'>
+                  ...
+                </span>
+              )
             }
 
             if (showPageButton) {
@@ -411,33 +436,37 @@ const AdminPortalClass = () => {
                 <button
                   key={pageNum}
                   onClick={() => paginate(pageNum)}
-                  className={`mx-1 px-3 py-1 rounded ${currentPage === pageNum
-                    ? 'bg-purple-700 text-white'
-                    : 'bg-purple-200 hover:bg-purple-300'}`}
+                  className={`mx-1 px-3 py-1 rounded ${
+                    currentPage === pageNum ? 'bg-purple-700 text-white' : 'bg-purple-200 hover:bg-purple-300'
+                  }`}
                 >
                   {pageNum}
                 </button>
-              );
+              )
             }
 
-            return null;
+            return null
           })}
 
           <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={`mx-1 px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+            className={`mx-1 px-3 py-1 rounded ${
+              currentPage === totalPages
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-purple-500 text-white hover:bg-purple-600'
+            }`}
           >
-            &raquo;
+            »
           </button>
 
           <select
             value={classesPerPage}
             onChange={(e) => {
-              setClassesPerPage(Number(e.target.value));
-              setCurrentPage(1);
+              setClassesPerPage(Number(e.target.value))
+              setCurrentPage(1)
             }}
-            className="ml-4 border border-gray-300 rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className='ml-4 border border-gray-300 rounded p-1 focus:outline-none focus:ring-2 focus:ring-purple-500'
           >
             <option value={5}>5 per page</option>
             <option value={10}>10 per page</option>
@@ -447,11 +476,13 @@ const AdminPortalClass = () => {
         </div>
       </div>
 
-      {/* Modal thêm/sửa lớp học */}
+      {/* Add/Edit Class Modal */}
       {isModalOpen && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4'>
           <div className='bg-white rounded-lg p-4 md:p-8 w-full max-w-md md:max-w-xl mx-auto my-4 md:my-6 max-h-[90vh] overflow-y-auto'>
-            <h2 className='text-xl md:text-2xl font-bold mb-4 text-center'>{editingClass ? 'Edit Class' : 'Add New Class'}</h2>
+            <h2 className='text-xl md:text-2xl font-bold mb-4 text-center'>
+              {editingClass ? 'Edit Class' : 'Add New Class'}
+            </h2>
 
             <form onSubmit={handleSubmit}>
               <div className='space-y-3'>
@@ -503,7 +534,7 @@ const AdminPortalClass = () => {
                       required
                     >
                       <option value=''>-- Select tutor --</option>
-                      {tutors.map(tutor => (
+                      {tutors.map((tutor) => (
                         <option key={tutor.userID} value={tutor.tutorID || tutor.userID}>
                           {tutor.fullName} ({tutor.userName})
                         </option>
@@ -625,40 +656,141 @@ const AdminPortalClass = () => {
         </div>
       )}
 
+      {/* Assign Students Modal */}
+      {isStudentModalOpen && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4'>
+          <div className='bg-white rounded-lg p-4 md:p-8 w-full max-w-md md:max-w-2xl mx-auto my-4 md:my-6 max-h-[90vh] overflow-y-auto'>
+            <h2 className='text-xl md:text-2xl font-bold mb-4 text-center'>
+              Assign Students to {currentClassForStudents?.className}
+            </h2>
+            <form onSubmit={handleSubmitStudents}>
+              <div className='space-y-4'>
+                {/* Available Students List */}
+                <div>
+                  <label className='block text-gray-700 text-sm font-semibold mb-2'>Available Students</label>
+                  <div className='max-h-64 overflow-y-auto border border-gray-300 rounded-md p-2'>
+                    {students.map((student) => (
+                      <div
+                        key={student.userID}
+                        className={`flex items-center p-2 cursor-pointer ${
+                          selectedStudents.some((s) => s.userID === student.userID) ? 'bg-gray-100' : ''
+                        }`}
+                        onClick={() => handleSelectStudent(student)}
+                      >
+                        <input
+                          type='checkbox'
+                          checked={selectedStudents.some((s) => s.userID === student.userID)}
+                          onChange={() => handleSelectStudent(student)}
+                          className='mr-2'
+                        />
+                        <div>
+                          <p className='font-medium'>{student.fullName}</p>
+                          <p className='text-sm text-gray-500'>{student.email}</p>
+                          <p className='text-sm text-gray-500'>Grade: {student.grade}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Selected Students List */}
+                <div>
+                  <label className='block text-gray-700 text-sm font-semibold mb-2'>Selected Students</label>
+                  <div className='min-h-[100px] border border-gray-300 rounded-md p-2'>
+                    {selectedStudents.length === 0 ? (
+                      <p className='text-gray-500 text-sm'>No students selected</p>
+                    ) : (
+                      <div className='flex flex-wrap gap-2'>
+                        {selectedStudents.map((student) => (
+                          <div
+                            key={student.userID}
+                            className='flex items-center bg-purple-100 rounded-full px-3 py-1 text-sm'
+                          >
+                            <span>{student.fullName}</span>
+                            <button
+                              type='button'
+                              onClick={() => removeSelectedStudent(student.userID)}
+                              className='ml-2 text-red-500 hover:text-red-700'
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className='flex justify-end space-x-3 mt-6'>
+                <button
+                  type='button'
+                  onClick={closeStudentModal}
+                  className='bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md transition-colors duration-300 text-sm'
+                >
+                  Cancel
+                </button>
+                <button
+                  type='submit'
+                  className='bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors duration-300 text-sm'
+                >
+                  Assign Students
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Menu Button */}
-      <div className="fixed bottom-4 right-4 md:hidden z-40">
+      <div className='fixed bottom-4 right-4 md:hidden z-40'>
         <button
           onClick={openAddModal}
-          className="bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-colors"
+          className='bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-colors'
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            className='w-6 h-6'
+          >
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M12 4v16m8-8H4' />
           </svg>
         </button>
       </div>
 
       {/* Loading Indicator */}
       {classes.length === 0 && allClasses.length === 0 && (
-        <div className="flex justify-center items-center mt-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-          <p className="ml-3 text-purple-500">Loading data...</p>
+        <div className='flex justify-center items-center mt-10'>
+          <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500'></div>
+          <p className='ml-3 text-purple-500'>Loading data...</p>
         </div>
       )}
 
       {/* Empty State */}
       {allClasses.length > 0 && classes.length === 0 && (
-        <div className="bg-white p-8 rounded-lg shadow text-center mt-10">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-16 h-16 text-gray-400 mx-auto mb-4">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className='bg-white p-8 rounded-lg shadow text-center mt-10'>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            className='w-16 h-16 text-gray-400 mx-auto mb-4'
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+            />
           </svg>
-          <h3 className="text-xl font-medium text-gray-700 mb-2">No classes found</h3>
-          <p className="text-gray-500 mb-4">No classes match your search criteria</p>
+          <h3 className='text-xl font-medium text-gray-700 mb-2'>No classes found</h3>
+          <p className='text-gray-500 mb-4'>No classes match your search criteria</p>
           <button
             onClick={() => {
-              setSearchTerm('');
-              fetchClasses();
+              setSearchTerm('')
+              fetchClasses()
             }}
-            className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors"
+            className='bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors'
           >
             Clear filters
           </button>
@@ -668,10 +800,16 @@ const AdminPortalClass = () => {
       {/* Back to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-4 left-4 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors opacity-70 hover:opacity-100"
+        className='fixed bottom-4 left-4 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors opacity-70 hover:opacity-100'
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          className='w-5 h-5'
+        >
+          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M5 15l7-7 7 7' />
         </svg>
       </button>
     </div>

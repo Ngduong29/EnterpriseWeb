@@ -41,6 +41,8 @@ router.post(
     authController.registerTutor
 );
 
+router.post("/assignStudents/:classID", adminController.assignStudentsToClass);
+
 // Delete
 router.delete("/deleteClass/:id", adminController.deleteClass);
 router.delete("/deleteUser/:id", adminController.deleteUser);

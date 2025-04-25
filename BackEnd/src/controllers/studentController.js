@@ -4,6 +4,27 @@ const Tutor = require("../models/Tutor");
 const connectDB = require("../config/db");
 
 class studentController {
+  static getAllStudents = async (req, res) => {
+    try {
+      const students = await Student.getAllStudents();
+      if (!students) {
+        return res.status(404).json({
+          message: "No students found",
+        });
+      }
+      res.status(200).json({
+        message: "Get all students success",
+        data: students,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "error in get all students",
+        error,
+      });
+    }
+  }
+
   static requestClass = async (req, res) => {
     try {
       const tutorID = req.params.tutorID;

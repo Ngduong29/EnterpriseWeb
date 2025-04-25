@@ -73,7 +73,6 @@ class authController {
 
       // Verify the user exists before creating student
       const user = await User.findUserByID(userID);
-      console.log("Found user:", user);
 
       if (!user) {
         throw new Error("User not found after creation");
@@ -85,8 +84,6 @@ class authController {
       const studentID = !lastStudent[0]
         ? "S1"
         : "S" + (parseInt(lastStudent[0].studentID.match(/\d+/)[0]) + 1);
-
-      console.log("Generated studentID:", studentID);
 
       // Create student
       await connection.execute(
@@ -161,8 +158,6 @@ class authController {
           phone || "0866722601", address || "Ha Noi", 0] // Set isActive to 0 for pending approval
       );
 
-      console.log("User Result:", userResult);
-
       // Verify user was created successfully
       if (!userResult || !userResult.insertId) {
         throw new Error("Failed to create user");
@@ -172,7 +167,6 @@ class authController {
 
       // Verify the user exists before creating tutor
       const user = await User.findUserByID(userID);
-      console.log("Found user:", user);
 
       if (!user) {
         throw new Error("User not found after creation");
@@ -185,7 +179,6 @@ class authController {
       const tutorID = !lastTutor[0] ? "T1" :
         "T" + (parseInt(lastTutor[0].tutorID.match(/\d+/)[0]) + 1);
 
-      console.log("Generated tutorID:", tutorID);
       // Create tutor
       await connection.execute(
         `INSERT INTO Tutors (tutorID, userID, degrees, identityCard, workplace, description, status) 
@@ -249,18 +242,10 @@ class authController {
 
       if (user.role == "Student") {
         const student = await Student.findStudentByUserID(user.userID);
-        // const classByStudent = await Classroom.GetClassByStudentId(student.studentID);
-        // console.log(classByStudent);
-
         user = { ...user, ...student };
-        // user = { ...user, ...student, ...classByStudent };
-
       } else if (user.role == "Tutor") {
         const tutor = await Tutor.findTutorByTutorUserID(user.userID);
-        // const classByTutor = await Classroom.GetClassByStudentId(tutor.tutorID);
-        // const classByTutor = await Classroom
         user = { ...user, ...tutor };
-        // user = { ...user, ...tutor, ...classByTutor };
       }
 
       const token = User.generateAuthToken(user);

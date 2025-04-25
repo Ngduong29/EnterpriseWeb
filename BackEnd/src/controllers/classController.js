@@ -461,8 +461,6 @@ class classController {
 
   static getClassByTutorID = async (req, res) => {
     try {
-      // console.log("getClassByTutorID", req.user);
-
       const tutorID = req.user.tutorID;
 
       if (!tutorID) {
