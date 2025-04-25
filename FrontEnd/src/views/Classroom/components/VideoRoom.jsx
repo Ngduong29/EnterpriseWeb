@@ -9,7 +9,7 @@ import {
   useRoomContext,
 } from '@livekit/components-react';
 import { IoMdExpand, IoMdContract } from 'react-icons/io';
-import { FaVideo, FaVideoSlash, FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa';
+import { FaVideo, FaVideoSlash, FaMicrophone, FaMicrophoneSlash, FaRedo } from 'react-icons/fa';
 
 // Import CSS the correct way
 import './VideoRoom.css';
@@ -27,6 +27,10 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
   const [hasPermission, setHasPermission] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [micEnabled, setMicEnabled] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  // Xác định vai trò người dùng từ tên
+  const userRole = participantName.toLowerCase().includes('tutor') ? 'tutor' : 'student';
 
   // Request media permissions on component mount
   useEffect(() => {
@@ -34,11 +38,18 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
       try {
         setMediaPermissions(prev => ({ ...prev, requested: true }));
         
+        // Thêm các ràng buộc cụ thể để khắc phục vấn đề camera
+        const constraints = {
+          audio: true,
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: "user"
+          }
+        };
+        
         // Request access to microphone and camera
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: true, 
-          video: true 
-        });
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         // Check if we have permissions
         const audioTracks = stream.getAudioTracks();
@@ -52,7 +63,8 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
         
         console.log('Media permissions granted:', { 
           audio: audioTracks.length > 0, 
-          video: videoTracks.length > 0 
+          video: videoTracks.length > 0,
+          videoSettings: videoTracks.length > 0 ? videoTracks[0].getSettings() : null
         });
         
         // Clean up the stream when component unmounts
@@ -61,7 +73,7 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
         };
       } catch (err) {
         console.error('Error requesting media permissions:', err);
-        setError('Không thể truy cập microphone hoặc camera. Vui lòng kiểm tra quyền truy cập trong trình duyệt của bạn.');
+        setError(`Không thể truy cập camera: ${err.message || 'Không rõ lỗi'}. Vui lòng kiểm tra quyền truy cập và các ứng dụng đang sử dụng camera.`);
         setMediaPermissions({
           audio: false,
           video: false,
@@ -71,18 +83,33 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
     };
     
     requestMediaPermissions();
-  }, []);
+  }, [retryCount]);
 
   // Handle connection errors
   const handleError = (err) => {
     console.error('Error connecting to LiveKit:', err);
-    setError(err.message || 'Failed to connect to room');
+    setError(`Lỗi kết nối: ${err.message || 'Không rõ lỗi'}`);
   };
 
   // Handle when the room is disconnected
   const handleDisconnected = () => {
     console.log('Disconnected from room');
-    onLeaveRoom();
+    handleLeaveRoom();
+  };
+  
+  // Hàm xử lý khi người dùng rời phòng
+  const handleLeaveRoom = () => {
+    // Tùy thuộc vào vai trò, chuyển hướng người dùng
+    if (userRole === 'tutor') {
+      window.location.href = '/manage-classes';
+    } else {
+      window.location.href = '/my-classes';
+    }
+    
+    // Vẫn giữ onLeaveRoom để đảm bảo tính tương thích
+    if (onLeaveRoom) {
+      onLeaveRoom();
+    }
   };
 
   // Toggle fullscreen mode
@@ -100,42 +127,6 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
     }
   };
 
-  const toggleCamera = () => {
-    setCameraEnabled(!cameraEnabled);
-    if (roomRef.current) {
-      const localParticipant = roomRef.current.localParticipant;
-      const videoTracks = localParticipant.getTrackPublications().filter(
-        publication => publication.kind === 'video'
-      );
-      
-      videoTracks.forEach(publication => {
-        if (cameraEnabled) {
-          publication.mute();
-        } else {
-          publication.unmute();
-        }
-      });
-    }
-  };
-
-  const toggleMicrophone = () => {
-    setMicEnabled(!micEnabled);
-    if (roomRef.current) {
-      const localParticipant = roomRef.current.localParticipant;
-      const audioTracks = localParticipant.getTrackPublications().filter(
-        publication => publication.kind === 'audio'
-      );
-      
-      audioTracks.forEach(publication => {
-        if (micEnabled) {
-          publication.mute();
-        } else {
-          publication.unmute();
-        }
-      });
-    }
-  };
-
   // Listen for fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -147,20 +138,39 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+  
+  // Hàm để thử lại kết nối camera
+  const retryCamera = () => {
+    setError('');
+    setRetryCount(prev => prev + 1);
+  };
 
   // Permission warning component
   const PermissionWarning = () => (
     <div className="media-permissions-warning">
-      <h3>Thiếu quyền truy cập thiết bị</h3>
+      <h3>Vấn đề về thiết bị</h3>
       <p>
         {!mediaPermissions.audio && !mediaPermissions.video ? 
-          'Không thể truy cập microphone và camera. Vui lòng cấp quyền trong cài đặt trình duyệt.' :
+          'Không thể truy cập microphone và camera. Vui lòng kiểm tra:' :
           !mediaPermissions.audio ? 
-            'Không thể truy cập microphone. Vui lòng cấp quyền trong cài đặt trình duyệt.' :
-            'Không thể truy cập camera. Vui lòng cấp quyền trong cài đặt trình duyệt.'
+            'Không thể truy cập microphone. Vui lòng kiểm tra:' :
+            'Không thể truy cập camera. Vui lòng kiểm tra:'
         }
       </p>
-      <button onClick={() => window.location.reload()}>Thử lại</button>
+      <ul className="troubleshoot-list">
+        <li>Camera của bạn đã được kết nối đúng</li>
+        <li>Không có ứng dụng nào khác đang sử dụng camera</li>
+        <li>Bạn đã cấp quyền trong cài đặt trình duyệt</li>
+        <li>Driver camera đã được cập nhật</li>
+      </ul>
+      <div className="permission-actions">
+        <button onClick={retryCamera} className="retry-btn">
+          <FaRedo /> Thử lại
+        </button>
+        <button onClick={() => window.location.reload()} className="reload-btn">
+          Tải lại trang
+        </button>
+      </div>
     </div>
   );
 
@@ -175,14 +185,21 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
           <button 
             className="fullscreen-btn" 
             onClick={toggleFullScreen}
-            title={isFullScreen ? "Exit fullscreen" : "Enter fullscreen"}
+            title={isFullScreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
           >
             {isFullScreen ? <IoMdContract /> : <IoMdExpand />}
           </button>
         </div>
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && (
+        <div className="error">
+          <p>{error}</p>
+          <button onClick={retryCamera} className="retry-error-btn">
+            <FaRedo /> Thử lại
+          </button>
+        </div>
+      )}
       
       {mediaPermissions.requested && (!mediaPermissions.audio || !mediaPermissions.video) ? (
         <PermissionWarning />
@@ -196,6 +213,7 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
             publishDefaults: {
               simulcast: true,
             },
+            videoCodec: 'vp8',  // Thêm codec rõ ràng
           }}
           video={cameraEnabled}
           audio={micEnabled}
@@ -208,6 +226,7 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
             chatEnabled={true}
             screenShareEnabled={true}
             participantName={participantName}
+            onLeaveRoom={handleLeaveRoom}
           />
           <RoomAudioRenderer />
         </LiveKitRoom>
@@ -217,7 +236,7 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
 };
 
 // Custom VideoConference component for more control over the UI
-const CustomVideoConference = ({ chatEnabled, screenShareEnabled, participantName }) => {
+const CustomVideoConference = ({ chatEnabled, screenShareEnabled, participantName, onLeaveRoom }) => {
   const { localParticipant } = useLocalParticipant();
   
   // Update the participant name if available
@@ -227,16 +246,21 @@ const CustomVideoConference = ({ chatEnabled, screenShareEnabled, participantNam
     }
   }, [localParticipant, participantName]);
   
+  // Tùy chỉnh xử lý khi người dùng nhấn nút Leave
+  const handleLeave = () => {
+    // Gọi callback để xử lý rời phòng
+    if (onLeaveRoom) {
+      onLeaveRoom();
+    }
+  };
+  
   return (
     <div className="custom-video-conference">
       <VideoConference 
-        chatEnabled={true} 
+        chatEnabled={chatEnabled} 
         screenShareEnabled={screenShareEnabled}
+        onLeave={handleLeave}
       />
     </div>
   );
 };
-
-
-
-export default VideoRoom; 
