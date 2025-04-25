@@ -173,20 +173,6 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
         <h3>{roomName}</h3>
         <div className="room-controls">
           <button 
-            className="control-btn" 
-            onClick={toggleCamera}
-            title={cameraEnabled ? "Turn off camera" : "Turn on camera"}
-          >
-            {cameraEnabled ? <FaVideo /> : <FaVideoSlash />}
-          </button>
-          <button 
-            className="control-btn" 
-            onClick={toggleMicrophone}
-            title={micEnabled ? "Mute microphone" : "Unmute microphone"}
-          >
-            {micEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
-          </button>
-          <button 
             className="fullscreen-btn" 
             onClick={toggleFullScreen}
             title={isFullScreen ? "Exit fullscreen" : "Enter fullscreen"}
@@ -219,7 +205,7 @@ export const VideoRoom = ({ token, url, roomName, participantName, onLeaveRoom }
           data-lk-theme="default"
         >
           <CustomVideoConference 
-            chatEnabled={false}
+            chatEnabled={true}
             screenShareEnabled={true}
             participantName={participantName}
           />
@@ -244,7 +230,7 @@ const CustomVideoConference = ({ chatEnabled, screenShareEnabled, participantNam
   return (
     <div className="custom-video-conference">
       <VideoConference 
-        chatEnabled={chatEnabled} 
+        chatEnabled={true} 
         screenShareEnabled={screenShareEnabled}
       />
     </div>
