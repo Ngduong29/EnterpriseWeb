@@ -12,8 +12,11 @@ const router = express.Router();
 router.use(auth('Student'));
 
 // Get
+router.get("/getAllStudents", studentController.getAllStudents);
+
 router.get("/classes", studentController.getStudentClasses);
 router.get("/getTutor/:search?", studentController.getTutor);
+
 
 // Search functions
 router.get("/searchClassByTutorName/:search", studentController.findClassByTutorNameController);

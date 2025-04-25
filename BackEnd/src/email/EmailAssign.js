@@ -1,31 +1,37 @@
 ﻿require("dotenv").config();
 const nodemailer = require("nodemailer");
 
+
+function validateEnvVariables() {
+  if (!process.env.MY_EMAIL || !process.env.MY_PASSWORD) {
+    throw new Error("Missing required environment variables for email configuration.");
+  }
+}
 async function sendClassEnrollmentEmail(recipient_email, class_name, instructor_name) {
-    validateEnvVariables();
-  
-    let transporter;
-    try {
-      transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.MY_EMAIL,
-          pass: process.env.MY_PASSWORD,
-        },
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-    } catch (error) {
-      console.error("Error creating transporter:", error);
-      throw new Error("Failed to create email transporter");
-    }
-  
-    const mail_configs = {
-      from: process.env.MY_EMAIL,
-      to: recipient_email,
-      subject: `Enrollment Confirmation for ${class_name}`,
-      html: `
+  validateEnvVariables();
+
+  let transporter;
+  try {
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MY_EMAIL,
+        pass: process.env.MY_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating transporter:", error);
+    throw new Error("Failed to create email transporter");
+  }
+
+  const mail_configs = {
+    from: process.env.MY_EMAIL,
+    to: recipient_email,
+    subject: `Enrollment Confirmation for ${class_name}`,
+    html: `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -57,39 +63,39 @@ async function sendClassEnrollmentEmail(recipient_email, class_name, instructor_
       </div>
       </body>
       </html>`,
-    };
-  
-    try {
-      await transporter.sendMail(mail_configs);
-      return { message: "Enrollment email sent successfully" };
-    } catch (error) {
-      console.error("Error sending email:", error);
-      throw new Error("Failed to send enrollment email");
-    }
+  };
+
+  try {
+    await transporter.sendMail(mail_configs);
+    return { message: "Enrollment email sent successfully" };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw new Error("Failed to send enrollment email");
+  }
+}
+
+async function sendInstructorAssignmentEmail(instructor_email, class_name, students) {
+  validateEnvVariables();
+
+  let transporter;
+  try {
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MY_EMAIL,
+        pass: process.env.MY_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating transporter:", error);
+    throw new Error("Failed to create email transporter");
   }
 
-  async function sendInstructorAssignmentEmail(instructor_email, class_name, students) {
-    validateEnvVariables();
-  
-    let transporter;
-    try {
-      transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.MY_EMAIL,
-          pass: process.env.MY_PASSWORD,
-        },
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-    } catch (error) {
-      console.error("Error creating transporter:", error);
-      throw new Error("Failed to create email transporter");
-    }
-  
-    // Tạo bảng HTML cho danh sách học sinh
-    const studentTable = `
+  // Tạo bảng HTML cho danh sách học sinh
+  const studentTable = `
       <table style="width:100%;border-collapse:collapse;margin:20px 0;">
         <thead>
           <tr style="background-color:#f2f2f2;">
@@ -100,25 +106,25 @@ async function sendClassEnrollmentEmail(recipient_email, class_name, instructor_
         </thead>
         <tbody>
           ${students
-            .map(
-              (student) => `
+      .map(
+        (student) => `
                 <tr>
-                  <td style="border:1px solid #ddd;padding:8px;">${student.name}</td>
+                  <td style="border:1px solid #ddd;padding:8px;">${student.fullName}</td>
                   <td style="border:1px solid #ddd;padding:8px;">${student.email}</td>
                   <td style="border:1px solid #ddd;padding:8px;">${student.grade}</td>
                 </tr>
               `
-            )
-            .join("")}
+      )
+      .join("")}
         </tbody>
       </table>
     `;
-  
-    const mail_configs = {
-      from: process.env.MY_EMAIL,
-      to: instructor_email,
-      subject: `Teaching Assignment for ${class_name}`,
-      html: `
+
+  const mail_configs = {
+    from: process.env.MY_EMAIL,
+    to: instructor_email,
+    subject: `Teaching Assignment for ${class_name}`,
+    html: `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -152,18 +158,18 @@ async function sendClassEnrollmentEmail(recipient_email, class_name, instructor_
         </div>
         </body>
         </html>`,
-    };
-  
-    try {
-      await transporter.sendMail(mail_configs);
-      return { message: "Instructor assignment email sent successfully" };
-    } catch (error) {
-      console.error("Error sending email:", error);
-      throw new Error("Failed to send instructor assignment email");
-    }
-  }
+  };
 
-module.exports = { 
+  try {
+    await transporter.sendMail(mail_configs);
+    return { message: "Instructor assignment email sent successfully" };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw new Error("Failed to send instructor assignment email");
+  }
+}
+
+module.exports = {
   sendClassEnrollmentEmail,
   sendInstructorAssignmentEmail
 };

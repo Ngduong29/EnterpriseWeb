@@ -33,24 +33,24 @@ class Classroom {
     );
     return rows;
   }
-  
+
   static async insertDocument(classID, documentTitle, documentLink, description) {
     const connection = await connectDB();
     const [rows] = await connection.execute(
       `INSERT INTO Class_Documents (classID, documentTitle, documentLink, description) VALUES (?, ?, ?, ?)`,
-      [classID, documentTitle, documentLink, description] 
+      [classID, documentTitle, documentLink, description]
     );
     return rows;
   }
-  
+
   static async deleteDocument(documentID) {
     const connection = await connectDB();
     const [rows] = await connection.execute(
       `DELETE FROM Class_Documents WHERE documentID = ?`,
       [documentID]
-    );  
+    );
     return rows;
-  } 
+  }
 
   static async updateDocument(documentID, documentTitle, documentLink, description) {
     const connection = await connectDB();
@@ -59,7 +59,7 @@ class Classroom {
       [documentTitle, documentLink, description, documentID]
     );
     return rows;
-  } 
+  }
 
   static async getDocumentByID(documentID) {
     const connection = await connectDB();
@@ -70,29 +70,29 @@ class Classroom {
     return rows[0];
   }
 
-  
-  static async getStudentByClassID(classID) { 
+
+  static async getStudentByClassID(classID) {
     const connection = await connectDB();
     const [studentRows] = await connection.execute(
       `SELECT studentID FROM Class_Students WHERE classID = ?`,
       [classID]
     );
-    
+
     if (studentRows.length === 0) {
       return []; // Return empty array if no students found
     }
-    
+
     const studentIDs = studentRows.map((row) => row.studentID);
-    
+
     // Use parameterized query to avoid SQL injection and syntax errors
     const placeholders = studentIDs.map(() => '?').join(',');
     const [rows] = await connection.execute(
       `SELECT * FROM Students WHERE studentID IN (${placeholders})`,
       [...studentIDs]
     );
-    
+
     return rows;
-  } 
+  }
 
   // Get all active classes with tutor information
   static async getAllClass() {
@@ -421,6 +421,39 @@ class Classroom {
       [classID, studentID]
     );
     return rows.length > 0;
+  }
+
+  static async assignStudentsToClass(classID, studentIDs) {
+    const connection = await connectDB();
+    try {
+      // Start a transaction
+      await connection.beginTransaction();
+
+      for (const studentID of studentIDs) {
+        // Check if student is already enrolled
+        const [existing] = await connection.execute(
+          `SELECT * FROM Class_Students WHERE classID = ? AND studentID = ?`,
+          [classID, studentID]
+        );
+
+        if (existing.length === 0) {
+          await connection.execute(
+            `INSERT INTO Class_Students (classID, studentID, status) 
+             VALUES (?, ?, 'Active')`,
+            [classID, studentID]
+          );
+        }
+      }
+
+      // Commit the transaction
+      await connection.commit();
+      return true;
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await connection.rollback();
+      console.error("Error assigning students to class:", error);
+      return false;
+    }
   }
 }
 

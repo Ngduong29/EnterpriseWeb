@@ -42,7 +42,6 @@ class tutorController {
       }
 
       const status = await Tutor.checkTutorStatus(userID);
-      console.log("Tutor status:", status);
 
       if (!status) {
         return res.status(404).json({
@@ -104,7 +103,6 @@ class tutorController {
       //   });
       // }
 
-      console.log('abc',classroom);
       if (
         !classroom.className ||
         !classroom.subject ||

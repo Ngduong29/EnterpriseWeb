@@ -91,7 +91,6 @@ class Tutor {
   static async createClass(classroom) {
     const connection = await connectDB();
     // const classID = await this.createClassID();
-    console.log('abcc2',classroom)
     const [result] = await connection.execute(
       `INSERT INTO Classes (subject, length, available, type, description, price, tutorID, className, videoLink)
        VALUES (?,  ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -99,7 +98,7 @@ class Tutor {
         classroom.available, classroom.type, classroom.description, classroom.price,
         classroom.tutorID, classroom.className, classroom.videoLink]
     );
-    console.log('abcc',result)
+
     return {...classroom };
   }
 

@@ -27,7 +27,7 @@ class adminController {
       });
     }
   };
-  
+
   static getEnrollmentRequests = async (req, res) => {
     try {
       const requests = await Student.getAllEnrollmentRequests();
@@ -47,7 +47,7 @@ class adminController {
   static handleAssignStudent = async (req, res) => {
     try {
       const { studentIDs, classID } = req.body;
-      
+
       if (!studentIDs || !classID) {
         return res.status(400).json({
           message: "Student IDs and Class ID are required"
@@ -69,14 +69,16 @@ class adminController {
       }
 
       // Get instructor details
-      const tutor = await Tutor.findTutorByID(classData.tutorID);
+
+      const tutor = await Tutor.findTutorByTutorID(classData.tutorID);
       if (!tutor) {
         return res.status(404).json({
           message: "Instructor not found"
         });
       }
 
-      const tutorUser = await User.findUserByID(tutor.userID);
+
+      const tutorUser = await User.findUserByID(tutor[0].userID);
       if (!tutorUser) {
         return res.status(404).json({
           message: "Instructor user not found"
@@ -84,7 +86,24 @@ class adminController {
       }
 
       const results = [];
-      const { sendClassEnrollmentEmail } = require("../email/EmailAssign");
+      const { sendClassEnrollmentEmail, sendInstructorAssignmentEmail } = require("../email/EmailAssign");
+
+      try {
+        const Students = await Student.getListStudentByIds(studentIDs);
+        await sendInstructorAssignmentEmail(tutorUser.email, classData.className, Students);
+        results.push({
+          message: "Tutor assigned to class successfully",
+          data: {
+            tutorID: classData.tutorID,
+            classID: classData.classID,
+            className: classData.className,
+            studentCount: Students.length
+          }
+        });
+      } catch (error) {
+        console.log('error', error);
+      }
+
 
       // Process each student ID
       for (const studentID of studentIDs) {
@@ -106,19 +125,19 @@ class adminController {
           // Send email to student (enrollment already done by frontend)
           await sendClassEnrollmentEmail(userData.email, classData.className, tutorUser.fullName);
 
-          results.push({ 
-            studentID, 
-            status: 'success', 
+          results.push({
+            studentID,
+            status: 'success',
             message: 'Enrolled and email sent',
             studentName: userData.fullName,
             email: userData.email
           });
         } catch (error) {
           console.error(`Error processing student ${studentID}:`, error);
-          results.push({ 
-            studentID, 
-            status: 'failed', 
-            message: error.message 
+          results.push({
+            studentID,
+            status: 'failed',
+            message: error.message
           });
         }
       }
@@ -170,7 +189,7 @@ class adminController {
     }
   };
 
-  
+
 
   static getActiveUserByMonthAndYear = async (req, res) => {
     try {
@@ -255,7 +274,6 @@ class adminController {
       }
 
       const { status } = req.body;
-      console.log("Received status:", status);
 
       if (status == "Accept") {
         // Update TutorRequests status
@@ -273,12 +291,12 @@ class adminController {
 
         // Send approval email
         const user = await User.findUserByID(userID);
-        console.log("User data for email:", user);
+
 
         if (user && user.email) {
           try {
             await sendApprovalEmail(user.email);
-            console.log("Approval email sent to:", user.email);
+
           } catch (emailError) {
             console.error("Error sending email:", emailError);
           }
@@ -607,7 +625,7 @@ class adminController {
   static handleAssignTutor = async (req, res) => {
     try {
       const { tutorID, classID } = req.body;
-      
+
       if (!tutorID || !classID) {
         return res.status(400).json({
           message: "Tutor ID and Class ID are required"
@@ -669,6 +687,39 @@ class adminController {
       res.status(500).json({
         message: "Error assigning tutor to class",
         error: error.message
+      });
+    }
+  };
+
+  static assignStudentsToClass = async (req, res) => {
+    try {
+      const classID = req.params.classID;
+      const studentIDs = req.body.studentIDs; // Expecting an array of student IDs
+
+      if (!classID || !studentIDs || !Array.isArray(studentIDs)) {
+        return res.status(400).json({
+          message: "Invalid input",
+        });
+      }
+
+      const result = await Classroom.assignStudentsToClass(classID, studentIDs);
+      console.log("Assigning students to class result:", result);
+
+      if (!result) {
+        return res.status(500).json({
+          message: "Error in assigning students to class",
+        });
+      }
+
+      return res.status(200).json({
+        message: "Students assigned to class successfully",
+        data: result,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error in assigning students to class on server",
+        error,
       });
     }
   };
