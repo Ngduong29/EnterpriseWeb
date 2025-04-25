@@ -8,6 +8,7 @@ import AuthContext from '../contexts/JWTAuthContext'
 import { jwtDecode } from 'jwt-decode'
 import logo from '../assets/logo.png'
 import { RecoveryContext } from "../App"
+import { makePut } from '../apiService/httpService.js';
 
 const Reset = () => {
   const { email, otp} = useContext(RecoveryContext);
@@ -36,7 +37,7 @@ const Reset = () => {
 
       console.log(email);
       console.log(password);
-      const response = await axios.put('http://localhost:5000/api/auth/update-password', {
+      const response = await makePut('auth/update-password', {
         email: email,
         newPassword: password,
       });
