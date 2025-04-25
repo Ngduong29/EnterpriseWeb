@@ -8,12 +8,14 @@ import 'react-toastify/dist/ReactToastify.css'
 import AccessDeniedPage from '../components/AccessDeniedPage.jsx'
 import { Button } from '@material-tailwind/react'
 import { ChatBubbleLeftIcon, NewspaperIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
-import { makeDelete, makePost } from '../apiService/httpService.js'
-
+import { makeDelete, makeGet, makePost, makePut } from '../apiService/httpService.js'
+import supabase from '../apiService/supabase.js'
+import AuthContext from '../contexts/JWTAuthContext'
 
 const ClassManagement = () => {
   const token = localStorage.getItem('token')
   const role = localStorage.getItem('role')
+  const { user, isAuthenticated } = useContext(AuthContext)
   const [classes, setClasses] = useState([])
   const [inactiveClasses, setInactiveClasses] = useState([])
   const [formData, setFormData] = useState({
@@ -33,14 +35,26 @@ const ClassManagement = () => {
   const [updateFormData, setUpdateFormData] = useState(formData)
   const [currentClassId, setCurrentClassId] = useState(null)
   const hasCheckedPayment = useRef(false)
+  const [chatRooms, setChatRooms] = useState([])
 
   if (!token || !role || role == 'Student') {
     return <AccessDeniedPage />
   }
 
+  const getChatRoomsByTutorId = async () => {
+    if (user && user.role === 'Tutor') {
+      const { data, error } = await supabase.from('chat_rooms').select('*').eq('tutor_id', user.tutorID)
+      if (error) {
+        toast.error('Can not get chat rooms')
+        return []
+      }
+      setChatRooms(data)
+    }
+  }
   useEffect(() => {
     if (role == 'Tutor') {
       fetchClasses()
+      getChatRoomsByTutorId()
     }
   }, [token, role])
 
@@ -60,7 +74,6 @@ const ClassManagement = () => {
       const decodedToken = jwtDecode(token)
       const tutorID = decodedToken.user.tutorID
       const response = await makePost(`tutors/findClasses/${tutorID}`)
-      console.log(response)
       const activeClasses = response.classroom.filter((classroom) => classroom.isActive)
       const inactiveClasses = response.classroom.filter((classroom) => classroom.isActive == 0)
       setClasses(activeClasses)
@@ -261,6 +274,24 @@ const ClassManagement = () => {
     })
     setIsUpdateModalOpen(true)
   }
+  const handleUpdateChatRoom = async (cls) => {
+    console.log(cls)
+
+    const updateRoom = {
+      name: cls.className,
+      tutor_id: cls.tutorID,
+      class_id: +cls.classID
+    }
+
+    const { data, error } = await supabase.from('chat_rooms').update(updateRoom).eq('class_id', cls.classID).select()
+
+    if (error) {
+      console.error('Lỗi khi cập nhật chat room:', error)
+      throw new Error('Không thể cập nhật chat room')
+    }
+
+    return data[0]
+  }
 
   const handleUpdateClass = async () => {
     try {
@@ -270,8 +301,13 @@ const ClassManagement = () => {
         return
       }
 
-      const response = await makePut(`tutors/updateClasses/${currentClassId}`, updateFormData)
+      const response = await makePost(`tutors/updateClasses/${currentClassId}`, updateFormData)
       setClasses(classes.map((cls) => (cls.id === currentClassId ? response.data : cls)))
+      handleUpdateChatRoom({
+        className: updateFormData.className,
+        tutorID: updateFormData.tutorID,
+        classID: currentClassId
+      })
       setIsUpdateModalOpen(false)
       toast.info('Class updated successfully!')
       fetchClasses()
@@ -306,6 +342,38 @@ const ClassManagement = () => {
     return null
   }
 
+  const handleAddChatRoom = async (cls) => {
+    const newRoom = {
+      name: cls.className,
+      tutor_id: cls.tutorID,
+      class_id: +cls.classID
+    }
+    const { data, error } = await supabase.from('chat_rooms').insert([newRoom]).select()
+    if (error) {
+      toast.error('Can not create new chat room')
+      return
+    } else {
+      const { data, error } = await supabase
+        .from('chat_room_members')
+        .insert([
+          {
+            chat_room_id: +cls.classID,
+            role: 'Tutor',
+            user_id: user.userID,
+            user_name: user.userName
+          }
+        ])
+        .select()
+      if (error) {
+        toast.error('Can not create new chat room')
+        return
+      } else {
+        getChatRoomsByTutorId()
+      }
+    }
+    toast.success('Create chat room success')
+  }
+
   return (
     <div className='container mx-auto p-4 pt-16'>
       <header>
@@ -328,6 +396,11 @@ const ClassManagement = () => {
               <div className='mb-2 text-left w-full'>
                 <h2 className='text-lg font-bold'>{cls.className}</h2>
                 <p className='text-sm mb-2'>Subject: {cls.subject}</p>
+                {!chatRooms.find((item) => item.class_id == cls.classID) && (
+                  <button className='text-blue-600' onClick={() => handleAddChatRoom(cls)}>
+                    Add chat room
+                  </button>
+                )}
               </div>
               <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}

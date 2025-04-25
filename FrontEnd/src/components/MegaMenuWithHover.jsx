@@ -6,7 +6,7 @@ import { Button, Input, Collapse, IconButton } from '@material-tailwind/react'
 import { Bars3Icon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import AuthContext from '../contexts/JWTAuthContext'
 import SearchBar from './Navigation/SearchBar'
-import ChatBox from './ChatBox'
+import ChatRoomList from './ChatRoomList'
 
 export function MegaMenuWithHover() {
   const [openSearch, setOpenSearch] = useState(false)
@@ -17,7 +17,6 @@ export function MegaMenuWithHover() {
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenNav(false))
     window.addEventListener('resize', () => window.innerWidth >= 960 && setOpenSearch(false))
   }, [])
-  const chatRef = useRef(null)
   return (
     <>
       <div className='block shadow-md backdrop-saturate-200 backdrop-blur-2xl text-white w-full fixed top-0 left-0 right-0 px-0 py-0 bg-orange-300 z-50'>
@@ -65,6 +64,7 @@ export function MegaMenuWithHover() {
           <NavList isAuthenticated={isAuthenticated} />
         </Collapse>
       </div>
+      {user && (user.role === 'Student' || user.role === 'Tutor') && <ChatRoomList user={user} />}
     </>
   )
 }

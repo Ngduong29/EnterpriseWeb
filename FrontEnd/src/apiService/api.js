@@ -8,18 +8,16 @@ const API_URL = 'http://localhost:5000/api'
 export const loginUser = async (email, password) => {
   try {
     const response = await axios.post(`${API_URL}/auth/login`, { email, password })
-    const { data, error } = await supabase.auth.signInWithPassword({
-      password: password,
-      email: email
-    })
-    if (error) {
-      console.log(error)
-      return { success: false, error: error }
-    }
-    if (response.data && data) {
-      console.log(123, response.data, data);
+    if (response) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        password: password,
+        email: email
+      })
+      if (data) {
+        console.log(data)
 
-      return { ...response.data, user: { ...data.user, ...response.data.user, session: data.session } }
+        return { ...response.data, user: { ...data.user, ...response.data.user, session: data.session } }
+      }
     }
   } catch (error) {
     throw new Error(error.response ? error.response.data.message : 'Login failed')
@@ -149,4 +147,4 @@ export const fetchUserProfile = async (token) => {
   }
 }
 
-export const uploadFileToSupabase = async (file) => { }
+export const uploadFileToSupabase = async (file) => {}

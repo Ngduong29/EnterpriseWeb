@@ -12,6 +12,7 @@ const ClassDocument = ({ classId }) => {
   const [uploading, setUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [documentTitle, setDocumentTitle] = useState('')
+  const [documentDescription, setDocumentDescription] = useState('')
   const [showModal, setShowModal] = useState(false)
   const fileInputRef = useRef()
 
@@ -22,8 +23,8 @@ const ClassDocument = ({ classId }) => {
   }, [classId, user])
 
   const handleUploadDocument = async () => {
-    if (!selectedFile || !documentTitle) {
-      toast.warning('Please choose a file and enter document title')
+    if (!selectedFile || !documentTitle || !documentDescription) {
+      toast.warning('Please choose a file and enter to all fields')
       return
     }
 
@@ -48,6 +49,7 @@ const ClassDocument = ({ classId }) => {
       documentTitle,
       documentLink: publicUrl,
       classID: classId,
+      description: documentDescription,
       uploadAt: new Date().toISOString()
     }
 
@@ -56,6 +58,7 @@ const ClassDocument = ({ classId }) => {
       toast.success('Document uploaded successfully!')
       // reset form
       setDocumentTitle('')
+      setDocumentDescription('')
       setSelectedFile(null)
       fileInputRef.current.value = ''
       setShowModal(false)
@@ -69,6 +72,7 @@ const ClassDocument = ({ classId }) => {
   const handleCloseModal = () => {
     setShowModal(false)
     setDocumentTitle('')
+    setDocumentDescription('')
     setSelectedFile(null)
     fileInputRef.current.value = ''
   }
@@ -92,13 +96,20 @@ const ClassDocument = ({ classId }) => {
       {showModal && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
           <div className='bg-white rounded-lg shadow-lg w-full max-w-md pb-2'>
-            <h3 className='text-lg font-bold mb-3 text-white bg-orange-500 p-4 rounded-t-lg'>Upload New Document</h3>
+            <h3 className='text-lg font-bold mb-3 text-white bg-blue-600 p-4 rounded-t-lg'>Upload New Document</h3>
             <div className='p-3'>
               <input
                 type='text'
                 placeholder='Document Title'
                 value={documentTitle}
                 onChange={(e) => setDocumentTitle(e.target.value)}
+                className='w-full p-2 border mb-2 rounded'
+                required
+              />
+              <textarea
+                placeholder='Description'
+                value={documentDescription}
+                onChange={(e) => setDocumentDescription(e.target.value)}
                 className='w-full p-2 border mb-2 rounded'
               />
               <input

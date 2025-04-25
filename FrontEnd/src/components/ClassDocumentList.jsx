@@ -23,6 +23,7 @@ export default function ClassDocumentList({ role, classId }) {
   useEffect(() => {
     fetchDocumentByClassId()
   }, [classId])
+
   return (
     <>
       {loading ? (
@@ -46,6 +47,7 @@ export default function ClassDocumentList({ role, classId }) {
                   </span>
                 </a>
               </div>
+              <p className='text-sm text-gray-800 mb-2'>{doc.description}</p>
               <p className='text-xs text-gray-600'>
                 <i className='fa-solid fa-clock mr-2'></i>
                 {new Date(doc.uploadedAt).toLocaleString()}
