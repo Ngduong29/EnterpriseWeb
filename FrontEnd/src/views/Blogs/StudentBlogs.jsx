@@ -157,10 +157,10 @@ const StudentBlogs = () => {
                   <div className='flex items-center text-xs text-gray-500 mb-2'>
                     <span
                       className={`rounded-full px-2 py-0.5 sm:px-3 sm:py-1 text-xs ${
-                        blog.status === '1' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        blog.status == '1' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                       }`}
                     >
-                      {blog.status === '1' ? 'Published' : 'Draft'}
+                      {blog.status == '1' ? 'Published' : 'Draft'}
                     </span>
                     <span className='mx-2'>•</span>
                     <span>{formatDate(blog.created_at)}</span>

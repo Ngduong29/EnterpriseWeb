@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link ,useLocation  } from 'react-router-dom'
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import BreadcrumbsWithIcon from '../../components/BreadCrumb.jsx'
 import MegaMenuWithHover from '../../components/MegaMenuWithHover.jsx'
 import { makeGet } from '../../apiService/httpService.js'
@@ -9,45 +9,43 @@ const BlogDetail = () => {
   const [blog, setBlog] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const [authorBlogs, setAuthorBlogs] = useState([]);
-  const location = useLocation();
-  const blogFromState = location.state;
+  const [authorBlogs, setAuthorBlogs] = useState([])
+  const location = useLocation()
+  const blogFromState = location.state
 
   // Phân tích URL để lấy classID nếu không có trong params
   const getClassID = () => {
-    if (classID) return classID;
-    
-    const currentUrl = window.location.pathname;
-    const urlParts = currentUrl.split('/');
-    const classIdIndex = urlParts.indexOf('my-classes') + 1;
-    
-    return (classIdIndex > 0 && urlParts[classIdIndex]) ? urlParts[classIdIndex] : null;
-  };
-  
-  const currentClassID = getClassID();
+    if (classID) return classID
+
+    const currentUrl = window.location.pathname
+    const urlParts = currentUrl.split('/')
+    const classIdIndex = urlParts.indexOf('my-classes') + 1
+
+    return classIdIndex > 0 && urlParts[classIdIndex] ? urlParts[classIdIndex] : null
+  }
+
+  const currentClassID = getClassID()
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setBlog(blogFromState);
-        
+        setBlog(blogFromState)
+
         if (blogFromState?.student_id) {
-          const authorResponse = await makeGet(`blogs/author/${blogFromState.student_id}`);
-           // Lọc các bài viết: loại bỏ bài hiện tại và chỉ lấy các bài Published
-        const filteredBlogs = authorResponse.data.filter(authorBlog => 
-          authorBlog.id !== parseInt(id) && authorBlog.status === 1
-        );
-          setAuthorBlogs(filteredBlogs);
+          const authorResponse = await makeGet(`blogs/author/${blogFromState.student_id}`, { class_id: currentClassID })
+          // Lọc các bài viết: loại bỏ bài hiện tại và chỉ lấy các bài Published
+          const filteredBlogs = authorResponse.data.filter((authorBlog) => authorBlog.blog_id !== parseInt(id))
+          setAuthorBlogs(filteredBlogs)
         }
       } catch (error) {
-        console.error('Error loading author blogs:', error);
+        console.error('Error loading author blogs:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-  
-    loadData();
-  }, [id, blogFromState]);
+    }
+
+    loadData()
+  }, [id, blogFromState])
 
   const formatDate = (dateStr) => {
     return new Intl.DateTimeFormat('en-GB', {
@@ -56,12 +54,12 @@ const BlogDetail = () => {
       year: 'numeric'
     }).format(new Date(dateStr))
   }
-  
+
   const handleGoBack = () => {
     if (currentClassID) {
-      navigate(`/my-classes/${currentClassID}/blogs`);
+      navigate(`/my-classes/${currentClassID}/blogs`)
     } else {
-      navigate('/Blog');
+      navigate('/Blog')
     }
   }
 
@@ -70,8 +68,8 @@ const BlogDetail = () => {
     { name: 'Home', path: '/' },
     { name: 'My Classes', path: '/my-classes' },
     { name: 'Blogs', path: currentClassID ? `/my-classes/${currentClassID}/blogs` : '/Blog' },
-    { name: 'Blog Detail', path: '#' }  // # cho trang hiện tại
-  ];
+    { name: 'Blog Detail', path: '#' } // # cho trang hiện tại
+  ]
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -87,7 +85,7 @@ const BlogDetail = () => {
           </div>
         </div>
 
-        <main className='space-y-4 sm:space-y-6 max-w-3xl mx-auto bg-white p-4 sm:p-6 rounded-lg shadow-md mb-6 sm:mb-10'>
+        <main className='space-y-4 sm:space-y-6 ms-4 bg-white p-4 sm:p-6 shadow-md sm:mb-10'>
           {loading ? (
             <div className='flex justify-center items-center py-8 sm:py-10'>
               <div className='animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-t-2 border-b-2 border-orange-500'></div>
@@ -107,24 +105,29 @@ const BlogDetail = () => {
           ) : (
             <>
               <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800'>{blog.title}</h1>
-              
               <div className='text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 flex flex-wrap items-center gap-1 sm:gap-0'>
-                <span className='mr-1 sm:mr-2'>{formatDate(blog.created_at)}</span> • 
-                <span className={`ml-1 sm:ml-2 px-2 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${
-                  blog.status === 1 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                }`}>
+                <span className='mr-1 sm:mr-2'>{formatDate(blog.created_at)}</span> •
+                <span
+                  className={`ml-1 sm:ml-2 px-2 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${
+                    blog.status === 1 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}
+                >
                   {blog.status === 1 ? 'Published' : 'Draft'}
                 </span>
               </div>
-              
+
               <div className='prose max-w-none text-sm sm:text-base'>
-                {blog.content ? 
+                {blog.content ? (
                   blog.content.split('\n').map((paragraph, index) => (
-                    <p key={index} className='mb-3 sm:mb-4 text-gray-700'>{paragraph}</p>
+                    <p key={index} className='mb-3 sm:mb-4 text-gray-700'>
+                      {paragraph}
+                    </p>
                   ))
-                : <p className='italic text-gray-400'>No content provided.</p>}
+                ) : (
+                  <p className='italic text-gray-400'>No content provided.</p>
+                )}
               </div>
-              
+
               <div className='pt-4 sm:pt-6 mt-4 sm:mt-6 border-t border-gray-200'>
                 <div className='flex items-center'>
                   <div className='w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-xs sm:text-sm'>
@@ -136,54 +139,50 @@ const BlogDetail = () => {
             </>
           )}
         </main>
-        <div className="mt-12 border-t pt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          More from {blog?.fullName ?? 'this author'}
-        </h2>
-        {authorBlogs.length > 0 ? (
-          <div className="space-y-4">
-            {authorBlogs.slice(0, 4).map((authorBlog) => (
-              <Link 
-              to={`/my-classes/${currentClassID}/blogs/blogDetail/${authorBlog.blog_id}`}
-              key={authorBlog.blog_id}
-              state={authorBlog}
-              className="block bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300"
-            >
-                <div className="p-6 flex items-start gap-4">
-                  {/* Phần Avatar */}
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-lg">
-                      {console.log(authorBlog)}
-                      {authorBlog.fullName ? authorBlog.fullName.charAt(0).toUpperCase() : 'A'}
+        <div className='mt-12 border-t pt-8'>
+          <h2 className='text-2xl font-bold text-gray-800 mb-6'>More from {blog?.fullName ?? 'this author'}</h2>
+          {authorBlogs.length > 0 ? (
+            <div className='space-y-4'>
+              {authorBlogs.slice(0, 4).map((authorBlog) => (
+                <Link
+                  to={`/my-classes/${currentClassID}/blogs/blogDetail/${authorBlog.blog_id}`}
+                  key={authorBlog.blog_id}
+                  state={authorBlog}
+                  className='block bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300'
+                >
+                  <div className='p-6 flex items-start gap-4'>
+                    {/* Phần Avatar */}
+                    <div className='flex-shrink-0'>
+                      <div className='w-12 h-12 rounded-full bg-orange-200 flex items-center justify-center text-orange-700 font-bold text-lg'>
+                        {console.log(authorBlog)}
+                        {authorBlog.fullName ? authorBlog.fullName.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                    </div>
+
+                    {/* Phần Nội dung */}
+                    <div className='flex-1 min-w-0'>
+                      <h3 className='text-lg font-semibold text-gray-800 mb-2'>{authorBlog.title}</h3>
+                      <div className='flex items-center text-sm text-gray-500 mb-2'>
+                        <span>{formatDate(authorBlog.created_at)}</span>
+                        <span className='mx-2'>•</span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            authorBlog.status === 1 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {authorBlog.status === 1 ? 'Published' : 'Draft'}
+                        </span>
+                      </div>
+                      <p className='text-gray-600 line-clamp-3'>{authorBlog.content}</p>
                     </div>
                   </div>
-                  
-                  {/* Phần Nội dung */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                      {authorBlog.title}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                      <span>{formatDate(authorBlog.created_at)}</span>
-                      <span className="mx-2">•</span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        authorBlog.status === 1 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {authorBlog.status === 1 ? 'Published' : 'Draft'}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 line-clamp-3">
-                      {authorBlog.content}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 italic">No other blogs from this author.</p>
-        )}
-      </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className='text-gray-500 italic'>No other blogs from this author.</p>
+          )}
+        </div>
       </div>
     </div>
   )

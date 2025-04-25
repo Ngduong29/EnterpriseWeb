@@ -9,7 +9,10 @@ export default function ClassDocumentList({ role, classId }) {
   const fetchDocumentByClassId = async () => {
     setLoading(true)
     try {
-      const response = await makeGet(`tutors/getDocuments/${classId}`)
+      const response =
+        role === 'Student'
+          ? await makeGet(`students/getDocuments/${classId}`)
+          : await makeGet(`tutors/getDocuments/${classId}`)
       setDocuments(response.data)
     } catch (error) {
       toast.error('Failed to fetch class documents data')

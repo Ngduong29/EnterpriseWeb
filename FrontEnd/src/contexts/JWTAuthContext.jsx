@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('rememberMe')
       }
     } catch (error) {
-      throw new Error(error.response ? error.response.data.message : 'Login failed')
+      throw new Error(error)
     }
   }
 
