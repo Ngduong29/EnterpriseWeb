@@ -22,6 +22,8 @@ router.get("/getUserActiveByMonthAndYear", adminController.getActiveUserByMonthA
 router.get("/getActiveUser", adminController.getActiveUser);
 router.get("/getPaymentInfoThisMonth", adminController.getPaymentInfoThisMonth);
 
+router.post("/handleAssignStudent", adminController.handleAssignStudent);
+router.post("/handleAssignTutor", adminController.handleAssignTutor);
 //Post
 router.post("/handleTutor/:id", adminController.handleTutor);
 router.post(

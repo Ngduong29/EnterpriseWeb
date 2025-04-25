@@ -44,6 +44,100 @@ class adminController {
     }
   };
 
+  static handleAssignStudent = async (req, res) => {
+    try {
+      const { studentIDs, classID } = req.body;
+      
+      if (!studentIDs || !classID) {
+        return res.status(400).json({
+          message: "Student IDs and Class ID are required"
+        });
+      }
+
+      if (!Array.isArray(studentIDs) || studentIDs.length === 0) {
+        return res.status(400).json({
+          message: "Student IDs must be a non-empty array"
+        });
+      }
+
+      // Get class details
+      const classData = await Classroom.findClassByID(classID);
+      if (!classData) {
+        return res.status(404).json({
+          message: "Class not found"
+        });
+      }
+
+      // Get instructor details
+      const tutor = await Tutor.findTutorByID(classData.tutorID);
+      if (!tutor) {
+        return res.status(404).json({
+          message: "Instructor not found"
+        });
+      }
+
+      const tutorUser = await User.findUserByID(tutor.userID);
+      if (!tutorUser) {
+        return res.status(404).json({
+          message: "Instructor user not found"
+        });
+      }
+
+      const results = [];
+      const { sendClassEnrollmentEmail } = require("../email/EmailAssign");
+
+      // Process each student ID
+      for (const studentID of studentIDs) {
+        try {
+          // Get student email
+          const student = await Student.findStudentByID(studentID);
+          if (!student) {
+            results.push({ studentID, status: 'failed', message: 'Student not found' });
+            continue;
+          }
+
+          // Get user email
+          const userData = await User.findUserByID(student.userID);
+          if (!userData || !userData.email) {
+            results.push({ studentID, status: 'failed', message: 'Student email not found' });
+            continue;
+          }
+
+          // Send email to student (enrollment already done by frontend)
+          await sendClassEnrollmentEmail(userData.email, classData.className, tutorUser.fullName);
+
+          results.push({ 
+            studentID, 
+            status: 'success', 
+            message: 'Enrolled and email sent',
+            studentName: userData.fullName,
+            email: userData.email
+          });
+        } catch (error) {
+          console.error(`Error processing student ${studentID}:`, error);
+          results.push({ 
+            studentID, 
+            status: 'failed', 
+            message: error.message 
+          });
+        }
+      }
+
+      res.status(200).json({
+        message: "Student assignment process completed",
+        className: classData.className,
+        instructorName: tutorUser.fullName,
+        results
+      });
+    } catch (error) {
+      console.error("Error assigning students to class:", error);
+      res.status(500).json({
+        message: "Error assigning students to class",
+        error: error.message
+      });
+    }
+  };
+
   static handleEnrollmentRequest = async (req, res) => {
     try {
       const { requestID } = req.params;
@@ -504,6 +598,75 @@ class adminController {
       res.status(500).json({
         message: 'Internal server error',
         error,
+      });
+    }
+  };
+
+  static handleAssignTutor = async (req, res) => {
+    try {
+      const { tutorID, classID } = req.body;
+      
+      if (!tutorID || !classID) {
+        return res.status(400).json({
+          message: "Tutor ID and Class ID are required"
+        });
+      }
+
+      // Get tutor details
+      const tutor = await Tutor.findTutorByID(tutorID);
+      if (!tutor) {
+        return res.status(404).json({
+          message: "Tutor not found"
+        });
+      }
+
+      // Get tutor user data
+      const tutorUser = await User.findUserByID(tutor.userID);
+      if (!tutorUser || !tutorUser.email) {
+        return res.status(404).json({
+          message: "Tutor email not found"
+        });
+      }
+
+      // Get class details
+      const classData = await Classroom.findClassByID(classID);
+      if (!classData) {
+        return res.status(404).json({
+          message: "Class not found"
+        });
+      }
+
+      // Assign tutor to class
+      await Classroom.assignTutor(classID, tutorID);
+
+      // Get students enrolled in the class
+      const [students] = await connectDB().execute(
+        `SELECT s.*, u.fullName as name, u.email, s.grade 
+         FROM Class_Students cs 
+         JOIN Students s ON cs.studentID = s.studentID 
+         JOIN Users u ON s.userID = u.userID 
+         WHERE cs.classID = ? AND cs.status = 'Active'`,
+        [classID]
+      );
+
+      // Send email to instructor with student list
+      const { sendInstructorAssignmentEmail } = require("../email/EmailAssign");
+      await sendInstructorAssignmentEmail(tutorUser.email, classData.className, students);
+
+      res.status(200).json({
+        message: "Tutor assigned to class successfully",
+        data: {
+          tutorID,
+          classID,
+          className: classData.className,
+          studentCount: students.length
+        }
+      });
+    } catch (error) {
+      console.error("Error assigning tutor to class:", error);
+      res.status(500).json({
+        message: "Error assigning tutor to class",
+        error: error.message
       });
     }
   };
