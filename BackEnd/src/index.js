@@ -1,26 +1,81 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const http = require("http");
-const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 const sendEmail = require("./email/EmailOtp");
-const corsMiddleware = require("./middleware/cors");
+const { AccessToken } = require('livekit-server-sdk');
+const cors = require('cors');
+const path = require('path');
+const config = require('../config');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
-const server = http.createServer(app);
+const httpServer = createServer(app);
 
-const io = new Server(server, {
+
+const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true,
-  },
+  }
 });
 
-// Middleware
-app.use(corsMiddleware);
+// Enable CORS
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  methods: ["GET", "POST"],
+  credentials: true,
+}));
+
+// Parse JSON request body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
+
+app.post('/api/get-token', (req, res) => {
+  try {
+    const { roomName, participantName } = req.body;
+
+    if (!roomName || !participantName) {
+      return res.status(400).json({ error: 'Room name and participant name are required' });
+    }
+
+    // Create a token with LiveKit SDK
+    const token = new AccessToken(config.livekit.apiKey, config.livekit.apiSecret, {
+      identity: participantName,
+    });
+
+    token.addGrant({
+      roomJoin: true,
+      room: roomName,
+    });
+
+    // Return the token
+    res.json({
+      token: token.toJwt(),
+      url: config.livekit.url
+    });
+  } catch (error) {
+    console.error('Error generating token:', error);
+    res.status(500).json({ error: 'Failed to generate token' });
+  }
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 
 // Routes
 const routes = require("./routes");
@@ -44,34 +99,10 @@ app.post("/send_recovery_email", async (req, res, next) => {
   }
 });
 
-// Socket.IO setup
-io.on("connection", (socket) => {
-  socket.on("sendMessage", async (message) => {
-    try {
-      if (!message || !message.senderID || !message.receiverID || !message.content) {
-        socket.emit("error", { message: "Invalid message format" });
-        return;
-      }
-      io.emit("receiveMessage", message);
-    } catch (error) {
-      console.error("Error processing message:", error);
-      socket.emit("error", { message: "Failed to send message" });
-    }
-  });
-
-  socket.on("disconnect", () => {
-    // logic
-  });
+// Start the server
+const PORT = config.port;
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`API available at http://localhost:${PORT}/api`);
+  console.log(`Socket.IO server is running`);
 });
-
-// Start server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, async () => {
-  try {
-    await connectDB();
-    console.log(`Server running on port ${PORT}`);
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
-}); 

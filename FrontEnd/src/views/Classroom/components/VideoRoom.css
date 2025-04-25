@@ -1,0 +1,241 @@
+.video-room {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 25px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.room-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.room-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.fullscreen-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fullscreen-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.error {
+  color: var(--error-color);
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: rgba(234, 67, 53, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* LiveKit container styles */
+.livekit-container {
+  height: calc(100vh - 150px);
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom styles to override LiveKit defaults */
+:root {
+  --lk-participant-border-radius: 12px;
+  --lk-participant-bg: #2a2a2a;
+  --lk-control-bg: rgba(42, 42, 42, 0.7);
+  --lk-control-hover-bg: rgba(60, 60, 60, 0.85);
+  --lk-control-border-radius: 50px;
+  --lk-video-container-background: #1a1a1a;
+  --lk-participant-overlay-gradient: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4));
+  
+  /* Button styling */
+  --lk-button-background: #4285f4;
+  --lk-button-background-hover: #3367d6;
+  --lk-button-border-radius: 50px;
+  --lk-button-text-color: white;
+  --lk-button-font-weight: 500;
+  
+  /* Text styling */
+  --lk-participant-name-color: white;
+  --lk-participant-name-font-size: 14px;
+  --lk-participant-name-font-weight: 500;
+  
+  /* Icons */
+  --lk-control-size: 50px;
+  --lk-icon-size: 24px;
+  --lk-icon-button-size: 50px;
+}
+
+/* Custom Video Conference */
+.custom-video-conference {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Ensure the video conference takes up the full container */
+.livekit-container > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* Fix for video tiles */
+.lk-video-conference {
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a1a;
+}
+
+/* Improve the grid layout */
+.lk-grid-layout {
+  padding: 15px !important;
+  gap: 15px !important;
+}
+
+/* Better participant tiles */
+.lk-participant-tile {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lk-participant-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.lk-participant-tile video {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Enhanced control bar */
+.lk-control-bar {
+  background-color: rgba(42, 42, 42, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 12px;
+  border-radius: 50px;
+  margin: 0 auto 20px;
+  width: fit-content;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom button styling */
+.lk-button {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.lk-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Active button state */
+.lk-button.lk-button-active {
+  background-color: var(--error-color) !important;
+}
+
+/* Muted indicators */
+.lk-participant-metadata {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 0 0 12px 12px;
+}
+
+/* Screen sharing styles */
+.lk-screen-share-container {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Fullscreen mode */
+.video-room.fullscreen {
+  padding: 0;
+  max-width: 100%;
+}
+
+.video-room.fullscreen .livekit-container {
+  border-radius: 0;
+  height: 100vh;
+}
+
+/* Media queries for mobile */
+@media (max-width: 768px) {
+  .room-header {
+    padding: 12px 15px;
+  }
+  
+  .room-header h2 {
+    font-size: 16px;
+  }
+  
+  .fullscreen-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .livekit-container {
+    height: calc(100vh - 120px);
+  }
+  
+  .lk-control-bar {
+    padding: 8px;
+    border-radius: 30px;
+    gap: 8px;
+  }
+}
+
+/* Media queries for larger screens */
+@media (min-width: 1440px) {
+  .video-room {
+    max-width: 1600px;
+  }
+  
+  .lk-grid-layout {
+    padding: 20px !important;
+    gap: 20px !important;
+  }
+} 

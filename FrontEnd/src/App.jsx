@@ -1,6 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/JWTAuthContext'
 import { createContext, useState } from 'react'
+import '@livekit/components-styles'; 
+import reportWebVitals from './reportWebVitals';
+import './process-polyfill';
+
+
 
 import HomePage from './views/HomePage'
 import Login from './views/Login'
@@ -29,6 +34,7 @@ import AdminStudentRequests from './views/AdminStudentRequest'
 import Reset from './views/Reset'
 import OTPinput from './views/OTPInput'
 import MyClass from './views/MyClass/MyClass'
+import Classroom from './views/Classroom/Classroom'
 export const RecoveryContext = createContext()
 const App = () => {
   const [email, setEmail] = useState()
@@ -68,6 +74,9 @@ const App = () => {
             <Route path='/my-classes/:classID/blogs/blogDetail/:id' element={<BlogDetail />} />
             <Route path='/my-classes' element={<MyClass />} />
             <Route path='/my-classes/:classID/stream' element={<ClassroomStream />} />
+
+            <Route path='/classroom' element={<Classroom />} />
+
             {/* Protected routes */}
 
             <Route

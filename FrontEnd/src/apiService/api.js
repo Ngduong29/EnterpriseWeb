@@ -2,7 +2,6 @@
 
 import axios from 'axios'
 import supabase from './supabase'
-
 const API_URL = 'http://localhost:5000/api'
 // const API_URL = 'https://e59e-171-233-29-47.ngrok-free.app/api' //
 
@@ -18,6 +17,8 @@ export const loginUser = async (email, password) => {
       return { success: false, error: error }
     }
     if (response.data && data) {
+      console.log(123, response.data, data);
+
       return { ...response.data, user: { ...data.user, ...response.data.user, session: data.session } }
     }
   } catch (error) {
@@ -148,4 +149,4 @@ export const fetchUserProfile = async (token) => {
   }
 }
 
-export const uploadFileToSupabase = async (file) => {}
+export const uploadFileToSupabase = async (file) => { }
