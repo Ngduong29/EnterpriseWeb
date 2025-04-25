@@ -1,5 +1,4 @@
-<<<<<<< Updated upstream
-.app {
+.classroom-app {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -24,7 +23,7 @@
   bottom: 0;
 }
 
-.join-form-container {
+.classroom-join-form-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 30px 20px;
@@ -36,7 +35,7 @@
   padding: 2rem 1rem;
 }
 
-.container {
+.classroom-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 30px 20px;
@@ -48,7 +47,7 @@
   padding: 2rem 1rem;
 }
 
-h1 {
+.classroom-page h1 {
   text-align: center;
   color: var(--text-color);
   margin-bottom: 40px;
@@ -57,7 +56,7 @@ h1 {
   letter-spacing: -0.5px;
 }
 
-button {
+.classroom-page button {
   padding: 12px 18px;
   background-color: var(--primary-color);
   color: white;
@@ -70,20 +69,20 @@ button {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-button:hover {
+.classroom-page button:hover {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-button:disabled {
+.classroom-page button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-input {
+.classroom-page input {
   padding: 12px 16px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -92,13 +91,13 @@ input {
   transition: all 0.2s ease;
 }
 
-input:focus {
+.classroom-page input:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
   outline: none;
 }
 
-.error {
+.classroom-error {
   color: var(--error-color);
   font-size: 14px;
   margin-top: 8px;
@@ -108,7 +107,7 @@ input:focus {
 }
 
 /* Footer */
-.footer {
+.classroom-footer {
   text-align: center;
   padding: 20px;
   color: var(--light-text);
@@ -117,34 +116,34 @@ input:focus {
 }
 
 /* Animations */
-@keyframes fadeIn {
+@keyframes classroom-fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+.classroom-fade-in {
+  animation: classroom-fadeIn 0.5s ease-in-out;
 }
 
 /* Media queries */
 @media (max-width: 768px) {
-  .container, .join-form-container {
+  .classroom-container, .classroom-join-form-container {
     padding: 20px 15px;
   }
   
-  h1 {
+  .classroom-page h1 {
     font-size: 26px;
     margin-bottom: 30px;
   }
   
-  button {
+  .classroom-page button {
     padding: 10px 16px;
     font-size: 14px;
   }
 }
 
 @media (min-width: 1440px) {
-  .container, .join-form-container {
+  .classroom-container, .classroom-join-form-container {
     max-width: 1400px;
   }
 }
@@ -172,6 +171,35 @@ input:focus {
   height: 4px;
   background: linear-gradient(to right, #ff9800, #ff5722);
   border-radius: 2px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--discord-dark);
+  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.loading-container p {
+  background-color: var(--discord-dark-secondary);
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
 } 
-=======
->>>>>>> Stashed changes

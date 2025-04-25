@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import './App.css'
-import { JoinForm } from './components/JoinForm'
+import { useLocation, useNavigate } from 'react-router-dom'
+import './Classroom.css'
 import { VideoRoom } from './components/VideoRoom'
 
 function Classroom() {
   const [roomInfo, setRoomInfo] = useState(null)
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Parse query parameters for room name and participant name
@@ -17,8 +17,16 @@ function Classroom() {
     // If both parameters are provided, automatically join the room
     if (roomName && participantName) {
       handleAutoJoin(roomName, participantName)
+    } else {
+      // Nếu không có tham số, chuyển hướng về trang chính
+      const userRole = localStorage.getItem('userRole') || 'student'
+      if (userRole === 'tutor') {
+        navigate('/manage-classes')
+      } else {
+        navigate('/my-classes')
+      }
     }
-  }, [location])
+  }, [location, navigate])
 
   // Auto-join the room with provided parameters
   const handleAutoJoin = async (roomName, participantName) => {
@@ -53,28 +61,24 @@ function Classroom() {
       })
     } catch (error) {
       console.error('Error auto-joining room:', error)
-      // If auto-join fails, just show the form
+      // Nếu không thể tham gia phòng, chuyển hướng về trang chính
+      const userRole = (participantName || '').toLowerCase().includes('tutor') ? 'tutor' : 'student'
+      if (userRole === 'tutor') {
+        navigate('/manage-classes')
+      } else {
+        navigate('/my-classes')
+      }
     }
   }
 
-  // Handle when user joins a room
-  const handleJoinRoom = (roomData) => {
-    setRoomInfo(roomData)
-  }
-
-  // Handle when user leaves a room
+  // Xử lý khi người dùng rời phòng
   const handleLeaveRoom = () => {
-    setRoomInfo(null)
+    // Đã được xử lý trong VideoRoom component
   }
 
   return (
     <div className='classroom-page'>
-      {!roomInfo ? (
-        <div className='join-form-container'>
-          <h1 className='classroom-title'>Classroom</h1>
-          <JoinForm onJoinRoom={handleJoinRoom} />
-        </div>
-      ) : (
+      {roomInfo ? (
         <VideoRoom
           token={roomInfo.token}
           url={roomInfo.url}
@@ -82,6 +86,10 @@ function Classroom() {
           participantName={roomInfo.participantName}
           onLeaveRoom={handleLeaveRoom}
         />
+      ) : (
+        <div className="loading-container">
+          <p>Đang kết nối đến phòng học...</p>
+        </div>
       )}
     </div>
   )
