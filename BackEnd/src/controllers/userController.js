@@ -1,6 +1,8 @@
 const Student = require("../models/Student");
 const Tutor = require("../models/Tutor");
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
+
 
 class userController {
 
@@ -155,7 +157,8 @@ class userController {
         });
       }
 
-      const updated = await User.updateUserPasswordByEmail(email, newPassword);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const updated = await User.updateUserPasswordByEmail(email, hashedPassword);
 
       if (!updated) {
         return res.status(500).json({
