@@ -1,0 +1,313 @@
+.video-room {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #1a1a1a;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.video-room.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: #2a2a2a;
+  color: white;
+  height: 60px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.room-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.room-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.control-btn, .fullscreen-btn {
+  background-color: #3a3a3a;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover, .fullscreen-btn:hover {
+  background-color: #4a4a4a;
+}
+
+.control-btn svg, .fullscreen-btn svg {
+  font-size: 18px;
+}
+
+.livekit-container {
+  height: calc(100vh - 80px);
+  min-height: 600px;
+  border-radius: 0;
+  overflow: hidden;
+  background-color: #2a2a2a;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.permission-warning {
+  color: white;
+  background-color: rgba(255, 0, 0, 0.2);
+  padding: 20px;
+  border-radius: 4px;
+  margin: 20px;
+  text-align: center;
+}
+
+.permission-warning button {
+  background-color: #4a6cf7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Specific styling for LiveKit components */
+:global(.lk-video-conference) {
+  height: 100%;
+  background-color: #1a1a1a;
+}
+
+:global(.lk-participant-tile) {
+  background-color: #333333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+:global(.lk-control-bar) {
+  background-color: #2a2a2a;
+}
+
+/* Media queries for responsive design */
+@media (min-width: 1440px) {
+  .video-room {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .room-header {
+    padding: 10px;
+    height: 50px;
+  }
+  
+  .livekit-container {
+    height: calc(100vh - 70px);
+  }
+  
+  .control-btn, .fullscreen-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+.error {
+  padding: 10px;
+  background-color: rgba(255, 0, 0, 0.2);
+  color: white;
+  border-radius: 4px;
+  margin: 10px;
+}
+
+/* Custom styles to override LiveKit defaults */
+:root {
+  --lk-participant-border-radius: 12px;
+  --lk-participant-bg: #2a2a2a;
+  --lk-control-bg: rgba(42, 42, 42, 0.7);
+  --lk-control-hover-bg: rgba(60, 60, 60, 0.85);
+  --lk-control-border-radius: 50px;
+  --lk-video-container-background: #1a1a1a;
+  --lk-participant-overlay-gradient: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4));
+  
+  /* Button styling */
+  --lk-button-background: #4285f4;
+  --lk-button-background-hover: #3367d6;
+  --lk-button-border-radius: 50px;
+  --lk-button-text-color: white;
+  --lk-button-font-weight: 500;
+  
+  /* Text styling */
+  --lk-participant-name-color: white;
+  --lk-participant-name-font-size: 14px;
+  --lk-participant-name-font-weight: 500;
+  
+  /* Icons */
+  --lk-control-size: 50px;
+  --lk-icon-size: 24px;
+  --lk-icon-button-size: 50px;
+}
+
+/* Custom Video Conference */
+.custom-video-conference {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Ensure the video conference takes up the full container */
+.livekit-container > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* Fix for video tiles */
+.lk-video-conference {
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a1a;
+}
+
+/* Improve the grid layout */
+.lk-grid-layout {
+  padding: 15px !important;
+  gap: 15px !important;
+}
+
+/* Better participant tiles */
+.lk-participant-tile {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lk-participant-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.lk-participant-tile video {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Enhanced control bar */
+.lk-control-bar {
+  background-color: rgba(42, 42, 42, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 12px;
+  border-radius: 50px;
+  margin: 0 auto 20px;
+  width: fit-content;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom button styling */
+.lk-button {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.lk-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Active button state */
+.lk-button.lk-button-active {
+  background-color: var(--error-color) !important;
+}
+
+/* Muted indicators */
+.lk-participant-metadata {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 0 0 12px 12px;
+}
+
+/* Screen sharing styles */
+.lk-screen-share-container {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Styles for media permissions warning */
+.media-permissions-warning {
+  background-color: #ff9800;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px;
+  color: #333;
+  text-align: center;
+  max-width: 500px;
+  margin: 50px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.media-permissions-warning h3 {
+  margin-top: 0;
+  color: #d32f2f;
+  font-size: 18px;
+}
+
+.media-permissions-warning p {
+  margin-bottom: 20px;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.media-permissions-warning button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.media-permissions-warning button:hover {
+  background-color: #388E3C;
+} 

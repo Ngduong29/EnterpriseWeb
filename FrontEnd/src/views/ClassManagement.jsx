@@ -332,6 +332,12 @@ const ClassManagement = () => {
               <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}
                 <Link
+                  to={`/classroom?room=${encodeURIComponent(cls.className)}&name=${encodeURIComponent(localStorage.getItem('userName') || 'Tutor')}`}
+                  className='bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2'
+                >
+                  Create Class
+                </Link>
+                <Link
                   to={`/my-classes/${cls.classID}/blogs`}
                   className='bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2'
                 >
