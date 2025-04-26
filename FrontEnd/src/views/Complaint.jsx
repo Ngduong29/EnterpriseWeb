@@ -9,6 +9,7 @@ import { jwtDecode } from 'jwt-decode'
 import axios from 'axios'
 import ChatBox from '../components/ChatBox.jsx'
 import { useNavigate } from 'react-router-dom'
+import { makePost } from '../apiService/httpService.js'
 
 const Complaint = () => {
   const token = localStorage.getItem('token')
@@ -43,7 +44,7 @@ const Complaint = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users/complain', {
+      const response = makePost('users/complain', {
         userID: userData.userID, // Assuming user ID is stored in userData.id
         message: complaintMessage
       })
