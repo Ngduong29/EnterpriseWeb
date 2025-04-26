@@ -86,13 +86,13 @@ class classController {
     try {
       const classID = req.params.classID;
       if (!classID) {
-        return res.status(404).json({     
+        return res.status(404).json({
           message: "Please provide class id",
         });
       }
 
       const data = await Classroom.getDocumentsByClassID(classID);
-      if (!data) {  
+      if (!data) {
         return res.status(404).json({
           message: "Cannot find documents",
         });
@@ -114,15 +114,15 @@ class classController {
   static insertDocument = async (req, res) => {
     try {
       const classID = req.params.classID;
-      
-      
+
+
       if (!classID) {
         return res.status(404).json({
           message: "Please provide class id",
         });
       }
       const data = await Classroom.insertDocument(classID, req.body.documentTitle, req.body.documentLink, req.body.description);
-      if (!data) {  
+      if (!data) {
         return res.status(404).json({
           message: "Cannot insert document",
         });
@@ -139,7 +139,7 @@ class classController {
         error,
       });
     }
-  };  
+  };
 
   static getStudentByClassID = async (req, res) => {
     try {
@@ -148,7 +148,7 @@ class classController {
         return res.status(404).json({
           message: "Please provide class id",
         });
-      } 
+      }
 
       const data = await Classroom.getStudentByClassID(classID);
       if (!data) {
@@ -226,26 +226,26 @@ class classController {
         error,
       });
     }
-  };  
+  };
 
   static getDocumentByID = async (req, res) => {
     try {
       const documentID = req.params.documentID;
       if (!documentID) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           message: "Please provide document id",
         });
       }
 
       const data = await Classroom.getDocumentByID(documentID);
-      if (!data) {    
+      if (!data) {
         return res.status(404).json({
           message: "Cannot find document",
         });
       }
 
       return res.status(200).json({
-        message: "Found document",    
+        message: "Found document",
         data,
       });
     } catch (error) {
@@ -260,6 +260,7 @@ class classController {
   static getClass = async (req, res) => {
     try {
       const id = req.params.classID;
+
       if (!id) {
         return res.status(404).json({
           message: "Please provide class id",

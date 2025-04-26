@@ -13,7 +13,7 @@ const router = express.Router();
 router.use(authenticateToken('Student', 'Tutor'));
 
 // Get
-router.get("/getClass/:id?", classController.getClass);
+router.get("/getClass/:classID", classController.getClass);
 router.get("/getTutor/:id", tutorController.getTutor);
 router.get("/getClassByUserID", classController.getClassByUserID);
 router.get("/getMessage/:senderID&:receiverID", messageController.getMessage);

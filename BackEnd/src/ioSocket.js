@@ -10,18 +10,11 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
+        origin: "*",
         methods: ["GET", "POST"],
         credentials: true,
     }
 });
-
-// Enable CORS
-app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-}));
 
 // Parse JSON request body
 app.use(express.json());
