@@ -8,7 +8,7 @@ import { jwtDecode } from 'jwt-decode'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ChatBox from '../components/ChatBox.jsx'
-
+import { makeGet, makePost } from '../apiService/httpService'
 const ViewTutorProfile = () => {
   const { id } = useParams()
   const token = localStorage.getItem('token')
@@ -31,9 +31,9 @@ const ViewTutorProfile = () => {
 
   const fetchTutor = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/users/getTutor/${id}`)
-      setTutor(response.data.data) // Assuming the API response contains the tutor data in `data` field
-      console.log(response.data.data)
+      const response = await makeGet(`users/getTutor/${id}`)
+      setTutor(response.data) // Assuming the API response contains the tutor data in `data` field
+      console.log(response.data)
     } catch (error) {
       console.error('Error fetching tutor data:', error)
     }
@@ -56,7 +56,7 @@ const ViewTutorProfile = () => {
         return
       }
       try {
-        const response = await axios.post(`http://localhost:5000/api/students/requestClass/${tutor.tutorID}`, {
+        const response = await makePost(`students/requestClass/${tutor.tutorID}`, {
           studentID: user.studentID,
           message: requestMessage
         })

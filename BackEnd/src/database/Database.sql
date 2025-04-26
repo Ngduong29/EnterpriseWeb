@@ -509,7 +509,7 @@ CREATE TABLE `TutorRequests` (
   `requestID` int NOT NULL AUTO_INCREMENT,
   `userID` int NOT NULL,
   `tutorID` varchar(50) NOT NULL,
-  `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
+  `status` enum('Pending','Accept','Deny') DEFAULT 'Pending',
   `createdAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`requestID`),
@@ -526,7 +526,7 @@ CREATE TABLE `TutorRequests` (
 
 LOCK TABLES `TutorRequests` WRITE;
 /*!40000 ALTER TABLE `TutorRequests` DISABLE KEYS */;
-INSERT INTO `TutorRequests` VALUES (1,10,'T3','Approved','2025-04-13 08:48:06','2025-04-13 10:00:55'),(2,12,'T4','Rejected','2025-04-13 10:07:41','2025-04-13 10:14:06'),(3,15,'T5','Pending','2025-04-15 15:15:19','2025-04-15 15:15:19'),(4,35,'T6','Pending','2025-04-15 16:27:34','2025-04-15 16:27:34'),(5,36,'T7','Pending','2025-04-15 16:28:42','2025-04-15 16:28:42'),(6,38,'T8','Pending','2025-04-17 14:44:07','2025-04-17 14:44:07'),(7,40,'T9','Pending','2025-04-17 14:45:01','2025-04-17 14:45:01');
+INSERT INTO `TutorRequests` VALUES (1,10,'T3','Accept','2025-04-13 08:48:06','2025-04-13 10:00:55'),(2,12,'T4','Deny','2025-04-13 10:07:41','2025-04-13 10:14:06'),(3,15,'T5','Pending','2025-04-15 15:15:19','2025-04-15 15:15:19'),(4,35,'T6','Pending','2025-04-15 16:27:34','2025-04-15 16:27:34'),(5,36,'T7','Pending','2025-04-15 16:28:42','2025-04-15 16:28:42'),(6,38,'T8','Pending','2025-04-17 14:44:07','2025-04-17 14:44:07'),(7,40,'T9','Pending','2025-04-17 14:45:01','2025-04-17 14:45:01');
 /*!40000 ALTER TABLE `TutorRequests` ENABLE KEYS */;
 UNLOCK TABLES;
 
