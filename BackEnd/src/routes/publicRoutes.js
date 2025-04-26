@@ -11,6 +11,6 @@ router.get("/students/searchTutorByTutorName/:search", studentController.findTut
 router.get("/students/searchClassByClassName/:search", studentController.findClassByClassName);
 router.get("/students/searchClassBySubject/:id", classroomController.findClassroomBySubject);
 router.get("/tutors/class/:classID", classController.getClass);
-
+router.get("/users/getAllClass", classController.getAllClass);
 
 module.exports = router; 
