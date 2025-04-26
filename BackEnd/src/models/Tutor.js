@@ -94,12 +94,11 @@ class Tutor {
     const [result] = await connection.execute(
       `INSERT INTO Classes (subject, length, available, type, description, price, tutorID, className, videoLink)
        VALUES (?,  ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ classroom.subject, classroom.length,
-        classroom.available, classroom.type, classroom.description, classroom.price,
-        classroom.tutorID, classroom.className, classroom.videoLink]
+      [classroom.subject, classroom.length,
+      classroom.available, classroom.type, classroom.description, classroom.price,
+      classroom.tutorID, classroom.className, classroom.videoLink]
     );
-
-    return {...classroom };
+    return { ...classroom, ...{ classID: result.insertId } };
   }
 
   // Update class information
