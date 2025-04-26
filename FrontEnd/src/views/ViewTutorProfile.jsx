@@ -7,8 +7,8 @@ import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import ChatBox from '../components/ChatBox.jsx'
 import { makeGet, makePost } from '../apiService/httpService'
+
 const ViewTutorProfile = () => {
   const { id } = useParams()
   const token = localStorage.getItem('token')
@@ -17,7 +17,6 @@ const ViewTutorProfile = () => {
   const [user, setUser] = useState([])
   const [isRequestOpen, setRequestOpen] = useState(false)
   const [requestMessage, setRequestMessage] = useState('')
-  const chatBoxRef = useRef() // Reference to the ChatBox component
 
   useEffect(() => {
     if (id) {
@@ -171,7 +170,6 @@ const ViewTutorProfile = () => {
           </div>
         )}
       </div>
-      {/* <ChatBox ref={chatBoxRef} /> */}
       <ToastContainer />
     </div>
   )

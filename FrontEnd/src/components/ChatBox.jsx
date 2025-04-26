@@ -86,7 +86,14 @@ const ChatBox = ({ user, classID, onClose }) => {
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp)
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+    const nowDate = new Date()
+    if (date.getDate() === nowDate.getDate() && date.getMonth() === nowDate.getMonth()) {
+      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+    } else
+      return `${date.getDate().toString()}/${date.getMonth().toString()} - ${date
+        .getHours()
+        .toString()
+        .padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
   }
 
   useEffect(() => {
@@ -120,7 +127,7 @@ const ChatBox = ({ user, classID, onClose }) => {
   }, [messages])
 
   return (
-    <div className='fixed bottom-4 right-4 w-full max-w-xs bg-white shadow-lg border border-gray-300 rounded-lg z-50 flex flex-col h-[500px]'>
+    <div className='fixed bottom-4 right-4 w-full max-w-xs bg-white shadow-lg border border-gray-300 rounded-lg z-50 flex flex-col h-[520px]'>
       {/* Header */}
       <div className='flex justify-between items-center bg-blue-600 text-white px-4 py-2 rounded-t-lg'>
         <h2 className='text-md text-white'>{chatRoomName} chat</h2>
