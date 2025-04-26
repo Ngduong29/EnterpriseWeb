@@ -56,8 +56,8 @@ class authController {
           fullName,
           avatar,
           dateOfBirth,
-          phone || "0866722601",
-          address || "Ha Noi",
+          phone,
+          address,
           1,
         ]
       );
