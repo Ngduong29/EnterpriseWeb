@@ -67,7 +67,7 @@ const ClassroomStream = () => {
   // Thêm hàm fetchClassDetails để lấy thông tin lớp học
   const fetchClassDetails = async () => {
     try {
-      const response = await makeGet(`tutors/class/${classID}`)
+      const response = await makeGet(`public/tutors/class/${classID}`)
       setClassDetails(response.data)
     } catch (error) {
       console.error('Error fetching class details:', error)
@@ -685,7 +685,7 @@ const ClassroomStream = () => {
                 <span className='font-medium'>Mode:</span> {classDetails?.type}
               </p>
               <p className='mb-2'>
-                <span className='font-medium'>Status:</span> {classDetails?.isActive === 1 ? 'Active' : 'Inactive'}
+                <span className='font-medium'>Status:</span> {classDetails?.isActive == 1 ? 'Active' : 'Inactive'}
               </p>
             </div>
 
