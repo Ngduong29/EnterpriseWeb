@@ -158,9 +158,8 @@ const MyClass = () => {
                 <p className='mt-2 text-gray-500 text-center'>You haven't enrolled in any classes yet.</p>
               </div>
             ) : (
-              <div className='space-y-4 sm:space-y-6'>
+              <div className='space-y-6'>
                 <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>{selectedClass.className}</h1>
-
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4'>
                   <div className='bg-gray-50 p-3 sm:p-4 rounded-lg'>
                     <p className='text-gray-600 text-sm sm:text-base'>
@@ -185,105 +184,111 @@ const MyClass = () => {
                   </div>
                 </div>
 
-                <div className='flex flex-wrap gap-3 sm:gap-4 mt-6 sm:mt-8'>
-                  <Button
-                    color='blue'
-                    className='flex items-center justify-center space-x-2 bg-orange-500 hover:bg-orange-600 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
-                    as={Link}
-                    to={`/class/${selectedClass.classID}/chat`}
-                  >
-                    <ChatBubbleLeftIcon className='h-4 w-4 sm:h-5 sm:w-5' />
-                    <span>Join Chat Room</span>
-                  </Button>
-
-                  <Link to={`/my-classes/${selectedClass.classID}/blogs`}>
-                    <Button
-                      color='blue'
-                      className='flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
-                    >
-                      <NewspaperIcon className='h-4 w-4 sm:h-5 sm:w-5' />
-                      <span>Go to Blogs</span>
-                    </Button>
-                  </Link>
-                  <Link to={`/my-classes/${selectedClass.classID}/stream`}>
-                    <Button
-                      color='blue'
-                      className='flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
-                    >
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        className='h-4 w-4 sm:h-5 sm:w-5'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
+                <div className='space-y-4'>
+                  <div>
+                    <h3 className='text-lg font-semibold text-gray-700 mb-3'>Interaction</h3>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                      <Link 
+                        to={`/classroom?room=${encodeURIComponent(selectedClass.className)}&name=${encodeURIComponent(user?.fullName || 'Student')}`}
+                        className='flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded font-medium text-center'
                       >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
-                        />
-                      </svg>
-                      <span>Stream</span>
-                    </Button>
-                  </Link>
-
-                  <Button
-                    variant='outlined'
-                    color='blue'
-                    className='flex items-center justify-center space-x-2 border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
-                  >
-                    <EllipsisHorizontalIcon className='h-4 w-4 sm:h-5 sm:w-5' />
-                    <span>More</span>
-                  </Button>
-                </div>
-                <div>
-                  <div className="flex gap-3 items-center">
-                    <Button
-                      variant='outlined'
-                      color='blue'
-                      className='flex items-center justify-center space-x-2 bg-purple-300 border-gray-300 text-white hover:bg-purple-400 text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4'
-                      onClick={() => {
-                        setShowDocuments((prev) => !prev)
-                      }}
-                    >
-                      <i className='fa-solid fa-folder-open mr-2'></i>
-                      Documents
-                    </Button>
-                    
-                    <Link 
-                      to={`/classroom?room=${encodeURIComponent(selectedClass.className)}&name=${encodeURIComponent(user?.fullName || 'Student')}`}
-                      className='flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white text-sm sm:text-base py-2 px-3 sm:py-2.5 sm:px-4 rounded'
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4 sm:h-5 sm:w-5 mr-2" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          className="h-5 w-5" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" 
+                          />
+                        </svg>
+                        <span>Join Room</span>
+                      </Link>
+                      
+                      <Link 
+                        to={`/class/${selectedClass.classID}/chat`}
+                        className='flex items-center justify-center space-x-2 bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded font-medium text-center'
                       >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" 
-                        />
-                      </svg>
-                      Join Room
-                    </Link>
-                  </div>
-                  {showDocuments && (
-                    <div className='mt-4'>
-                      {user && user.role && (
-                        <ClassDocumentList
-                          role={user.role}
-                          classId={selectedClass.classID}
-                          key={selectedClass.classID}
-                        />
-                      )}
+                        <ChatBubbleLeftIcon className='h-5 w-5' />
+                        <span>Join Chat Room</span>
+                      </Link>
                     </div>
-                  )}
+                  </div>
+                  
+                  <div>
+                    <h3 className='text-lg font-semibold text-gray-700 mb-3'>Resources</h3>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
+                      <button
+                        onClick={() => {
+                          setShowDocuments((prev) => !prev)
+                        }}
+                        className='flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded font-medium'
+                      >
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          className="h-5 w-5" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                          />
+                        </svg>
+                        <span>Documents</span>
+                      </button>
+                      
+                      <Link 
+                        to={`/my-classes/${selectedClass.classID}/blogs`}
+                        className='flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded font-medium'
+                      >
+                        <NewspaperIcon className='h-5 w-5' />
+                        <span>Blogs</span>
+                      </Link>
+                      
+                      <Link 
+                        to={`/my-classes/${selectedClass.classID}/stream`}
+                        className='flex items-center justify-center space-x-2 bg-indigo-500 hover:bg-indigo-600 text-white py-3 px-4 rounded font-medium'
+                      >
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'
+                          />
+                        </svg>
+                        <span>Stream</span>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
+                
+                {showDocuments && (
+                  <div className='mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50'>
+                    <h3 className='text-lg font-semibold text-gray-700 mb-3'>Class Documents</h3>
+                    {user && user.role && (
+                      <ClassDocumentList
+                        role={user.role}
+                        classId={selectedClass.classID}
+                        key={selectedClass.classID}
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </main>
