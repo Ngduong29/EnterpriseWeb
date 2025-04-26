@@ -327,7 +327,8 @@ const ClassManagement = () => {
 
   const handleUnenrollStudent = async (classID, studentID) => {
     try {
-      await axios.post(`http://localhost:5000/api/students/unEnrollClass/${classID}`, { studentID })
+      await makePost(`tutors/unEnrollClass/${classID}`, { studentID })
+      // await axios.post(`http://localhost:5000/api/students/unEnrollClass/${classID}`, { studentID })
       toast('Student unenrolled successfully!')
       fetchClasses()
     } catch (error) {

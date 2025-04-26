@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { mockData } from '../assets/mock/mockDataApi'
 
-// const API_URL = import.meta.env.VITE_API_URL
-const API_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL + `/api`
+// const API_URL = 'http://localhost:5000/api'
 // const API_URL = 'https://e59e-171-233-29-47.ngrok-free.app/api'
 
 const getToken = () => localStorage.getItem('token')

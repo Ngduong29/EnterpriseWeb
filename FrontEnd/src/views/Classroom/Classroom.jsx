@@ -32,9 +32,9 @@ function Classroom() {
   const handleAutoJoin = async (roomName, participantName) => {
     try {
       console.log(`Auto-joining room: ${roomName}, as: ${participantName}`)
-      
+
       // Call API to get token
-      const absoluteUrl = 'http://localhost:5000/api/get-token'
+      const absoluteUrl = import.meta.env.VITE_API_URL + '/api/get-token'
       const response = await fetch(absoluteUrl, {
         method: 'POST',
         headers: {
@@ -87,7 +87,7 @@ function Classroom() {
           onLeaveRoom={handleLeaveRoom}
         />
       ) : (
-        <div className="loading-container">
+        <div className='loading-container'>
           <p>Đang kết nối đến phòng học...</p>
         </div>
       )}

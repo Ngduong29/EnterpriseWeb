@@ -2,7 +2,8 @@
 
 import axios from 'axios'
 import supabase from './supabase'
-const API_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL + `/api`
+// const API_URL = 'http://localhost:5000/api'
 // const API_URL = 'https://e59e-171-233-29-47.ngrok-free.app/api' //
 
 export const loginUser = async (email, password) => {
@@ -147,4 +148,4 @@ export const fetchUserProfile = async (token) => {
   }
 }
 
-export const uploadFileToSupabase = async (file) => {}
+export const uploadFileToSupabase = async (file) => { }

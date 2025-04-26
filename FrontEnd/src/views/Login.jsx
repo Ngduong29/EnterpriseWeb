@@ -4,17 +4,17 @@ import { Input, Checkbox, Typography } from '@material-tailwind/react'
 import { MegaMenuWithHover } from '../components/MegaMenuWithHover.jsx'
 import AuthContext from '../contexts/JWTAuthContext'
 import { useNavigate } from 'react-router-dom'
-import axios from "axios";
-import { RecoveryContext } from '../App';
+import axios from 'axios'
+import { RecoveryContext } from '../App'
+import { makePost } from '../apiService/httpService.js'
 const Login = () => {
   const navigate = useNavigate()
-  const { setOTP, setEmail } = useContext(RecoveryContext);
+  const { setOTP, setEmail } = useContext(RecoveryContext)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: true
   })
-  
 
   const [errorMessage, setErrorMessage] = useState('') // Error state
 
@@ -39,28 +39,28 @@ const Login = () => {
     }
   }
   const handleForgotPassword = (e) => {
-    e.preventDefault();
+    e.preventDefault()
     // Navigate to reset page with email as parameter
-    navigate(`/reset-password?email=${formData.email}`);
-  };
+    navigate(`/reset-password?email=${formData.email}`)
+  }
 
   const handleForgotPasswordnew = (e) => {
     if (formData.email) {
-      const OTP = Math.floor(Math.random() * 9000 + 1000);
-      console.log(OTP);
-      setOTP(OTP);
-      setEmail(formData.email);
-      axios
-        .post("http://localhost:5000/send_recovery_email", {
-          OTP,
-          recipient_email: formData.email,
-        })
-        navigate(`/OTP-page`);
-        
-      return;
+      const OTP = Math.floor(Math.random() * 9000 + 1000)
+      console.log(OTP)
+      setOTP(OTP)
+      setEmail(formData.email)
+
+      axios.post(import.meta.env.VITE_API_URL + '/send_recovery_email', {
+        OTP,
+        recipient_email: formData.email
+      })
+      navigate(`/OTP-page`)
+
+      return
     }
-    return alert("Please enter your email");
-  };
+    return alert('Please enter your email')
+  }
 
   return (
     <div className='min-h-screen bg-gray-50 flex flex-col justify-center items-center py-12 sm:px-6 lg:px-8 px-6'>
@@ -139,7 +139,7 @@ const Login = () => {
               >
                 Forgot your password?
               </a>
-            </div> 
+            </div>
           </div>
 
           {errorMessage && (
