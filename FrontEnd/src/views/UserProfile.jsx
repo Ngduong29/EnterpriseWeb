@@ -22,7 +22,6 @@ import { storage } from '../firebase.js'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { v4 } from 'uuid'
 import { jwtDecode } from 'jwt-decode'
-import ChatBox from '../components/ChatBox'
 import { useNavigate } from 'react-router-dom'
 import { RecoveryContext } from '../App'
 import { makePut } from '../apiService/httpService.js'
@@ -154,7 +153,6 @@ const UserProfile = () => {
   const handleFileChange = (e) => {
     const { name, files } = e.target
     setUserData({ ...userData, [name]: files[0] })
-    console.log(userData)
   }
   const handleResetPassword = (e) => {
     e.preventDefault()
@@ -447,7 +445,6 @@ const UserProfile = () => {
           </button>
         </div>
       </div>
-      <ChatBox />
       <ToastContainer />
     </div>
   )

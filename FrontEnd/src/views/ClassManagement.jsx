@@ -36,7 +36,17 @@ const ClassManagement = () => {
   const [currentClassId, setCurrentClassId] = useState(null)
   const hasCheckedPayment = useRef(false)
   const [chatRooms, setChatRooms] = useState([])
+  const [openMenu, setOpenMenu] = useState(null)
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-menu')) {
+        setOpenMenu(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
   if (!token || !role || role == 'Student') {
     return <AccessDeniedPage />
   }
@@ -275,8 +285,6 @@ const ClassManagement = () => {
     setIsUpdateModalOpen(true)
   }
   const handleUpdateChatRoom = async (cls) => {
-    console.log(cls)
-
     const updateRoom = {
       name: cls.className,
       tutor_id: cls.tutorID,
@@ -286,8 +294,8 @@ const ClassManagement = () => {
     const { data, error } = await supabase.from('chat_rooms').update(updateRoom).eq('class_id', cls.classID).select()
 
     if (error) {
-      console.error('Lỗi khi cập nhật chat room:', error)
-      throw new Error('Không thể cập nhật chat room')
+      console.error('failed to update chat room:', error)
+      throw new Error('can not update class chat room')
     }
 
     return data[0]
@@ -396,16 +404,13 @@ const ClassManagement = () => {
               <div className='mb-2 text-left w-full'>
                 <h2 className='text-lg font-bold'>{cls.className}</h2>
                 <p className='text-sm mb-2'>Subject: {cls.subject}</p>
-                {!chatRooms.find((item) => item.class_id == cls.classID) && (
-                  <button className='text-blue-600' onClick={() => handleAddChatRoom(cls)}>
-                    Add chat room
-                  </button>
-                )}
               </div>
-              <div className='w-full text-right'>
+              {/* <div className='w-full text-right'>
                 {renderUnenrollButton(cls.classID, cls.studentID)}
                 <Link
-                  to={`/classroom?room=${encodeURIComponent(cls.className)}&name=${encodeURIComponent(localStorage.getItem('userName') || 'Tutor')}`}
+                  to={`/classroom?room=${encodeURIComponent(cls.className)}&name=${encodeURIComponent(
+                    localStorage.getItem('userName') || 'Tutor'
+                  )}`}
                   className='bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2'
                 >
                   Create Class
@@ -434,6 +439,52 @@ const ClassManagement = () => {
                 >
                   Deactivate
                 </button>
+              </div> */}
+              <div className='w-full text-right relative'>
+                <div className='inline-flex gap-2 items-center'>
+                  {renderUnenrollButton(cls.classID, cls.studentID)}
+
+                  <Link
+                    to={`/classroom?room=${encodeURIComponent(cls.className)}&name=${encodeURIComponent(
+                      localStorage.getItem('userName') || 'Tutor'
+                    )}`}
+                    className='bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600'
+                  >
+                    Create Class
+                  </Link>
+
+                  <div className='relative inline-block text-left'>
+                    <button
+                      onClick={() => setOpenMenu((open) => (open === cls.classID ? null : cls.classID))}
+                      className='bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300'
+                    >
+                      More ⋮
+                    </button>
+
+                    {openMenu === cls.classID && (
+                      <div className='absolute right-0 mt-2 w-40 bg-white rounded shadow-md z-10 dropdown-menu'>
+                        <Link to={`/my-classes/${cls.classID}/blogs`} className='block px-4 py-2 hover:bg-gray-100'>
+                          Blogs
+                        </Link>
+                        <Link to={`/my-classes/${cls.classID}/stream`} className='block px-4 py-2 hover:bg-gray-100'>
+                          Stream
+                        </Link>
+                        <button
+                          onClick={() => handleOpenUpdateModal(cls)}
+                          className='block w-full text-left px-4 py-2 hover:bg-gray-100'
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => handleDeactivateClass(cls.classID)}
+                          className='block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100'
+                        >
+                          Deactivate
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -587,7 +638,7 @@ const ClassManagement = () => {
         )}
 
         {isUpdateModalOpen && (
-          <div className='fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center'>
+          <div className='fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-20'>
             <div className='bg-white p-8 rounded shadow-lg w-1/2 max-h-[80vh] overflow-y-auto mt-20'>
               <h2 className='text-xl font-bold mb-4'>Update Class</h2>
               <div className='mb-4'>

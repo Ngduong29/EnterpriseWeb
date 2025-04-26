@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { makeDelete, makeGet, makePostFormData, makePut, makePutFormData } from '../apiService/httpService.js'
 import axios from 'axios'
+import supabase from '../apiService/supabase.js'
 
 const AdminPortal = () => {
   const [users, setUsers] = useState([])
@@ -180,7 +181,7 @@ const AdminPortal = () => {
     setEditingUser(user)
     // Lấy thông tin cơ bản
     const baseFormData = {
-      userID: user.userID,
+      userID: '',
       userName: user.userName || '',
       fullName: user.fullName || '',
       email: user.email || '',
@@ -238,7 +239,15 @@ const AdminPortal = () => {
     try {
       if (editingUser) {
         // Cập nhật người dùng hiện có
-        await makePut(`users/update/${editingUser.userID}`, JSON.stringify({ updatedUserData: formData }))
+        const res = await makePut(`users/update/${editingUser.userID}`, JSON.stringify({ updatedUserData: formData }))
+        const { error: updateErr } = await supabase.auth.updateUser({
+          email: formData.email,
+          password: formData.password
+        })
+        if (updateErr) {
+          console.log(updateErr.message)
+          toast.error('Can not update user in storage')
+        }
         toast.success('User update success')
       } else {
         // Tạo FormData để xử lý file uploads
@@ -270,7 +279,14 @@ const AdminPortal = () => {
           console.log('FormData contents:', Object.fromEntries(formDataToSend.entries()))
 
           // Gọi API
-          await makePostFormData('admin/registerStudent', formDataToSend)
+          const res = await makePostFormData('admin/registerStudent', formDataToSend)
+          if (res) {
+            const { data, error } = await supabase.auth.signUp({
+              email: formData.email,
+              password: formData.password
+            })
+            if (error) throw new Error('Can not add user to cloud storage!')
+          }
         } else if (formData.role === 'Tutor') {
           formDataToSend.append('workplace', formData.workplace || 'Default Workplace')
           formDataToSend.append('description', formData.description || 'Default Description')
@@ -289,16 +305,15 @@ const AdminPortal = () => {
           }
 
           // Gọi API đăng ký gia sư
-          await makePostFormData('admin/registerTutor', formDataToSend)
-        } else if (formData.role === 'Admin' || formData.role === 'Moderator') {
-          // Dùng API registerStudent nhưng thay đổi role
-          formDataToSend.append('grade', 'N/A')
-          formDataToSend.append('school', 'N/A')
-          formDataToSend.append('role', formData.role)
-
-          await makePostFormData('admin/registerStudent', formDataToSend)
+          const res = await makePostFormData('admin/registerTutor', formDataToSend)
+          if (res) {
+            const { data, error } = await supabase.auth.signUp({
+              email: formData.email,
+              password: formData.password
+            })
+            if (error) throw new Error('Can not add user to cloud storage!')
+          }
         }
-
         toast.success('User registered success')
       }
 
@@ -362,7 +377,6 @@ const AdminPortal = () => {
               <option value='User'>User</option>
               <option value='Student'>Student</option>
               <option value='Tutor'>Tutor</option>
-              <option value='Moderator'>Moderator</option>
             </select>
           </div>
 
@@ -403,8 +417,9 @@ const AdminPortal = () => {
                   <td className='p-2 md:p-4 hidden md:table-cell'>{user.address}</td>
                   <td className='p-2 md:p-4'>
                     <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}
+                      className={`inline-block px-2 py-1 rounded-full text-xs md:text-sm ${
+                        user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}
                     >
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -414,8 +429,9 @@ const AdminPortal = () => {
                       <div className='flex flex-col md:flex-row gap-1 md:gap-2'>
                         <button
                           onClick={() => toggleActiveStatus(user.userID, user.isActive)}
-                          className={`text-xs md:text-sm p-1 md:p-2 rounded-lg transition-colors duration-300 ${user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-                            } text-white`}
+                          className={`text-xs md:text-sm p-1 md:p-2 rounded-lg transition-colors duration-300 ${
+                            user.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                          } text-white`}
                         >
                           {user.isActive ? 'Ban' : 'Unban'}
                         </button>
@@ -447,8 +463,9 @@ const AdminPortal = () => {
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className={`mx-1 px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'
-              }`}
+            className={`mx-1 px-3 py-1 rounded ${
+              currentPage === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-purple-500 text-white hover:bg-purple-600'
+            }`}
           >
             &laquo;
           </button>
@@ -482,8 +499,9 @@ const AdminPortal = () => {
                 <button
                   key={pageNum}
                   onClick={() => paginate(pageNum)}
-                  className={`mx-1 px-3 py-1 rounded ${currentPage === pageNum ? 'bg-purple-700 text-white' : 'bg-purple-200 hover:bg-purple-300'
-                    }`}
+                  className={`mx-1 px-3 py-1 rounded ${
+                    currentPage === pageNum ? 'bg-purple-700 text-white' : 'bg-purple-200 hover:bg-purple-300'
+                  }`}
                 >
                   {pageNum}
                 </button>
@@ -496,10 +514,11 @@ const AdminPortal = () => {
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={`mx-1 px-3 py-1 rounded ${currentPage === totalPages
-              ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-purple-500 text-white hover:bg-purple-600'
-              }`}
+            className={`mx-1 px-3 py-1 rounded ${
+              currentPage === totalPages
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-purple-500 text-white hover:bg-purple-600'
+            }`}
           >
             &raquo;
           </button>
@@ -606,12 +625,10 @@ const AdminPortal = () => {
                       onChange={handleFormChange}
                       className='w-full border border-gray-300 rounded-md p-2 text-sm bg-white'
                       required
-                    // Khóa trường Role khi đang edit
+                      // Khóa trường Role khi đang edit
                     >
                       <option value='Student'>Student</option>
                       <option value='Tutor'>Tutor</option>
-                      <option value='Moderator'>Moderator</option>
-                      <option value='Admin'>Admin</option>
                     </select>
                   </div>
                 </div>
@@ -820,9 +837,9 @@ const AdminPortal = () => {
           <p className='text-gray-500 mb-4'>No users match your search criteria</p>
           <button
             onClick={() => {
-              setSearchTerm('');
-              setSelectedRole('User');
-              filterUsers('', 'User');
+              setSearchTerm('')
+              setSelectedRole('User')
+              filterUsers('', 'User')
             }}
             className='bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors'
           >

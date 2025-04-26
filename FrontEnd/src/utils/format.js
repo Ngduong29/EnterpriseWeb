@@ -1,6 +1,6 @@
 export const formatVND = (amount) => {
   if (isNaN(amount)) return '0 ₫'
-  return (amount * 1000).toLocaleString('vi-VN', {
+  return parseInt(amount).toLocaleString('vi-VN', {
     style: 'currency',
     currency: 'vnd'
   })

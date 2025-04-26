@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { makeDelete, makeGet, makePostFormData, makePutFormData, makePost } from '../apiService/httpService.js'
 import { formatVND } from '../utils/format.js'
 import StarRating, { ReadonlyStarRating } from '../components/StarRating.jsx'
-
+import supabase from '../apiService/supabase.js'
 const AdminPortalClass = () => {
   const [classes, setClasses] = useState([])
   const [allClasses, setAllClasses] = useState([])
@@ -93,6 +93,8 @@ const AdminPortalClass = () => {
       .then((response) => {
         // Filter only users with Tutor role and active status
         const tutorsList = response.data.filter((user) => user.role === 'Tutor' && user.isActive === 1)
+        console.log(tutorsList)
+
         setTutors(tutorsList)
       })
       .catch((error) => {
@@ -215,14 +217,14 @@ const AdminPortalClass = () => {
     setSelectedStudents(selectedStudents.filter((student) => student.userID !== studentId))
   }
 
-  const handleSubmitStudents = (e) => {
+  const handleSubmitStudents = async (e) => {
     e.preventDefault()
     if (selectedStudents.length === 0) {
       toast.error('Please select at least one student')
       return
     }
 
-    makePost(`admin/assignStudents/${currentClassForStudents.classID}`, {
+    const res = await makePost(`admin/assignStudents/${currentClassForStudents.classID}`, {
       studentIDs: selectedStudents.map((student) => student.studentID)
     })
 
@@ -230,7 +232,20 @@ const AdminPortalClass = () => {
       classID: currentClassForStudents.classID,
       studentIDs: selectedStudents.map((student) => student.studentID)
     })
+    if (res) {
+      const insertStudents = selectedStudents.map((student) => ({
+        chat_room_id: currentClassForStudents.classID,
+        role: 'Student',
+        user_id: student.userID,
+        user_name: student.userName
+      }))
 
+      const { data, error } = await supabase.from('chat_room_members').insert(insertStudents).select()
+      if (error) {
+        console.error('failed to create chat room tutor:', error)
+        throw new Error('can not create class chat room tutor')
+      }
+    }
     console.log(`Adding the following students to class ${currentClassForStudents?.className}:`, selectedStudents)
     toast.success(`Successfully added ${selectedStudents.length} students to the class`)
     closeStudentModal()
@@ -242,7 +257,23 @@ const AdminPortalClass = () => {
     try {
       if (editingClass) {
         // Update class
-        await makePostFormData(`tutors/updateClasses/${editingClass.classID}`, formData)
+        const res = await makePostFormData(`tutors/updateClasses/${editingClass.classID}`, formData)
+        if (res) {
+          const updateRoom = {
+            name: formData.className,
+            tutor_id: formData.tutorID,
+            class_id: +res.data.classID
+          }
+          const { data, error } = await supabase
+            .from('chat_rooms')
+            .update(updateRoom)
+            .eq('class_id', +res.data.classID)
+            .select()
+          if (error) {
+            console.error('failed to update chat room:', error)
+            throw new Error('can not update class chat room')
+          }
+        }
         toast.success('Class updated successfully')
       } else {
         // Create FormData for file uploads
@@ -259,7 +290,36 @@ const AdminPortalClass = () => {
         }
 
         // Call API to create new class
-        await makePostFormData('tutors/createClasses', formDataToSend)
+        const res = await makePostFormData('tutors/createClasses', formDataToSend)
+        const updateRoom = {
+          name: formData.className,
+          tutor_id: formData.tutorID,
+          class_id: +res.data.classID
+        }
+        const { data, error } = await supabase.from('chat_rooms').insert([updateRoom]).select()
+        if (error) {
+          console.error('failed to create chat room:', error)
+          throw new Error('can not create class chat room')
+        }
+        if (data) {
+          const user_id = tutors.find((t) => t.tutorID === res.data.tutorID)?.userID
+          const user_name = tutors.find((t) => t.tutorID === res.data.tutorID)?.userName
+          const { data, error } = await supabase
+            .from('chat_room_members')
+            .insert([
+              {
+                chat_room_id: res.data.classID,
+                role: 'Tutor',
+                user_id: user_id,
+                user_name: user_name
+              }
+            ])
+            .select()
+          if (error) {
+            console.error('failed to create chat room tutor:', error)
+            throw new Error('can not create class chat room tutor')
+          }
+        }
         toast.success('New class created successfully')
       }
 
@@ -623,7 +683,7 @@ const AdminPortalClass = () => {
                   ></textarea>
                 </div>
 
-                {!editingClass && (
+                {/* {!editingClass && (
                   <div>
                     <label className='block text-gray-700 text-sm font-semibold mb-1'>Video File (optional)</label>
                     <input
@@ -633,7 +693,7 @@ const AdminPortalClass = () => {
                       className='w-full border border-gray-300 rounded-md p-2 text-sm'
                     />
                   </div>
-                )}
+                )} */}
               </div>
 
               <div className='flex justify-end space-x-3 mt-6'>
